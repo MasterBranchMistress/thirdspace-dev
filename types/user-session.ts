@@ -1,0 +1,20 @@
+export type SessionUser = {
+  id: string;
+  name: string;
+  username: string;
+  email: string;
+  avatar?: string;
+  interests?: string[];
+  favoriteLocations?: string[];
+  provider?: string;
+  isAdmin?: boolean;
+  karmaScore?: number;
+  qualityBadge?: "bronze" | "silver" | "gold" | "platinum";
+  eventsAttended?: number;
+  eventsHosted?: number;
+  lastMinuteCancels?: number;
+  bio?: string;
+  tags?: string[];
+  location?: string;
+  lang?: string;
+};
