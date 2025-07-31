@@ -7,8 +7,10 @@ import { Image } from "@heroui/react";
 import { videoSrc } from "@/utils/get-time-of-day/route";
 import { useToast } from "@/app/providers/ToastProvider";
 import { signIn } from "next-auth/react";
+import LoadingSpinner from "@/components/spinner/spinner";
 
 export default function LoginPage() {
+  const [loading, setLoading] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const [password, setPassword] = useState("");
   const router = useRouter();
@@ -18,6 +20,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
     const data = new FormData(e.currentTarget);
     const email = data.get("email");
     const password = data.get("password");
@@ -30,9 +33,11 @@ export default function LoginPage() {
 
     if (res?.error) {
       notify("Login Failed 😭", "Invalid email or password.");
+      setLoading(false);
       return;
     } else {
       router.push("/");
+      setLoading(false);
     }
   };
 
@@ -101,7 +106,7 @@ export default function LoginPage() {
             type="submit"
             className="w-full bg-purple-primary text-white bg-indigo font-bold hover:backdrop-blur-md hover:cursor-pointer hover:bg-indigo-600"
           >
-            Log In
+            {(loading && <LoadingSpinner />) || "Log In"}
           </Button>
           <div className="flex justify-center items-center gap-6 mt-2">
             <button className="hover:cursor-pointer">

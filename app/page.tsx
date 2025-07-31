@@ -4,14 +4,28 @@ import { Link } from "@heroui/link";
 import { Snippet } from "@heroui/snippet";
 import { Code } from "@heroui/code";
 import { button as buttonStyles } from "@heroui/theme";
-
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { siteConfig } from "@/config/site";
 import { title, subtitle } from "@/components/primitives";
 import { GithubIcon } from "@/components/icons";
 import { Button } from "@heroui/button";
 import { signOut } from "next-auth/react";
+import { useEffect } from "react";
+import LoadingPage from "@/components/spinner/loadingPage";
 
 export default function Home() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status]);
+
+  if (status === "loading") return <LoadingPage />;
+
   return (
     <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">
       <div className="inline-block max-w-xl text-center justify-center">

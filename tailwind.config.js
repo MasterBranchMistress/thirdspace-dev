@@ -32,6 +32,13 @@ const config = {
       colors: {
         focus: "#5c6cc4",
         concrete: "#f3f2f3",
+        primary: {
+          DEFAULT: "#5c6cc4",
+          foreground: "#ffffff",
+        },
+        secondary: {
+          DEFAULT: "#ffffff",
+        },
         indigo: {
           DEFAULT: "#5c6cc4",
           soft: "#4c64bc",
@@ -49,7 +56,7 @@ const config = {
       fill: (theme) => theme("colors"),
     },
   },
-  darkMode: "class",
+  darkMode: false,
   plugins: [heroui()],
 };
 

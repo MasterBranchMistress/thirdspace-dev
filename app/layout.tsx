@@ -3,7 +3,6 @@ import { Metadata, Viewport } from "next";
 import clsx from "clsx";
 
 import { Providers } from "./providers";
-import { ToastProvider } from "./providers/ToastProvider";
 
 import { siteConfig } from "@/config/site";
 import { fontSans } from "@/config/fonts";
@@ -45,7 +44,7 @@ export default function RootLayout({
           <div className="relative flex flex-col h-screen">
             {/* <Navbar /> */}
 
-            <main className="container mx-auto max-w-7xl pt-16 px-6 flex-grow">
+            <main className="container mx-auto max-w-7xl pt-16 px-6 flex-grow bg-indigo">
               {children}
             </main>
           </div>
