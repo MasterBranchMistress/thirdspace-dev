@@ -11,8 +11,6 @@ import FloatingBackButton from "@/components/navigation/floatingBackButton";
 import PasswordStep from "@/components/register-forms/password";
 import { handleRegisterUser } from "@/utils/frontend-backend-connection/handleRegisterUser";
 import { useToast } from "../providers/ToastProvider";
-import Confetti from "react-confetti";
-import { useWindowSize } from "@uidotdev/usehooks";
 
 export default function RegisterForm() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -20,8 +18,6 @@ export default function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [bio, setBio] = useState("");
-  const [showConfetti, setShowConfetti] = useState(false);
-  const { width, height } = useWindowSize();
 
   const router = useRouter();
   const { notify } = useToast();
@@ -29,12 +25,6 @@ export default function RegisterForm() {
   const goToStep = (step: number) => {
     setCurrentStep(step);
   };
-  useEffect(() => {
-    if (showConfetti) {
-      const timeout = setTimeout(() => setShowConfetti(false), 3000);
-      return () => clearTimeout(timeout);
-    }
-  }, [showConfetti]);
 
   const onBack = (step: number) => {
     if (step > 0) setCurrentStep(step - 1);
@@ -54,8 +44,6 @@ export default function RegisterForm() {
 
   return (
     <div className="relative animate-fade-in min-h-screen w-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-pink-200 via-purple-100 to-white">
-      {showConfetti && <Confetti width={width ?? 500} height={height ?? 500} />}
-
       <ParticalBackground />
       <FloatingBackButton onClick={() => onBack(currentStep)} />
       {currentStep === 0 && (

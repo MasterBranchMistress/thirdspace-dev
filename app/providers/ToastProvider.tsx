@@ -27,7 +27,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         <Toast.Root
           open={open}
           onOpenChange={setOpen}
-          className="bg-lilac-soft text-white text-center px-4 py-2 rounded data-[state=open]:animate-fade-in data-[state=closed]:animate-fadeOut"
+          className="bg-lilac-soft text-white text-center px-4 py-2 rounded data-[state=open]:animate-appearance-in data-[state=closed]:animate-appearance-out"
         >
           <Toast.Title className="font-bold">{toastTitle}</Toast.Title>
           <Toast.Description>{toastDesc}</Toast.Description>

@@ -19,12 +19,12 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    if (status === "unauthenticated") {
+    if (!session) {
       router.push("/login");
     }
-  }, [status]);
+  }, [session]);
 
-  if (status === "loading") return <LoadingPage />;
+  if (!session) return <LoadingPage />;
 
   return (
     <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">

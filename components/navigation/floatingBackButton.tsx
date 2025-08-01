@@ -19,7 +19,7 @@ export default function FloatingBackButton({ onClick }: Props) {
     >
       <button
         onClick={onClick}
-        className="absolute bottom-6 left-20 z-20 flex items-center space-x-2 hover:animate-pulse"
+        className="absolute bottom-6 left-20 z-20 flex items-center animate-pulse space-x-2 hover:animate-point-left"
       >
         <Image
           src={backButton}

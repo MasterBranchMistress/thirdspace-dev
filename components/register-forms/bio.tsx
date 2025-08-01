@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Form, Button, Textarea } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import Typewriter from "typewriter-effect";
@@ -8,6 +8,7 @@ import FloatingForwardButton from "../navigation/floatingForwardButton";
 import Image from "next/image";
 import ThirdSpaceLogo from "../../public/third-space-logos/thirdspace-logo-3.png";
 import { useToast } from "@/app/providers/ToastProvider";
+import { Checkbox } from "@heroui/react";
 
 interface BioStepProps {
   bio: string;
@@ -21,6 +22,7 @@ export default function BioStep({ bio, setBio, handleSubmit }: BioStepProps) {
 
   const [showForm, setShowForm] = useState(false);
   const [showTyping, setShowTyping] = useState(true);
+  const [agreed, setAgreed] = useState(false);
   const { notify } = useToast();
 
   const skipIntro = () => {
@@ -39,6 +41,15 @@ export default function BioStep({ bio, setBio, handleSubmit }: BioStepProps) {
       return true;
     }
   };
+
+  const handleTanC = () => {
+    setAgreed((prev) => !prev); // this guarantees proper toggling
+  };
+
+  useEffect(() => {
+    console.log("T&C checkbox changed:", agreed);
+    // You can trigger analytics, show a toast, or conditionally unlock stuff here
+  }, [agreed]);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
@@ -104,8 +115,29 @@ export default function BioStep({ bio, setBio, handleSubmit }: BioStepProps) {
                   boxShadow: "0 0 0px 1000px transparent inset",
                 }}
               />
+              <div className="flex flex-row space-x-2 align-middle justify-center">
+                <Checkbox
+                  onChange={handleTanC}
+                  isSelected={agreed}
+                  radius="md"
+                  className="bg-transparent text-white"
+                ></Checkbox>
+
+                <span className="text-white text-sm z-20">
+                  I agree to the{" "}
+                  <a
+                    href="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white underline hover:text-indigo-300"
+                  >
+                    terms and conditions
+                  </a>
+                </span>
+              </div>
               <div className="flex flex-col sm:flex-row w-full">
                 <Button
+                  isDisabled={!agreed}
                   type="submit"
                   className="w-full sm:w-1/2 bg-transparent text-purple-primary font-bold rounded-md py-2 border-none transition-all duration-300"
                 >

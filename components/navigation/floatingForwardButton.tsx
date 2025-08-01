@@ -18,7 +18,7 @@ export default function FloatingForwardButton({ skipIntro }: Props) {
     >
       <button
         onClick={skipIntro}
-        className="absolute bottom-6 right-20 z-20 flex items-center space-x-2 hover:animate-pulse"
+        className="absolute bottom-6 right-20 animate-pulse z-20 flex items-center space-x-2 hover:animate-point-right"
       >
         <Image
           isZoomed
