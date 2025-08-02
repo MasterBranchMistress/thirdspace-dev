@@ -28,7 +28,10 @@ const config = {
         sans: ["var(--font-sans)"],
         mono: ["var(--font-mono)"],
       },
-
+      textShadow: {
+        subtle: "0px 0px 4px rgba(255, 255, 255, 0.4)",
+        glow: "0px 0px 6px rgba(255, 255, 255, 0.6)",
+      },
       colors: {
         focus: "#5c6cc4",
         concrete: "#f3f2f3",

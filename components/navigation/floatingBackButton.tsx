@@ -12,11 +12,7 @@ interface Props {
 
 export default function FloatingBackButton({ onClick }: Props) {
   return (
-    <Tooltip
-      content="Go Back"
-      delay={1000}
-      className="bg-transparent text-purple-bold"
-    >
+    <Tooltip content="Go Back" className="bg-transparent text-purple-bold">
       <button
         onClick={onClick}
         className="absolute bottom-6 left-20 z-20 flex items-center animate-pulse space-x-2 hover:animate-point-left"

@@ -3,6 +3,7 @@
 import { Form, Input, Button } from "@heroui/react";
 import { useState } from "react";
 import { useToast } from "@/app/providers/ToastProvider";
+import { useRouter } from "next/navigation";
 import Typewriter from "typewriter-effect";
 import Image from "next/image";
 import ThirdSpaceLogo from "../../public/third-space-logos/thirdspace-logo-3.png";
@@ -17,22 +18,11 @@ interface NameStepProps {
 export default function NameStep({ name, setName, onNext }: NameStepProps) {
   const [showForm, setShowForm] = useState(false);
   const [showTyping, setShowTyping] = useState(true);
+  const router = useRouter();
 
   const skipIntro = () => {
     setShowTyping(false);
     setShowForm(true);
-  };
-  const { notify } = useToast();
-
-  const handleErrors = (name: string) => {
-    if (!name) {
-      notify("Name Missing 😵", "How would we know what call you?");
-      return true;
-    }
-    if (name.length < 10) {
-      notify("Name Too Short 😿", "We need a longer name.");
-      return true;
-    }
   };
 
   return (
@@ -75,17 +65,16 @@ export default function NameStep({ name, setName, onNext }: NameStepProps) {
         {showForm && (
           <>
             <Image
+              onClick={() => router.push("/")}
               src={ThirdSpaceLogo}
               height={250}
               width={250}
               alt="thirdspace logo"
-              className="animate-slide-up z-20 py-3"
+              className="animate-slide-up z-20 py-3 hover:cursor-pointer"
             />
             <Form
               onSubmit={(e) => {
                 e.preventDefault();
-                const isInvalid = handleErrors(name);
-                if (isInvalid) return;
                 if (name) onNext();
               }}
               className="w-full max-w-sm space-y-4 animate-fade-in text-center"
@@ -107,8 +96,9 @@ export default function NameStep({ name, setName, onNext }: NameStepProps) {
               />
               <div className="flex flex-col sm:flex-row gap-4 w-full">
                 <Button
+                  isDisabled={name.length < 8}
                   type="submit"
-                  className="w-full bg-transparent text-purple-primary font-bold rounded-md py-2 border-none transition-all duration-300"
+                  className="w-full bg-transparent text-purple-primary font-bold rounded-md py-2 border-none transition-all duration-300 hover:animate-pulse"
                 >
                   Let’s Go 🙌
                 </Button>

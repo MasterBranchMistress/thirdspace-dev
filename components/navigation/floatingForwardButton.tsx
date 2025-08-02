@@ -11,11 +11,7 @@ interface Props {
 
 export default function FloatingForwardButton({ skipIntro }: Props) {
   return (
-    <Tooltip
-      content="Next Step"
-      delay={1000}
-      className="bg-transparent text-purple-bold"
-    >
+    <Tooltip content="Next Step" className="bg-transparent text-purple-bold">
       <button
         onClick={skipIntro}
         className="absolute bottom-6 right-20 animate-pulse z-20 flex items-center space-x-2 hover:animate-point-right"

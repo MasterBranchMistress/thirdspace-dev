@@ -1,7 +1,7 @@
 "use client";
 
 import { Form, Input, Button } from "@heroui/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Typewriter from "typewriter-effect";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
@@ -9,6 +9,10 @@ import Image from "next/image";
 import ThirdSpaceLogo from "../../public/third-space-logos/thirdspace-logo-3.png";
 import FloatingForwardButton from "../navigation/floatingForwardButton";
 import { useToast } from "@/app/providers/ToastProvider";
+import {
+  getPasswordStrength,
+  PasswordStrength,
+} from "@/utils/password-strength/passwordStrength";
 
 interface PasswordStepProps {
   password: string;
@@ -23,6 +27,7 @@ export default function PasswordStep({
 }: PasswordStepProps) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [passwordStrength, setpasswordStrength] = useState("Weak");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const router = useRouter();
@@ -31,18 +36,33 @@ export default function PasswordStep({
     setShowTyping(false);
     setShowForm(true);
   };
-  const { notify } = useToast();
 
-  const validatePasswords = (password: string) => {
-    if (!password) {
-      notify("No password entered 😵", "Maybe something is missing here.");
-      return true;
-    }
-    if (password !== confirmPassword) {
-      notify("Password Mismatch 😔", "Cool password, but these don't match.");
-      return true;
-    }
+  const handlePasswordChange = (val: string) => {
+    setPassword(val);
+    setpasswordStrength(getPasswordStrength(val));
   };
+
+  const strengthShadow = useMemo(() => {
+    const shadows: Record<PasswordStrength, string> = {
+      Weak: "text-white text-shadow-[0_0_4px_red]",
+      Okay: "text-white text-shadow-[0_0_4px_yellow]",
+      Strong: "text-white text-shadow-[0_0_4px_green]",
+    };
+
+    return shadows[passwordStrength as "Weak" | "Okay" | "Strong"];
+  }, [passwordStrength]);
+
+  const getEmoji = () => {
+    if (passwordStrength === "Weak") return "🤕";
+    if (passwordStrength === "Okay") return "🤏";
+    if (passwordStrength === "Strong") return "💪";
+  };
+
+  const passwordInvalid =
+    passwordStrength === "Weak" ||
+    passwordStrength === "Okay" ||
+    !password ||
+    password !== confirmPassword;
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
@@ -75,17 +95,16 @@ export default function PasswordStep({
         {showForm && (
           <>
             <Image
+              onClick={() => router.push("/")}
               src={ThirdSpaceLogo}
               height={250}
               width={250}
               alt="thirdspace logo"
-              className="animate-slide-up z-20 py-3"
+              className="animate-slide-up z-20 py-3 hover:cursor-pointer"
             />
             <Form
               onSubmit={(e) => {
                 e.preventDefault();
-                const isInvalid = validatePasswords(password);
-                if (isInvalid) return;
                 onNext();
               }}
               className="w-full max-w-sm space-y-4 animate-fade-in text-center"
@@ -95,20 +114,22 @@ export default function PasswordStep({
                 placeholder="Enter Password"
                 type={showPassword ? "text" : "password"}
                 value={password}
-                onValueChange={setPassword}
+                onValueChange={handlePasswordChange}
                 endContent={
-                  <div className="flex items-center justify-end w-full pr-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      className="flex items-center justify-center"
-                    >
-                      {showPassword ? (
-                        <EyeSlashIcon className="h-5 w-5 text-purple-primary" />
-                      ) : (
-                        <EyeIcon className="h-5 w-5 text-purple-primary" />
-                      )}
-                    </button>
+                  <div className="flex flex-col">
+                    <div className="flex items-center justify-end w-full pr-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="flex items-center justify-center"
+                      >
+                        {showPassword ? (
+                          <EyeSlashIcon className="h-5 w-5" />
+                        ) : (
+                          <EyeIcon className="h-5 w-5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 }
                 classNames={{
@@ -121,6 +142,9 @@ export default function PasswordStep({
                   boxShadow: "0 0 0px 1000px transparent inset",
                 }}
               />
+              <p className={`w-full z-20 text-sm font-bold ${strengthShadow}`}>
+                Password Strength: {passwordStrength} <span>{getEmoji()}</span>
+              </p>
 
               <Input
                 name="confirmPassword"
@@ -154,8 +178,9 @@ export default function PasswordStep({
 
               <div className="flex flex-col sm:flex-row w-full">
                 <Button
+                  isDisabled={passwordInvalid}
                   type="submit"
-                  className="w-full sm:w-1/2 bg-transparent text-purple-primary font-bold rounded-md py-2 border-none hover:animate-pulse-slow"
+                  className="w-full sm:w-1/2 bg-transparent text-purple-primary font-bold rounded-md py-2 border-none hover:animate-pulse"
                 >
                   So secure 👍
                 </Button>
@@ -163,7 +188,7 @@ export default function PasswordStep({
                 <Button
                   type="button"
                   onPress={() => router.push("/login")}
-                  className="w-full sm:w-1/2 bg-transparent border-none text-pink-primary rounded-md py-2 font-bold hover:animate-pulse-slow"
+                  className="w-full sm:w-1/2 bg-transparent border-none text-pink-primary rounded-md py-2 font-bold hover:animate-pulse"
                 >
                   No thanks 🙅‍♀️
                 </Button>

@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import ThirdSpaceLogo from "../../public/third-space-logos/thirdspace-logo-3.png";
 import FloatingForwardButton from "../navigation/floatingForwardButton";
-import { useToast } from "@/app/providers/ToastProvider";
 
 interface EmailStepProps {
   email: string;
@@ -23,17 +22,17 @@ export default function EmailStep({ email, setEmail, onNext }: EmailStepProps) {
     setShowForm(true);
   };
   const router = useRouter();
-  const { notify } = useToast();
-  const handleErrors = (email: string) => {
-    if (!email) {
-      notify("Email Missing 😵", "You have one of those, right? ... right??");
-      return true;
-    }
-    if (!email.includes("@")) {
-      notify("Invalid email 😿", "Literally anything with '@' will do. lol.'");
-      return true;
-    }
-  };
+  const allowedDomains = [
+    "@gmail.com",
+    "@yahoo.com",
+    "@outlook.com",
+    "@icloud.com",
+  ];
+
+  //TODO: setup zod to validate on the backendS
+  const isEmailValid =
+    email.length > 5 && allowedDomains.some((domain) => email.endsWith(domain));
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="min-h-screen flex items-center justify-center px-4">
@@ -70,23 +69,22 @@ export default function EmailStep({ email, setEmail, onNext }: EmailStepProps) {
           {showForm && (
             <>
               <Image
+                onClick={() => router.push("/")}
                 src={ThirdSpaceLogo}
                 height={250}
                 width={250}
                 alt="thirdspace logo"
-                className="animate-slide-up z-20 py-3"
+                className="animate-slide-up z-20 py-3 hover:cursor-pointer"
               />
               <Form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  const isInvalid = handleErrors(email);
-                  if (isInvalid) return;
                   onNext();
                 }}
                 className="w-full max-w-sm space-y-4 animate-fade-in"
               >
                 <Input
-                  name="name"
+                  name="email"
                   placeholder="What's your email?"
                   value={email}
                   onValueChange={setEmail}
@@ -102,8 +100,9 @@ export default function EmailStep({ email, setEmail, onNext }: EmailStepProps) {
                 />
                 <div className="flex flex-col sm:flex-row w-full">
                   <Button
+                    isDisabled={!isEmailValid}
                     type="submit"
-                    className="w-full sm:w-1/2 bg-transparent text-purple-primary font-bold rounded-md py-2 border-none transition-all duration-300"
+                    className="w-full sm:w-1/2 bg-transparent text-purple-primary font-bold rounded-md py-2 border-none transition-all duration-300 hover:animate-pulse"
                   >
                     Sounds Good 👍
                   </Button>
@@ -111,7 +110,7 @@ export default function EmailStep({ email, setEmail, onNext }: EmailStepProps) {
                   <Button
                     type="button"
                     onPress={() => router.push("/login")}
-                    className="w-full sm:w-1/2 bg-transparent border-none text-pink-primary rounded-md py-2 font-bold hover:animate-pulse-slow"
+                    className="w-full sm:w-1/2 bg-transparent border-none text-pink-primary rounded-md py-2 font-bold hover:animate-pulse"
                   >
                     Gotta Go 🏃‍♀️
                   </Button>

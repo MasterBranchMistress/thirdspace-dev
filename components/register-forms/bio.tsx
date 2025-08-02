@@ -23,7 +23,6 @@ export default function BioStep({ bio, setBio, handleSubmit }: BioStepProps) {
   const [showForm, setShowForm] = useState(false);
   const [showTyping, setShowTyping] = useState(true);
   const [agreed, setAgreed] = useState(false);
-  const { notify } = useToast();
 
   const skipIntro = () => {
     setShowTyping(false);
@@ -31,24 +30,14 @@ export default function BioStep({ bio, setBio, handleSubmit }: BioStepProps) {
   };
   const router = useRouter();
 
-  const handleErrors = (bio: string) => {
-    if (!bio) {
-      notify("Bio Missing 😵", "ohh the silent type, huh? 😏");
-      return true;
-    }
-    if (bio.length < 50) {
-      notify("Bio Too Short 😿", "Don't be shy. We love you ❤️");
-      return true;
-    }
-  };
+  const bioInvalid = !bio || bio.length < 50;
 
   const handleTanC = () => {
     setAgreed((prev) => !prev); // this guarantees proper toggling
   };
 
   useEffect(() => {
-    console.log("T&C checkbox changed:", agreed);
-    // You can trigger analytics, show a toast, or conditionally unlock stuff here
+    //trigger analytics, show a toast, or conditionally unlock stuff here
   }, [agreed]);
 
   return (
@@ -85,17 +74,16 @@ export default function BioStep({ bio, setBio, handleSubmit }: BioStepProps) {
         {showForm && (
           <>
             <Image
+              onClick={() => router.push("/")}
               src={ThirdSpaceLogo}
               height={250}
               width={250}
               alt="thirdspace logo"
-              className="animate-slide-up z-20 py-3"
+              className="animate-slide-up z-20 py-3 hover:cursor-pointer"
             />
             <Form
               onSubmit={(e) => {
                 e.preventDefault();
-                const isInvalid = handleErrors(bio);
-                if (isInvalid) return;
                 handleSubmit();
               }}
               className="w-full max-w-sm space-y-4 animate-fade-in text-center"
@@ -137,11 +125,11 @@ export default function BioStep({ bio, setBio, handleSubmit }: BioStepProps) {
               </div>
               <div className="flex flex-col sm:flex-row w-full">
                 <Button
-                  isDisabled={!agreed}
+                  isDisabled={bioInvalid || !agreed}
                   type="submit"
-                  className="w-full sm:w-1/2 bg-transparent text-purple-primary font-bold rounded-md py-2 border-none transition-all duration-300"
+                  className="w-full sm:w-1/2 bg-transparent text-purple-primary font-bold rounded-md py-2 border-none transition-all duration-300 hover:animate-pulse"
                 >
-                  Connect me!
+                  Connect me 👉
                 </Button>
 
                 <Button
@@ -149,7 +137,7 @@ export default function BioStep({ bio, setBio, handleSubmit }: BioStepProps) {
                   onPress={() => router.push("/login")}
                   className="w-full sm:w-1/2 bg-transparent border-none text-pink-primary rounded-md py-2 font-bold hover:animate-pulse-slow"
                 >
-                  It&apos;s a secret.
+                  It&apos;s a secret 🤐
                 </Button>
               </div>
             </Form>
