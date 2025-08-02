@@ -1,6 +1,6 @@
 "use client";
 
-import { Form, Input, Button } from "@heroui/react";
+import { Form, Input, Button, Spinner } from "@heroui/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Image } from "@heroui/react";
@@ -41,6 +41,14 @@ export default function LoginPage() {
     } else {
       router.push("/dashboard");
       setLoading(false);
+    }
+  };
+
+  const getLoginText = () => {
+    if (loading) {
+      return <LoadingSpinner />;
+    } else {
+      return "Log In";
     }
   };
 
@@ -124,13 +132,17 @@ export default function LoginPage() {
               Forgot password?
             </button>
           </div>
+
           <Button
             type="submit"
-            className="w-full bg-purple-primary text-white bg-indigo font-bold hover:backdrop-blur-md hover:cursor-pointer hover:bg-indigo-600"
+            isLoading={loading}
+            spinner={<LoadingSpinner />}
+            className="w-full flex items-center justify-center gap-2 bg-purple-primary bg-transparent text-concrete border-2 border-concrete font-bold hover:backdrop-blur-md hover:cursor-pointer"
             isDisabled={!password || !email || !emailIsValid}
           >
-            {(loading && <LoadingSpinner />) || "Log In"}
+            {!loading && "Login"}
           </Button>
+
           <div className="flex justify-center items-center gap-6 mt-2">
             <button className="hover:cursor-pointer">
               <Image

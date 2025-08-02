@@ -60,7 +60,10 @@ export default function NavBar() {
   const user = session?.user;
 
   return (
-    <Navbar isBordered className="bg-concrete justify-center">
+    <Navbar
+      isBordered
+      className="bg-concrete justify-center animate-appearance-in"
+    >
       <div className="absolute left-1/2 transform -translate-x-1/2">
         <Image
           src="/third-space-logos/thirdspace-logo-4.png"
@@ -69,7 +72,11 @@ export default function NavBar() {
         />
       </div>
 
-      <NavbarContent as="div" className="items-center" justify="end">
+      <NavbarContent
+        as="div"
+        className="items-center animate-appearance-in"
+        justify="end"
+      >
         {user && (
           <Dropdown placement="bottom-end">
             <Badge

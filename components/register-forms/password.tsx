@@ -8,7 +8,6 @@ import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import ThirdSpaceLogo from "../../public/third-space-logos/thirdspace-logo-3.png";
 import FloatingForwardButton from "../navigation/floatingForwardButton";
-import { useToast } from "@/app/providers/ToastProvider";
 import {
   getPasswordStrength,
   PasswordStrength,

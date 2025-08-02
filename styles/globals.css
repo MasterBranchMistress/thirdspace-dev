@@ -1,18 +1,84 @@
 @import "tailwindcss";
-
 @config "../tailwind.config.js";
+
+/* -----------------------------
+   🎨 Theme Custom Overrides
+------------------------------ */
 
 .bg-content1 {
   background-color: #5c6cc4;
 }
 
-.group-data-\[focus\=true\]\:bg-default-100:is(
-    :where(.group)[data-focus="true"] *
-  ) {
+/* -----------------------------
+   ✨ Global Form Transitions
+   (soft hover/focus across app)
+------------------------------ */
+
+input,
+textarea,
+select,
+button,
+[data-hover="true"],
+[data-focus="true"],
+[data-focus-visible="true"] {
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* -----------------------------
+   💅 Soft Hover & Focus States
+   for HeroUI / Grouped Components
+------------------------------ */
+
+/* Remove jarring background on focus (HeroUI uses group[data-focus]) */
+:where(.group)[data-focus="true"] * {
+  background-color: transparent; /* or transparent if preferred */
+}
+
+/* Remove ring offset highlight on keyboard focus */
+:where(.group)[data-focus-visible="true"] * {
+  --tw-ring-offset-color: transparent;
+  background-color: transparent; /* optional: soft background */
+}
+
+/* Optional: soften hover for grouped items */
+:where(.group)[data-hover="true"] * {
   background-color: transparent;
 }
-.group-data-\[focus-visible\=true\]\:ring-offset-background:is(
-    :where(.group)[data-focus-visible="true"] *
-  ) {
+
+/* -----------------------------
+   🌒 Dark Mode Matching
+   (Optional for smooth contrast)
+------------------------------ */
+
+@media (prefers-color-scheme: dark) {
+  :where(input, textarea, select):is(
+      [data-hover="true"],
+      [data-focus="true"],
+      [data-focus-visible="true"]
+    ) {
+    background-color: transparent;
+  }
+}
+
+/* Remove default focus outline/ring from icon buttons */
+button[data-focus="true"],
+button[data-focus-visible="true"] {
+  outline: none;
+  box-shadow: none;
+  --tw-ring-color: transparent;
   --tw-ring-offset-color: transparent;
+}
+
+/* Optional: replace with soft background on tab focus */
+button[data-focus-visible="true"] {
+  background-color: transparent; /* or use theme color */
+}
+
+button[aria-label="Show password"]:focus-visible {
+  outline: none;
+  box-shadow: none;
+  background-color: transparent;
+  border-radius: 6px; /* if you want a soft focus indicator */
 }
