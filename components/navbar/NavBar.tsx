@@ -2,11 +2,7 @@
 
 import {
   Navbar,
-  NavbarBrand,
   NavbarContent,
-  NavbarItem,
-  Link,
-  Input,
   DropdownItem,
   DropdownTrigger,
   Dropdown,
@@ -74,9 +70,14 @@ export default function NavBar() {
       </div>
 
       <NavbarContent as="div" className="items-center" justify="end">
-        {user ? (
+        {user && (
           <Dropdown placement="bottom-end">
-            <Badge color="primary" content={6} placement="bottom-right">
+            <Badge
+              color="primary"
+              content={""}
+              placement="top-right"
+              className="animate-pulse"
+            >
               <DropdownTrigger>
                 <Avatar
                   isBordered
@@ -102,50 +103,49 @@ export default function NavBar() {
                 </p>
               </DropdownItem>
               <DropdownItem
-                key="messages"
-                color="warning" //It's dark blue. Dont kill me :)
+                key={"event"}
+                color="warning" /*its dark blue. Dont kill me :)*/
                 endContent={
-                  <span className="bg-concrete text-indigo text-xs font-semibold px-2 py-0.5 rounded-md">
-                    1
-                  </span>
-                }
-              >
-                Messages
-              </DropdownItem>
-
-              <DropdownItem
-                key="events"
-                color="warning" //It's dark blue. Dont kill me :)
-                endContent={
-                  <span className="bg-concrete text-indigo text-xs font-semibold px-2 py-0.5 rounded-md">
-                    2
-                  </span>
+                  <div className="w-5 h-4 rounded-md bg-concrete text-primary text-sm flex items-center justify-center align-middle">
+                    {3}
+                  </div>
                 }
               >
                 Events
               </DropdownItem>
               <DropdownItem
-                key="invites"
-                color="warning" //It's dark blue. Dont kill me :)
+                key={"invites"}
+                color="warning"
                 endContent={
-                  <span className="bg-concrete text-indigo text-xs font-semibold px-2 py-0.5 rounded-md">
-                    3
-                  </span>
+                  <div className="w-5 h-4 rounded-md bg-concrete text-primary text-sm flex items-center justify-center align-middle">
+                    {1}
+                  </div>
                 }
               >
                 Invites
               </DropdownItem>
               <DropdownItem
-                key="settings"
-                color="warning" //It's dark blue. Dont kill me :)
-                endContent={<Cog6ToothIcon width={22} />}
+                key={"messages"}
+                color="warning"
+                endContent={
+                  <div className="w-5 h-4 rounded-md bg-concrete text-primary text-sm flex items-center justify-center align-middle">
+                    {1}
+                  </div>
+                }
               >
-                Edit Profile
+                Messages
               </DropdownItem>
               <DropdownItem
-                key="search"
-                color="warning" //It's dark blue. Dont kill me :)
-                endContent={<MagnifyingGlassIcon width={22} />}
+                key={"settings"}
+                color="warning"
+                endContent={<Cog6ToothIcon width={20} />}
+              >
+                Settings
+              </DropdownItem>
+              <DropdownItem
+                key={"search"}
+                color="warning"
+                endContent={<SearchIcon width={20} />}
               >
                 Search
               </DropdownItem>
@@ -153,21 +153,12 @@ export default function NavBar() {
                 key="logout"
                 color="danger"
                 onClick={() => signOut({ callbackUrl: "/login" })}
-                endContent={<ArrowLeftStartOnRectangleIcon width={22} />}
+                endContent={<ArrowLeftStartOnRectangleIcon width={20} />}
               >
                 Log Out
               </DropdownItem>
             </DropdownMenu>
           </Dropdown>
-        ) : (
-          <>
-            <NavbarItem>
-              <Link href="/login">Log In</Link>
-            </NavbarItem>
-            <NavbarItem>
-              <Link href="/register">Sign Up</Link>
-            </NavbarItem>
-          </>
         )}
       </NavbarContent>
     </Navbar>

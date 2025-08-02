@@ -10,6 +10,7 @@ import NavBar from "@/components/navbar/NavBar";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { redirect } from "next/navigation";
+import LoadingPage from "@/components/spinner/LoadingPage";
 
 export const metadata: Metadata = {
   title: {
@@ -50,7 +51,7 @@ export default async function RootLayout({
         <Providers themeProps={{ attribute: "class", defaultTheme: "light" }}>
           <div className="relative flex flex-col h-screen">
             <NavBar />
-            <main className="relative z-0 container mx-auto max-w-7xl pt-16 px-6 flex-grow bg-indigo">
+            <main className="relative z-0 container mx-auto max-w-7xl pt-16 px-6 flex-grow bg-concrete">
               {children}
             </main>
           </div>
