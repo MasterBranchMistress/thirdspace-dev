@@ -42,8 +42,8 @@ export default function BioStep({ bio, setBio, handleSubmit }: BioStepProps) {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="max-w-xl flex flex-col space-y-4 items-center text-center bg-transparent">
-        <div className="text-xl font-semibold text-purple-primary min-h-[60px] z-20">
+      <div className="max-w-xl flex flex-col space-y-6 items-center text-center bg-transparent">
+        <div className="text-xl font-semibold text-purple-primary z-20">
           {!showForm && <FloatingForwardButton skipIntro={skipIntro} />}
           {showTyping && (
             <Typewriter
@@ -74,19 +74,19 @@ export default function BioStep({ bio, setBio, handleSubmit }: BioStepProps) {
         {showForm && (
           <>
             <Image
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/login")}
               src={ThirdSpaceLogo}
               height={250}
               width={250}
               alt="thirdspace logo"
-              className="animate-slide-up z-20 py-3 hover:cursor-pointer"
+              className="animate-appearance-in z-20 py-3 hover:cursor-pointer"
             />
             <Form
               onSubmit={(e) => {
                 e.preventDefault();
                 handleSubmit();
               }}
-              className="w-full max-w-sm space-y-4 animate-fade-in text-center"
+              className="w-full max-w-sm space-y-4 animate-appearance-in text-center"
             >
               <Textarea
                 name="bio"
@@ -103,7 +103,7 @@ export default function BioStep({ bio, setBio, handleSubmit }: BioStepProps) {
                   boxShadow: "0 0 0px 1000px transparent inset",
                 }}
               />
-              <div className="flex flex-row space-x-2 align-middle justify-center">
+              <div className="flex flex-row space-x-2 align-middle justify-center animate-appearance-in">
                 <Checkbox
                   onChange={handleTanC}
                   isSelected={agreed}

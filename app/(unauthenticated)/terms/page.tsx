@@ -37,7 +37,7 @@ export default function TermsPage() {
           <p>
             Your privacy matters. We only use your data to improve the platform.
             We will never sell your information to third parties. See our{" "}
-            <Link href="/privacy" className="text-indigo-400 underline">
+            <Link href="/privacy" className="text-indigo-700 underline">
               Privacy Policy
             </Link>{" "}
             for details.
@@ -67,7 +67,7 @@ export default function TermsPage() {
             Questions? Contact us at{" "}
             <a
               href="mailto:support@thirdspace.app"
-              className="text-indigo-400 underline"
+              className="text-indigo-700 underline"
             >
               support@thirdspace.app
             </a>

@@ -3,9 +3,13 @@ import { Metadata, Viewport } from "next";
 import clsx from "clsx";
 
 import { Providers } from "./providers";
-
 import { siteConfig } from "@/config/site";
 import { fontSans } from "@/config/fonts";
+import NavBar from "@/components/navbar/NavBar";
+
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: {
@@ -25,11 +29,15 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    redirect("/login");
+  }
   return (
     <html suppressHydrationWarning lang="en">
       <head />
@@ -39,10 +47,9 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
-        <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
+        <Providers themeProps={{ attribute: "class", defaultTheme: "light" }}>
           <div className="relative flex flex-col h-screen">
-            {/* <Navbar /> */}
-
+            <NavBar />
             <main className="relative z-0 container mx-auto max-w-7xl pt-16 px-6 flex-grow bg-indigo">
               {children}
             </main>

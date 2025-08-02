@@ -2,13 +2,14 @@ import { useRouter } from "next/navigation";
 
 // lib/api/handleRegisterUser.ts
 export const handleRegisterUser = async (
-  name: string,
+  firstName: string,
+  lastName: string,
   email: string,
   password: string,
   bio: string,
   router: ReturnType<typeof useRouter>
 ) => {
-  if (!name || !email || !password || !bio) {
+  if (!firstName || !lastName || !email || !password || !bio) {
     // toast.error("Please complete all fields");
     return;
   }
@@ -20,7 +21,8 @@ export const handleRegisterUser = async (
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        name,
+        firstName,
+        lastName,
         email,
         password,
         bio,

@@ -42,6 +42,10 @@ const config = {
         secondary: {
           DEFAULT: "#ffffff",
         },
+        warning: {
+          DEFAULT: "#4962BF",
+          foreground: "#ffffff",
+        },
         indigo: {
           DEFAULT: "#5c6cc4",
           soft: "#4c64bc",

@@ -8,11 +8,12 @@ import { getGravatarUrl } from "@/utils/gravatar";
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, password } = await req.json();
+    const { firstName, lastName, email, password } = await req.json();
     const missing = [];
     if (!email) missing.push("email");
     if (!password) missing.push("password");
-    if (!name) missing.push("name");
+    if (!firstName) missing.push("firstName");
+    if (!lastName) missing.push("lastName");
 
     if (missing.length > 0) {
       return NextResponse.json(
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     const baseUserDefaults: Omit<
       UserDoc,
-      "name" | "email" | "username" | "passwordHash" | "_id"
+      "firstName" | "lastName" | "email" | "username" | "passwordHash" | "_id"
     > = {
       provider: "credentials",
       avatar: getGravatarUrl(email),
@@ -78,7 +79,8 @@ export async function POST(req: NextRequest) {
 
     const newUser: UserDoc = {
       _id: new ObjectId(),
-      name,
+      firstName,
+      lastName,
       email,
       username: generateAnonUsername(),
       passwordHash,
@@ -89,7 +91,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
-        message: `Profile ${name} successfuly registered!`,
+        message: `Profile ${firstName} successfuly registered!`,
       },
       { status: 201 }
     );

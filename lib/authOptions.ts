@@ -33,11 +33,12 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        console.log(`✅ Successful login for ${user.name}`);
+        console.log(`✅ Successful login for ${user.firstName}`);
 
         return {
           id: user._id.toString(),
-          name: user.name,
+          firstName: user.firstName,
+          lastName: user.lastName,
           email: user.email,
           username: user.username,
           avatar: user.avatar,

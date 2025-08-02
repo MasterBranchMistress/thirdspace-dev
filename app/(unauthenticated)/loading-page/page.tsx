@@ -1,9 +1,8 @@
-import { Spinner } from "@heroui/react";
 import Image from "next/image";
 
 export default function LoadingPage() {
   return (
-    <div className="flex items-center flex-col justify-center min-h-screen animate-appearance-in">
+    <div className="flex items-center flex-col justify-center h-screen z-100 animate-appearance-in">
       <Image
         src="/third-space-logos/thirdspace-logo-3.png"
         alt="thirdpace logo"

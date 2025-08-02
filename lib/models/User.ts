@@ -25,7 +25,8 @@ interface Notification {
 
 export interface UserDoc {
   _id?: ObjectId;
-  name: string;
+  firstName: string;
+  lastName: string;
   username: string;
   usernameLastChangedAt: Date;
   email: string;
@@ -105,7 +106,8 @@ const NotificationSchema = new Schema(
 
 const UserSchema = new Schema(
   {
-    name: { type: String, required: true },
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
     username: { type: String, required: true },
     usernameLastChangedAt: { type: Date },
     email: { type: String, required: true },

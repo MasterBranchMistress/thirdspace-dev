@@ -10,11 +10,12 @@ import { ParticalBackground } from "@/components/background-animations/Particles
 import FloatingBackButton from "@/components/navigation/floatingBackButton";
 import PasswordStep from "@/components/register-forms/password";
 import { handleRegisterUser } from "@/utils/frontend-backend-connection/handleRegisterUser";
-import { useToast } from "../providers/ToastProvider";
+import { useToast } from "../../providers/ToastProvider";
 
 export default function RegisterForm() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [bio, setBio] = useState("");
@@ -33,21 +34,34 @@ export default function RegisterForm() {
 
   const handleSubmit = async () => {
     //TODO: verfiy these on the backend
-    console.log({ name, email, bio });
-    const err = await handleRegisterUser(name, email, password, bio, router);
+    console.log({ firstName, lastName, email, bio });
+    const err = await handleRegisterUser(
+      firstName,
+      lastName,
+      email,
+      password,
+      bio,
+      router
+    );
     if (err) {
       notify("We couldn't sign you up 🥲", err);
     } else {
-      router.push("/login");
+      router.push("/thank-you");
     }
   };
 
   return (
-    <div className="relative animate-fade-in min-h-screen w-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-pink-200 via-purple-100 to-white">
+    <div className="relative animate-appearance-in min-h-screen w-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-pink-200 via-purple-100 to-white">
       <ParticalBackground />
       <FloatingBackButton onClick={() => onBack(currentStep)} />
       {currentStep === 0 && (
-        <NameStep name={name} setName={setName} onNext={() => goToStep(1)} />
+        <NameStep
+          firstName={firstName}
+          lastName={lastName}
+          setFirstName={setFirstName}
+          setLastName={setLastName}
+          onNext={() => goToStep(1)}
+        />
       )}
 
       {currentStep === 1 && (

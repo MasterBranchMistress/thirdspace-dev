@@ -1,3 +1,18 @@
 @import "tailwindcss";
 
 @config "../tailwind.config.js";
+
+.bg-content1 {
+  background-color: #5c6cc4;
+}
+
+.group-data-\[focus\=true\]\:bg-default-100:is(
+    :where(.group)[data-focus="true"] *
+  ) {
+  background-color: transparent;
+}
+.group-data-\[focus-visible\=true\]\:ring-offset-background:is(
+    :where(.group)[data-focus-visible="true"] *
+  ) {
+  --tw-ring-offset-color: transparent;
+}

@@ -65,9 +65,9 @@ export default function PasswordStep({
     password !== confirmPassword;
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md flex flex-col space-y-4 items-center text-center bg-transparent">
-        <div className="text-xl font-semibold text-purple-primary min-h-[60px] z-20">
+    <div className="min-h-screen flex items-center justify-center px-4 tracking-wide">
+      <div className="w-full max-w-md flex flex-col space-y-6 items-center text-center bg-transparent">
+        <div className="text-xl font-semibold text-purple-primary z-20">
           {!showForm && <FloatingForwardButton skipIntro={skipIntro} />}
           {showTyping && (
             <Typewriter
@@ -95,19 +95,19 @@ export default function PasswordStep({
         {showForm && (
           <>
             <Image
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/login")}
               src={ThirdSpaceLogo}
               height={250}
               width={250}
               alt="thirdspace logo"
-              className="animate-slide-up z-20 py-3 hover:cursor-pointer"
+              className="animate-appearance-in z-20 py-3 hover:cursor-pointer"
             />
             <Form
               onSubmit={(e) => {
                 e.preventDefault();
                 onNext();
               }}
-              className="w-full max-w-sm space-y-4 animate-fade-in text-center"
+              className="w-full max-w-sm space-y-4 animate-appearance-in text-center"
             >
               <Input
                 name="password"

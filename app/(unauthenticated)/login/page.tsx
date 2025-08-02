@@ -8,6 +8,7 @@ import { videoSrc } from "@/utils/get-time-of-day/route";
 import { useToast } from "@/app/providers/ToastProvider";
 import { signIn } from "next-auth/react";
 import LoadingSpinner from "@/components/spinner/spinner";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -15,8 +16,10 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const router = useRouter();
   const { notify } = useToast();
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const fallbackStyle = "bg-gradient-to-br from-purple-primary to-pink-primary";
+  const [email, setEmail] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -36,10 +39,15 @@ export default function LoginPage() {
       setLoading(false);
       return;
     } else {
-      router.push("/");
+      router.push("/dashboard");
       setLoading(false);
     }
   };
+
+  const emailIsValid =
+    email.endsWith("@gmail.com") ||
+    email.endsWith("@icloud.com") ||
+    email.endsWith("@yahoo.com");
 
   return (
     <main
@@ -67,7 +75,7 @@ export default function LoginPage() {
           <Image
             src="/third-space-logos/thirdspace-logo-3.png"
             alt="Thirdspace Logo"
-            className="h-40 w-auto object-contain animate-pulse-slow"
+            className="h-40 w-auto object-contain"
           />
         </div>
         <Form onSubmit={handleSubmit} className="space-y-6">
@@ -75,6 +83,7 @@ export default function LoginPage() {
             name="email"
             placeholder="Email"
             type="email"
+            onValueChange={setEmail}
             classNames={{
               inputWrapper:
                 "bg-white/10 border border-white/20 backdrop-blur-md",
@@ -83,10 +92,23 @@ export default function LoginPage() {
           />
           <Input
             name="password"
-            type="password"
+            type={isPasswordVisible ? "text" : "password"}
             placeholder="Password"
             value={password}
             onValueChange={setPassword}
+            endContent={
+              <button
+                type="button"
+                onClick={() => setIsPasswordVisible((prev) => !prev)}
+                className="focus:outline-none"
+              >
+                {isPasswordVisible ? (
+                  <EyeSlashIcon className="text-white w-5 h-5" />
+                ) : (
+                  <EyeIcon className="text-white w-5 h-5" />
+                )}
+              </button>
+            }
             classNames={{
               inputWrapper:
                 "bg-white/10 border border-white/20 backdrop-blur-md",
@@ -105,6 +127,7 @@ export default function LoginPage() {
           <Button
             type="submit"
             className="w-full bg-purple-primary text-white bg-indigo font-bold hover:backdrop-blur-md hover:cursor-pointer hover:bg-indigo-600"
+            isDisabled={!password || !email || !emailIsValid}
           >
             {(loading && <LoadingSpinner />) || "Log In"}
           </Button>

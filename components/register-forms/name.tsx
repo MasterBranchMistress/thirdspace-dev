@@ -10,25 +10,44 @@ import ThirdSpaceLogo from "../../public/third-space-logos/thirdspace-logo-3.png
 import FloatingForwardButton from "../navigation/floatingForwardButton";
 
 interface NameStepProps {
-  name: string;
-  setName: (val: string) => void;
+  firstName: string;
+  lastName: string;
+  setFirstName: (val: string) => void;
+  setLastName: (val: string) => void;
   onNext: () => void;
 }
 
-export default function NameStep({ name, setName, onNext }: NameStepProps) {
+export default function NameStep({
+  firstName,
+  lastName,
+  setFirstName,
+  setLastName,
+  onNext,
+}: NameStepProps) {
   const [showForm, setShowForm] = useState(false);
   const [showTyping, setShowTyping] = useState(true);
   const router = useRouter();
+
+  <NameStep
+    firstName={firstName}
+    lastName={lastName}
+    setFirstName={setFirstName}
+    setLastName={setLastName}
+    onNext={() => console.log("next!")}
+  />;
 
   const skipIntro = () => {
     setShowTyping(false);
     setShowForm(true);
   };
 
+  const isFormValid =
+    (firstName?.length ?? 0) > 3 && (lastName?.length ?? 0) > 3;
+
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md flex flex-col space-y-4 items-center text-center bg-transparent">
-        <div className="text-xl sm:text-xl font-semibold text-white min-h-[60px] z-20">
+    <div className="min-h-screen flex items-center justify-center px-4 tracking-wide">
+      <div className="w-full max-w-md flex flex-col space-y-6 items-center text-center bg-transparent">
+        <div className="text-xl sm:text-xl font-semibold text-white z-20">
           {!showForm && <FloatingForwardButton skipIntro={skipIntro} />}
 
           {showTyping && (
@@ -65,25 +84,40 @@ export default function NameStep({ name, setName, onNext }: NameStepProps) {
         {showForm && (
           <>
             <Image
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/login")}
               src={ThirdSpaceLogo}
               height={250}
               width={250}
               alt="thirdspace logo"
-              className="animate-slide-up z-20 py-3 hover:cursor-pointer"
+              className="animate-appearance-in z-20 py-3 hover:cursor-pointer"
             />
             <Form
               onSubmit={(e) => {
                 e.preventDefault();
-                if (name) onNext();
+                if (isFormValid) onNext();
               }}
-              className="w-full max-w-sm space-y-4 animate-fade-in text-center"
+              className="w-full max-w-sm space-y-4 animate-appearance-in text-center"
             >
               <Input
-                name="name"
-                placeholder="What's your name?"
-                value={name}
-                onValueChange={setName}
+                name="firstName"
+                placeholder="First name"
+                value={firstName}
+                onValueChange={setFirstName}
+                classNames={{
+                  inputWrapper:
+                    "bg-transparent hover:bg-transparent focus:bg-transparent border-b-2 border-white focus-within:border-white ring-0 shadow-none transition duration-300 rounded-none",
+                  input: "text-white placeholder-white focus:outline-none",
+                }}
+                style={{
+                  WebkitTextFillColor: "white",
+                  boxShadow: "0 0 0px 1000px transparent inset",
+                }}
+              />
+              <Input
+                name="lastName"
+                placeholder="Last name"
+                value={lastName}
+                onValueChange={setLastName}
                 classNames={{
                   inputWrapper:
                     "bg-transparent hover:bg-transparent focus:bg-transparent border-b-2 border-white focus-within:border-white ring-0 shadow-none transition duration-300 rounded-none",
@@ -96,7 +130,7 @@ export default function NameStep({ name, setName, onNext }: NameStepProps) {
               />
               <div className="flex flex-col sm:flex-row gap-4 w-full">
                 <Button
-                  isDisabled={name.length < 8}
+                  isDisabled={!isFormValid}
                   type="submit"
                   className="w-full bg-transparent text-purple-primary font-bold rounded-md py-2 border-none transition-all duration-300 hover:animate-pulse"
                 >
