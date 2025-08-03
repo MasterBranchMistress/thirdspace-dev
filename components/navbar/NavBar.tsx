@@ -61,7 +61,8 @@ export default function NavBar() {
 
   return (
     <Navbar
-      isBordered
+      isBordered={false}
+      position="sticky"
       className="bg-concrete justify-center animate-appearance-in"
     >
       <div className="absolute left-1/2 transform -translate-x-1/2">

@@ -1,16 +1,22 @@
 "use client";
 
 import { Form, Input, Button, Spinner } from "@heroui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Image } from "@heroui/react";
-import { videoSrc } from "@/utils/get-time-of-day/route";
+
 import { useToast } from "@/app/providers/ToastProvider";
 import { signIn } from "next-auth/react";
 import LoadingSpinner from "@/components/spinner/spinner";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import { getVideoSrcForTimeOfDay } from "@/utils/get-time-of-day/route";
 
 export default function LoginPage() {
+  const [videoSrc, setVideoSrc] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    setVideoSrc(getVideoSrcForTimeOfDay());
+  }, []);
   const [loading, setLoading] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const [password, setPassword] = useState("");
@@ -44,14 +50,6 @@ export default function LoginPage() {
     }
   };
 
-  const getLoginText = () => {
-    if (loading) {
-      return <LoadingSpinner />;
-    } else {
-      return "Log In";
-    }
-  };
-
   const emailIsValid =
     email.endsWith("@gmail.com") ||
     email.endsWith("@icloud.com") ||
@@ -64,7 +62,7 @@ export default function LoginPage() {
       }`}
     >
       {/* 🎥 Background video */}
-      {!videoError && (
+      {!videoError && videoSrc && (
         <video
           autoPlay
           loop
@@ -76,6 +74,7 @@ export default function LoginPage() {
           <source src={videoSrc} type="video/mp4" />
         </video>
       )}
+
       <div className="fixed top-0 left-0 w-full h-full bg-black/30 z-0" />
       {/* 🔒 Login Form */}
       <div className="w-full max-w-md space-y-3 z-10 flex flex-col items-center">

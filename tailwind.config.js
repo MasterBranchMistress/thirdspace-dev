@@ -32,6 +32,11 @@ const config = {
         subtle: "0px 0px 4px rgba(255, 255, 255, 0.4)",
         glow: "0px 0px 6px rgba(255, 255, 255, 0.6)",
       },
+      boxShadow: {
+        "feed-card": "10px 10px 5px 0px rgba(0,0,0,0.75)",
+        "btn-glow":
+          "5px 5px 5px 0px #000000, inset 4px 4px 15px 0px #000000, 5px 5px 15px 5px rgba(0,0,0,0)",
+      },
       colors: {
         focus: "#5c6cc4",
         concrete: "#f3f2f3",

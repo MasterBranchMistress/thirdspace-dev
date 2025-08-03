@@ -55,7 +55,7 @@ export const FeedBackground = () => {
           straight: false,
         },
         number: {
-          value: 80,
+          value: 500,
           density: {
             enable: true,
             area: 800,
@@ -63,16 +63,16 @@ export const FeedBackground = () => {
         },
         opacity: {
           value: {
-            min: 0,
-            max: 0.5,
+            min: 0.2,
+            max: 0.4,
           },
           animation: {
             enable: true,
-            speed: 0.05,
+            speed: 0.2,
             sync: true,
-            startValue: "max",
+            startValue: "random",
             count: 1,
-            destroy: "min",
+            destroy: "none",
           },
         },
         shape: {

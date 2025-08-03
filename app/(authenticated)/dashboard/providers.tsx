@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { ToastProvider } from "@/app/providers/ToastProvider";
 import { SessionProvider } from "next-auth/react";
+import { FeedProvider } from "@/app/context/UserFeedContext";
 
 export interface ProvidersProps {
   children: React.ReactNode;
@@ -27,11 +28,13 @@ export function Providers({ children, themeProps }: ProvidersProps) {
 
   return (
     <SessionProvider>
-      <ToastProvider>
-        <HeroUIProvider navigate={router.push}>
-          <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>
-        </HeroUIProvider>
-      </ToastProvider>
+      <FeedProvider>
+        <ToastProvider>
+          <HeroUIProvider navigate={router.push}>
+            <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>
+          </HeroUIProvider>
+        </ToastProvider>
+      </FeedProvider>
     </SessionProvider>
   );
 }
