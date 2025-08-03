@@ -218,24 +218,20 @@ const FeedContext = createContext<FeedContextType | undefined>(undefined);
 
 ### Visual representation of the working feed system:
 
-![alt text](<../Screenshot 2025-08-02 223917.png>)
-
-### Event Highlight Card
-
-![alt text](<../Screenshot 2025-08-02 223939.png>)
+![Visual Feed](./public/screenshots/sessionawarenav.png)
 
 ### Profile Update Card
 
-![alt text](<../Screenshot 2025-08-02 223830.png>)
+![Profile Update](./public/screenshots/profileupdate.png)
 
 ### Joined Event Card
 
-![alt text](<../Screenshot 2025-08-02 223856.png>)
+![Joined Event](./public/screenshots/eventjoined.png)
 
 ### Event Reminder with Time Header
 
-![alt text](<../Screenshot 2025-08-02 223804.png>)
+![Event Reminder](./public/screenshots/eventreminder.png)
 
 ### User Dropdown Menu
 
-![alt text](<../Screenshot 2025-08-02 223939.png>)
+![Dropdown](./public/screenshots/dropdown.png)
