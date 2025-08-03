@@ -216,6 +216,8 @@ const FeedContext = createContext<FeedContextType | undefined>(undefined);
 
 ## Screenshots
 
+![Login Page](./public/screenshots/loginPage.png)
+
 ### Visual representation of the working feed system:
 
 ![Visual Feed](./public/screenshots/sessionawarenav.png)
