@@ -10,6 +10,7 @@ import LoadingPage from "@/components/spinner/LoadingPage";
 import FeedItemCard from "@/components/feed-item-card/FeedItemCard";
 import GreetingHeader from "@/components/feed-item-card/GreetingHeader";
 import { Spinner } from "@heroui/react";
+import EmptyFeedState from "@/components/empty-feed-state/EmptyFeedState";
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -43,7 +44,8 @@ export default function Home() {
 
   if (status === "loading") return <LoadingPage />;
   if (error) return <p>{error}</p>;
-  if (!items.length && !loading) return <p>No recent activity.</p>;
+  if (!items?.length && !loading)
+    return <EmptyFeedState name={session?.user.firstName} />;
 
   return (
     <div>

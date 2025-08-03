@@ -51,7 +51,7 @@ export async function PATCH(
               $each: [
                 {
                   _id: new ObjectId(),
-                  message: `${sender.name} sent you a friend request.`,
+                  message: `${sender.firstName} ${sender.lastName} sent you a friend request.`,
                   eventId: new ObjectId(),
                   type: "received_friend_request",
                   timestamp: new Date(),

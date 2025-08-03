@@ -28,13 +28,13 @@ export function Providers({ children, themeProps }: ProvidersProps) {
 
   return (
     <SessionProvider>
-      <FeedProvider>
-        <ToastProvider>
+      <ToastProvider>
+        <FeedProvider>
           <HeroUIProvider navigate={router.push}>
             <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>
           </HeroUIProvider>
-        </ToastProvider>
-      </FeedProvider>
+        </FeedProvider>
+      </ToastProvider>
     </SessionProvider>
   );
 }

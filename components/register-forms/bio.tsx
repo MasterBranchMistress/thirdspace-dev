@@ -7,7 +7,6 @@ import Typewriter from "typewriter-effect";
 import FloatingForwardButton from "../navigation/floatingForwardButton";
 import Image from "next/image";
 import ThirdSpaceLogo from "../../public/third-space-logos/thirdspace-logo-3.png";
-import { useToast } from "@/app/providers/ToastProvider";
 import { Checkbox } from "@heroui/react";
 
 interface BioStepProps {
@@ -18,8 +17,6 @@ interface BioStepProps {
 }
 
 export default function BioStep({ bio, setBio, handleSubmit }: BioStepProps) {
-  //TODO: GET MESSAGES FROM BACKEND ON SUBMIT!!!!
-
   const [showForm, setShowForm] = useState(false);
   const [showTyping, setShowTyping] = useState(true);
   const [agreed, setAgreed] = useState(false);
@@ -33,12 +30,13 @@ export default function BioStep({ bio, setBio, handleSubmit }: BioStepProps) {
   const bioInvalid = !bio || bio.length < 50;
 
   const handleTanC = () => {
-    setAgreed((prev) => !prev); // this guarantees proper toggling
+    setAgreed((prev) => !prev);
   };
 
   useEffect(() => {
     //trigger analytics, show a toast, or conditionally unlock stuff here
-  }, [agreed]);
+    console.log(bio);
+  }, [agreed, bio]);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">

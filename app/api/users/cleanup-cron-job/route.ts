@@ -2,6 +2,7 @@ import clientPromise from "@/lib/mongodb";
 import { NextResponse } from "next/server";
 import { COLLECTIONS, DBS } from "@/lib/constants";
 import { UserDoc } from "@/lib/models/User";
+import { faker } from "@faker-js/faker";
 
 export async function PATCH() {
   const client = await clientPromise;
@@ -14,6 +15,8 @@ export async function PATCH() {
       {
         $or: [
           { avatar: { $exists: false } },
+          { firstName: { $exists: false } },
+          { lastName: { $exists: false } },
           { interests: { $exists: false } },
           { favoriteLocations: { $exists: false } },
           { availibility: { $exists: false } },
@@ -36,6 +39,8 @@ export async function PATCH() {
       },
       {
         $set: {
+          firstName: `${faker.person.firstName()}`,
+          lastName: `${faker.person.lastName()}`,
           avatar: "",
           interests: [],
           favoriteLocations: [],

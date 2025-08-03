@@ -77,7 +77,7 @@ export async function PATCH(
                 $each: [
                   {
                     _id: new ObjectId(),
-                    message: `${joiningUser.name} (a blocked user) has joined your event "${event.title}".`,
+                    message: `${joiningUser.firstName} ${joiningUser.lastName} (a blocked user) has joined your event "${event.title}".`,
                     eventId: event._id,
                     type: "blocked_user_joined_event",
                     timestamp: new Date(),

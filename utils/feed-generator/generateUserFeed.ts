@@ -14,7 +14,8 @@ export async function generateUserFeed(
   for (const friend of friends) {
     const actor: FeedActor = {
       id: friend._id!.toString(),
-      name: friend.name,
+      firstName: friend.firstName,
+      lastName: friend.lastName,
       username: friend.username,
       avatar: friend.avatar || getGravatarUrl(friend.email),
     };

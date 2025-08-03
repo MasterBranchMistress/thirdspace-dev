@@ -13,7 +13,8 @@ export type FeedItemType =
 
 export interface FeedActor {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   username: string;
   avatar: string;
 }

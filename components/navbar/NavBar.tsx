@@ -10,12 +10,14 @@ import {
   Avatar,
   Badge,
   Image,
+  Tooltip,
 } from "@heroui/react";
 
 import { useSession, signOut } from "next-auth/react";
 import {
   Cog6ToothIcon,
-  MagnifyingGlassIcon,
+  MapPinIcon,
+  PlusIcon,
   ArrowLeftStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 
@@ -65,6 +67,13 @@ export default function NavBar() {
       position="sticky"
       className="bg-concrete justify-center animate-appearance-in"
     >
+      <Tooltip content={"Add New Event"}>
+        {status !== "loading" && (
+          <div className="bg-primary rounded-lg hover:cursor-pointer hover:opacity-70">
+            <PlusIcon width={26} className="font-extrabold"></PlusIcon>
+          </div>
+        )}
+      </Tooltip>
       <div className="absolute left-1/2 transform -translate-x-1/2">
         <Image
           src="/third-space-logos/thirdspace-logo-4.png"
@@ -84,7 +93,7 @@ export default function NavBar() {
               color="primary"
               content={""}
               placement="top-right"
-              className="animate-pulse"
+              className=""
             >
               <DropdownTrigger>
                 <Avatar
@@ -113,16 +122,12 @@ export default function NavBar() {
               <DropdownItem
                 key={"event"}
                 color="warning" /*its dark blue. Dont kill me :)*/
-                endContent={
-                  <div className="w-5 h-4 rounded-md bg-concrete text-primary text-sm flex items-center justify-center align-middle">
-                    {3}
-                  </div>
-                }
+                endContent={<MapPinIcon width={20} />}
               >
-                Events
+                My Events
               </DropdownItem>
               <DropdownItem
-                key={"invites"}
+                key={"friend_requests"}
                 color="warning"
                 endContent={
                   <div className="w-5 h-4 rounded-md bg-concrete text-primary text-sm flex items-center justify-center align-middle">
@@ -130,7 +135,7 @@ export default function NavBar() {
                   </div>
                 }
               >
-                Invites
+                Friend Requests
               </DropdownItem>
               <DropdownItem
                 key={"messages"}

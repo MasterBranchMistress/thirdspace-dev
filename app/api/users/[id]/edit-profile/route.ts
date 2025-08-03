@@ -29,26 +29,14 @@ export async function PATCH(
     }
 
     const updateFields: Partial<UserDoc> = {};
+    const changes: Record<string, any> = {};
 
     // ✅ Username change with cooldown
     if (updates.username && updates.username !== user.username) {
-      if (user.usernameLastChangedAt) {
-        const elapsed =
-          Date.now() - new Date(user.usernameLastChangedAt).getTime();
-        if (elapsed < THREE_MONTHS_MS) {
-          const daysRemaining = Math.ceil(
-            (THREE_MONTHS_MS - elapsed) / (1000 * 60 * 60 * 24)
-          );
-          return NextResponse.json(
-            {
-              error: `You can update your username again in ${daysRemaining} day(s)`,
-            },
-            { status: 429 }
-          );
-        }
-      }
-      updateFields.username = updates.username.trim();
+      const trimmedUserName = updates.username.trim();
+      updateFields.username = trimmedUserName;
       updateFields.usernameLastChangedAt = new Date();
+      changes.username = trimmedUserName;
     }
 
     // ✅ Bio: max 150 characters
@@ -61,15 +49,26 @@ export async function PATCH(
         );
       }
       updateFields.bio = trimmedBio;
+      changes.bio = trimmedBio;
     }
-    if (typeof updates.avatar === "string")
-      updateFields.avatar = updates.avatar.trim();
+    if (typeof updates.avatar === "string") {
+      const trimmedAvatar = updates.avatar.trim();
+      updateFields.avatar = trimmedAvatar;
+      changes.avatar = trimmedAvatar;
+    }
 
-    if (typeof updates.location === "string")
-      updateFields.location = updates.location.trim();
+    if (typeof updates.location === "string") {
+      const trimmedLocation = updates.location.trim();
+      updateFields.location = trimmedLocation;
+      changes.location = trimmedLocation;
+    }
 
-    if (typeof updates.lang === "string")
-      updateFields.lang = updates.lang.trim();
+    // Language
+    if (typeof updates.lang === "string") {
+      const trimmedLang = updates.lang.trim();
+      updateFields.lang = trimmedLang;
+      changes.lang = trimmedLang;
+    }
 
     // ✅ Tags: max 5 items
     if (Array.isArray(updates.tags)) {
@@ -79,9 +78,11 @@ export async function PATCH(
           { status: 400 }
         );
       }
-      updateFields.tags = updates.tags.map((t: string) =>
+      const cleanedTags = updates.tags.map((t: string) =>
         t.trim().toLowerCase()
       );
+      updateFields.tags = cleanedTags;
+      changes.tags = cleanedTags;
     }
 
     // ✅ Optional editable fields
@@ -103,7 +104,10 @@ export async function PATCH(
       { $set: { ...updateFields, updatedAt: new Date() } }
     );
 
-    return NextResponse.json({ message: "Profile updated" }, { status: 200 });
+    return NextResponse.json(
+      { message: "Profile updated", changes },
+      { status: 200 }
+    );
   } catch (err: unknown) {
     return NextResponse.json(
       { error: (err as Error).message },

@@ -6,6 +6,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { faker } from "@faker-js/faker";
 import { useMemo } from "react";
+import { Tooltip } from "@heroui/react";
 
 export function FeedStats() {
   const stats = useMemo(
@@ -19,25 +20,33 @@ export function FeedStats() {
   );
   return (
     <>
-      <div className="flex gap-1 items-center align-middle">
-        <UserGroupIcon width={12} className="w-4 h-4 text-primary" />
-        <p className="font-extrabold text-small">{stats.followers}</p>
-      </div>
-      <div className="flex gap-1 items-center align-middle">
-        <ChatBubbleLeftEllipsisIcon
-          width={12}
-          className="w-4 h-4 text-primary"
-        />
-        <p className="font-extrabold text-small">{stats.comments}</p>
-      </div>
-      <div className="flex gap-1 items-center align-middle">
-        <HeartIcon width={12} className="w-4 h-4 text-primary" />
-        <p className="font-extrabold text-small">{stats.likes}</p>
-      </div>
-      <div className="flex gap-1 items-center align-middle">
-        <FireIcon width={12} className="w-4 h-4 text-primary" />
-        <p className="font-extrabold text-small">{stats.heat}</p>
-      </div>
+      <Tooltip content={`Orbiters`}>
+        <div className="flex gap-1 items-center align-middle">
+          <UserGroupIcon width={12} className="w-4 h-4 text-primary" />
+          <p className="font-extrabold text-small">{stats.followers}</p>
+        </div>
+      </Tooltip>
+      <Tooltip content={"Comments"}>
+        <div className="flex gap-1 items-center align-middle">
+          <ChatBubbleLeftEllipsisIcon
+            width={12}
+            className="w-4 h-4 text-primary"
+          />
+          <p className="font-extrabold text-small">{stats.comments}</p>
+        </div>
+      </Tooltip>
+      <Tooltip content={"Likes"}>
+        <div className="flex gap-1 items-center align-middle">
+          <HeartIcon width={12} className="w-4 h-4 text-primary" />
+          <p className="font-extrabold text-small">{stats.likes}</p>
+        </div>
+      </Tooltip>
+      <Tooltip content={"Orbiters talking about this"}>
+        <div className="flex gap-1 items-center align-middle">
+          <FireIcon width={12} className="w-4 h-4 text-primary" />
+          <p className="font-extrabold text-small">{stats.heat}</p>
+        </div>
+      </Tooltip>
     </>
   );
 }

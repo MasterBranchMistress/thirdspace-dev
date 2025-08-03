@@ -8,7 +8,6 @@ import {
   ReactNode,
 } from "react";
 import { useSession } from "next-auth/react";
-
 type FeedItem = {
   id: string;
   type:

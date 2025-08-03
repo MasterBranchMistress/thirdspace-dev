@@ -8,7 +8,7 @@ import { getGravatarUrl } from "@/utils/gravatar";
 
 export async function POST(req: NextRequest) {
   try {
-    const { firstName, lastName, email, password } = await req.json();
+    const { firstName, lastName, email, password, bio } = await req.json();
     const missing = [];
     if (!email) missing.push("email");
     if (!password) missing.push("password");
@@ -51,12 +51,17 @@ export async function POST(req: NextRequest) {
 
     const baseUserDefaults: Omit<
       UserDoc,
-      "firstName" | "lastName" | "email" | "username" | "passwordHash" | "_id"
+      | "firstName"
+      | "lastName"
+      | "email"
+      | "username"
+      | "passwordHash"
+      | "bio"
+      | "_id"
     > = {
       provider: "credentials",
       avatar: getGravatarUrl(email),
       interests: [],
-      bio: "",
       favoriteLocations: [],
       availibility: [],
       friends: [],
@@ -84,6 +89,7 @@ export async function POST(req: NextRequest) {
       email,
       username: generateAnonUsername(),
       passwordHash,
+      bio,
       ...baseUserDefaults,
     };
 

@@ -20,6 +20,8 @@ interface FeedItemCardProps {
     actor: {
       id?: string;
       name?: string;
+      firstName?: string;
+      lastName?: string;
       username?: string;
       avatar?: string;
       eventId?: string;
@@ -59,7 +61,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
 
   const buttonText =
     type === "friend_accepted"
-      ? `Follow`
+      ? `Orbit`
       : type === "joined_event"
         ? `Details`
         : type === "profile_updated"
@@ -69,36 +71,14 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
   const message = isEvent(actor)
     ? `📍 "${actor.eventName}" is coming up near you!`
     : type === "friend_accepted"
-      ? `${actor.name} became friends with someone!`
+      ? `${actor.firstName} made a new friend! Be sure to say Hi!`
       : type === "joined_event"
-        ? `${actor.name} joined "${target.title}"`
+        ? `${actor.firstName} joined "${target.title}"`
         : type === "profile_updated"
-          ? `${actor.name} updated their profile`
-          : `${actor.name} did something`;
+          ? `${actor.firstName} updated their profile`
+          : `${actor.firstName} did something`;
 
   const [isFriend, setIsFriend] = React.useState(false);
-
-  const eventFooter = () => {
-    if (type === "event_coming_up" && isEvent(actor)) {
-      return (
-        <div className="text-sm text-primary flex flex-col items-center w-full pt-2">
-          <p>
-            Starts{" "}
-            {formatDistanceToNow(new Date(actor.startingDate), {
-              addSuffix: true,
-            })}
-          </p>
-          <Button
-            size="sm"
-            className="mt-2"
-            onPress={() => router.push(`/events/${actor.eventId}`)}
-          >
-            View Event
-          </Button>
-        </div>
-      );
-    }
-  };
 
   return (
     <Card
@@ -127,7 +107,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           ) : (
             <div className="flex flex-col gap-1 items-start justify-center">
               <h4 className="text-small font-extralight tracking-wider leading-none text-primary">
-                {actor.name}
+                {`${actor.firstName} ${actor.lastName}`}
               </h4>
               <h5 className="text-small tracking-tight text-primary">
                 @{actor.username}

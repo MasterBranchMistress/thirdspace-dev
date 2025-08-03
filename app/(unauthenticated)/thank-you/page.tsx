@@ -23,21 +23,23 @@ export default function ThankYouPage() {
   return (
     <main className="animate-appearance-in min-h-screen flex flex-col items-center justify-center px-4 text-center relative z-20">
       <ParticalBackground />
-      <h1 className={"text-xl z-10 text-concrete animate-pulse tracking-wide"}>
+      <h1
+        className={
+          "text-xl z-10 text-concrete font-extrabold animate-pulse tracking-wide"
+        }
+      >
         Welcome to ThirdSpace 🎉
       </h1>
-      <div className="py-4 text-concrete z-10 text-sm tracking-wider">
+      <div className="py-4 text-concrete font-extralight z-10 text-sm tracking-wider">
         <Typewriter
           onInit={(typewriter) => {
             typewriter
-              .pauseFor(2000)
+              .pauseFor(1000)
               .typeString("Your account has been successfully created.")
               .pauseFor(1000)
               .typeString(
-                " You can now log in and start connecting with your community."
+                " You can now log in and start connecting with your community. 🤝"
               )
-              .pauseFor(1000)
-              .typeString("\n\n\n\n Happy Networking! 🤝")
               .pauseFor(1000)
               .callFunction(() => setsayGoodbye(true))
               .start();
@@ -51,9 +53,9 @@ export default function ThankYouPage() {
       {sayGoodbye && (
         <Button
           onPress={() => router.replace("/login")}
-          className="mt-2 px-6 py-1 text-md bg-concrete text-indigo-bold animate-appearance-in tracking-wide hover:animate-pulse"
+          className="mt-2 px-6 py-1 text-md bg-transparent text-concrete-bold border-1 border-concrete animate-appearance-in tracking-wide hover:opacity-75"
         >
-          Go to Login
+          Login
         </Button>
       )}
     </main>
