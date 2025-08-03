@@ -15,11 +15,13 @@ export default function GreetingHeader() {
     return "Staying up late";
   };
 
+  const offHours = hour >= 22 && hour <= 5;
+
   return (
     <div className="w-full pb-7 z-10 text-center animate-appearance-in">
       <h1 className="text-2xl font-light text-primary tracking-tight">
         {getGreeting()}, {session?.user?.firstName}
-        {hour >= 22 || hour <= 5 ? "?" : "👋"}
+        {offHours ? "?" : " 👋"}
       </h1>
       <p className="text-sm text-primary">Here’s what's in your Orbit.</p>
     </div>
