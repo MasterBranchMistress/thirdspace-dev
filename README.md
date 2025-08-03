@@ -116,3 +116,126 @@ npm run dev
 ## 🧠 Philosophy
 
     ThirdSpace isn't just another event app. It's the antidote to flaky plans, endless group chats, and social burnout. Think: what Facebook events were supposed to be... but cooler.
+
+# ThirdSpace Feed System - README
+
+This document outlines the architecture, functionality, and development progress of the feed system for the ThirdSpace app, including visual references.
+
+## Overview
+
+The ThirdSpace feed displays dynamic social activity from a user's network, including:
+
+- Friend connections (e.g., friend_accepted)
+
+- Event RSVPs (e.g., joined_event)
+
+- Profile updates
+
+- Events coming up near the user
+
+It supports pagination and is being extended to include infinite scroll capabilities.
+
+## Backend API
+
+### Endpoint
+
+```
+GET /api/users/:id/user-feed?page=1&limit=10
+```
+
+- Merges two sub-feeds:
+
+  - `generateUserFeed(user, friends, events)`
+
+  - `generateEventFeed(user, events)`
+
+- Sorts results by timestamp
+
+- Returns paginated feed with metadata
+
+### Example Feed Item
+
+```
+{
+  "id": "688ead8b28802692f9b3ceb9",
+  "actor": {
+    "eventId": "6886d6cda4b15a3b7a5095a4",
+    "eventName": "Dog petting ceremony",
+    "location": {
+      "name": "Dog petting ceremony",
+      "lat": 27.9,
+      "lng": -82.8
+    },
+    "totalAttendance": 0,
+    "startingDate": "2025-08-05T00:00:00.000Z"
+  },
+  "target": {
+    "eventId": "6886d6cda4b15a3b7a5095a4",
+    "title": "Dog petting ceremony"
+  },
+  "type": "event_coming_up",
+  "timestamp": "2025-08-05T00:00:00.000Z"
+}
+```
+
+## Frontend Structure
+
+### Feed Context
+
+Provides feed data to the page:
+
+```
+const FeedContext = createContext<FeedContextType | undefined>(undefined);
+```
+
+- `items[]`: Feed data
+
+- `loading`: Status
+
+- `refresh()`: Manual refetch
+
+### Main Feed Page
+
+- Auth-protected via `useSession`
+
+- Renders `GreetingHeader` and a list of `FeedItemCard`s
+
+### FeedItemCard
+
+- Handles all rendering logic based on feed `type`
+
+- Dynamic layout depending on type: event, profile update, etc.
+
+### FeedCardFooter
+
+- Renders action/footer content depending on `type`
+
+- Conditional block for `event_coming_up` uses `formatDistanceToNow()` for time
+
+- Includes button linking to event detail page
+
+## Screenshots
+
+### Visual representation of the working feed system:
+
+![alt text](<../Screenshot 2025-08-02 223917.png>)
+
+### Event Highlight Card
+
+![alt text](<../Screenshot 2025-08-02 223939.png>)
+
+### Profile Update Card
+
+![alt text](<../Screenshot 2025-08-02 223830.png>)
+
+### Joined Event Card
+
+![alt text](<../Screenshot 2025-08-02 223856.png>)
+
+### Event Reminder with Time Header
+
+![alt text](<../Screenshot 2025-08-02 223804.png>)
+
+### User Dropdown Menu
+
+![alt text](<../Screenshot 2025-08-02 223939.png>)
