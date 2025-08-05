@@ -6,7 +6,7 @@ import {
   useEffect,
   useState,
   ReactNode,
-  useCallback,
+  useRef,
 } from "react";
 import { useSession } from "next-auth/react";
 import { mergeFeedItems } from "@/utils/merge-feed-items/mergeFeedItems";
@@ -38,6 +38,7 @@ export function FeedProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const requestIdRef = useRef(0);
 
   const prependItems = (incoming: FeedItem[]) => {
     setItems((prev) => mergeFeedItems(prev, incoming));
@@ -45,25 +46,35 @@ export function FeedProvider({ children }: { children: ReactNode }) {
 
   const fetchFeed = async (pageToFetch = 1, isRefresh = false) => {
     if (!session?.user?.id) return;
+
+    const currentRequestId = ++requestIdRef.current; // bump ID for this fetch
+    setLoading(true);
+
     try {
-      setLoading(true);
       const res = await fetch(
         `/api/users/${session.user.id}/user-feed?page=${pageToFetch}&limit=10`
       );
       const data = await res.json();
 
+      // ❌ Ignore if a newer request has already started
+      if (currentRequestId !== requestIdRef.current) return;
+
       if (isRefresh) {
-        setItems(data.feed); // Fresh load, no merge
+        setItems((prev) => (data.feed.length > 0 ? data.feed : prev));
       } else {
-        setItems((prev) => mergeFeedItems(prev, data.feed));
+        setItems((prev) => [...prev, ...data.feed]);
       }
 
       setHasMore(data.pagination.hasNextPage);
       setError(null);
     } catch (err) {
-      setError("Failed to load feed");
+      if (currentRequestId === requestIdRef.current) {
+        setError("Failed to load feed");
+      }
     } finally {
-      setLoading(false);
+      if (currentRequestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
   };
 
