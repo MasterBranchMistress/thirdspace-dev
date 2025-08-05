@@ -237,3 +237,46 @@ const FeedContext = createContext<FeedContextType | undefined>(undefined);
 ### User Dropdown Menu
 
 ![Dropdown](./public/screenshots/dropdown.png)
+
+### Social‑Style Activity Feed (`SCRUM-44`)
+
+- **Vertical Scroll Feed** --- Displays recent activities from a user's friends in a Twitter/Instagram‑style vertical scroll.
+
+- **Supported Activity Types**:
+
+  - Hosted events
+
+  - Event RSVPs / attendance
+
+  - Friend requests accepted
+
+  - Profile updates (bio, avatar, location, username, tags, status)
+
+  - Status posts with optional image attachments
+
+- **Real‑Time Updates**:
+
+  - `useSmartFeedRefresh` hook for periodic refresh
+
+  - Displays a **"New Updates"** banner when fresh items are available
+
+  - Merges new and existing items with `mergeFeedItems` to prevent duplicates
+
+- **Responsive Card Design**:
+
+  - `FeedItemCard` component with contextual actions per feed type
+
+  - Type guards (`isEvent`) ensure correct rendering for event vs user activities
+
+  - Mobile‑first, adaptive layout
+
+- **Backend Support**:
+
+  - `/user-feed` endpoint fetches persisted feed data from MongoDB
+
+  - Feed generation functions (`generateUserFeed` / `generateEventFeed`)
+
+  - Deduplication logic on insert to prevent redundant entries
+
+  ![interactive_1](public/screenshots/fun.png)
+  ![interactive_2](public/screenshots/more-fun.png)
