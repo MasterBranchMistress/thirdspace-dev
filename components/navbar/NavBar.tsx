@@ -20,6 +20,8 @@ import {
   PlusIcon,
   ArrowLeftStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
+import Lottie from "lottie-react";
+import animationData from "@/public/lottie/add-event.json";
 
 export const SearchIcon = ({
   size = 24,
@@ -64,16 +66,17 @@ export default function NavBar() {
   return (
     <Navbar
       isBordered={false}
-      position="sticky"
+      position="static"
       className="bg-concrete justify-center animate-appearance-in"
     >
-      <Tooltip content={"Add New Event"}>
-        {status !== "loading" && (
-          <div className="bg-primary rounded-lg hover:cursor-pointer hover:opacity-70">
-            <PlusIcon width={26} className="font-extrabold"></PlusIcon>
-          </div>
-        )}
-      </Tooltip>
+      {status !== "loading" && (
+        <Lottie
+          animationData={animationData}
+          loop
+          autoplay
+          style={{ height: "40px", width: "40px", zIndex: 20 }}
+        />
+      )}
       <div className="absolute left-1/2 transform -translate-x-1/2">
         <Image
           src="/third-space-logos/thirdspace-logo-4.png"

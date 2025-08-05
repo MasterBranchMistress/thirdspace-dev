@@ -74,11 +74,33 @@ button[data-focus-visible="true"] {
 /* Optional: replace with soft background on tab focus */
 button[data-focus-visible="true"] {
   background-color: transparent; /* or use theme color */
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 button[aria-label="Show password"]:focus-visible {
   outline: none;
   box-shadow: none;
   background-color: transparent;
-  border-radius: 6px; /* if you want a soft focus indicator */
+}
+
+a[data-focus="true"],
+a[data-focus-visible="true"] {
+  outline: none;
+  box-shadow: none;
+  --tw-ring-color: transparent;
+  --tw-ring-offset-color: transparent;
+}
+
+[data-focus-visible-added] {
+  outline: none !important;
+  box-shadow: none !important;
+}
+[data-focus="true"] {
+  color: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background-color: transparent; /* or use theme color */
+  outline: none !important;
+  box-shadow: none !important;
 }

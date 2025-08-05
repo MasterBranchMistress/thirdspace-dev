@@ -1,46 +1,35 @@
-// components/feed/FeedCardFooter.tsx
 import React from "react";
-import { useRouter } from "next/navigation";
-import { formatDistanceToNow } from "date-fns";
-import { Button } from "@heroui/button";
-import { faker } from "@faker-js/faker";
 import { FeedStats } from "./FeedStats";
+import { MapPinIcon } from "@heroicons/react/24/outline";
+import { Image } from "@heroui/react";
+import { FeedTarget } from "@/types/user-feed";
+import { ObjectId } from "mongodb";
 
 interface FeedCardFooterProps {
   type: string;
   actor?: {
-    id?: string;
+    id?: string | ObjectId;
     name?: string;
     username?: string;
     avatar?: string;
-    eventId?: string;
+    eventId?: string | ObjectId;
     eventName?: string;
     location?: {
-      name: string;
+      name?: string | undefined;
       lat: number;
       lng: number;
     };
     totalAttendance?: number;
-    startingDate?: string;
+    startingDate?: string | Date;
   };
-
-  target: {
+  target?: {
     location?: string;
     snippet?: string;
-    eventId?: string;
-    userId?: string;
+    eventId?: string | ObjectId;
+    userId?: string | ObjectId;
     title?: string;
+    avatar?: string;
   };
-}
-
-function isEventActor(
-  actor: FeedCardFooterProps["actor"]
-): actor is { startingDate: string; eventId: string; eventName?: string } {
-  return (
-    !!actor &&
-    typeof actor.startingDate === "string" &&
-    typeof actor.eventId === "string"
-  );
 }
 
 export default function FeedCardFooter({
@@ -48,50 +37,32 @@ export default function FeedCardFooter({
   target,
   actor,
 }: FeedCardFooterProps) {
-  const router = useRouter();
-  if (type === "friend_accepted") {
-    return (
-      <div className="flex justify-center items-center gap-10 pt-2 w-full">
-        <FeedStats />
-      </div>
-    );
-  }
-
-  if (type === "joined_event") {
-    return (
-      <div className="flex flex-col items-center gap-1 w-full">
-        <div className="flex gap-1">
-          <p className="font-extrabold text-small">📍</p>
-          <p className="font-extralight text-small">
-            {target.location || "Roscoe's on 19, Hudson, FL"}
+  const location =
+    actor?.location?.name || target?.location || "🌍 Somewhere mysterious";
+  return (
+    <div className="flex flex-col items-center gap-1 w-full">
+      {/* Optional location display for events */}
+      {["joined_event", "hosted_event", "event_coming_up"].includes(type) && (
+        <div className="flex gap-1 justify-center align-middle">
+          <p className="font-extrabold text-small">
+            <MapPinIcon width={15} />
+          </p>
+          <p className="font-extralight text-small pb-2">
+            {target?.location || "Somewhere nearby"}
           </p>
         </div>
-        <div className="flex justify-between gap-10 pt-2">
-          <FeedStats />
-        </div>
-      </div>
-    );
-  }
-
-  if (type === "profile_updated") {
-    return (
-      <div className="flex justify-center gap-10 pt-2 w-full">
+      )}
+      {type === "profile_avatar_updated" && (
+        <Image
+          src={actor?.avatar}
+          height={400}
+          alt="new-profile-pic"
+          className="z-30 rounded-xl object-cover mb-4"
+        />
+      )}
+      <div className="flex justify-center gap-10 w-full">
         <FeedStats />
       </div>
-    );
-  }
-  if (type === "event_coming_up") {
-    return (
-      <div className="flex justify-center gap-10 pt-2 w-full">
-        <FeedStats />
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex gap-1">
-      <p className="font-extrabold text-small">👀</p>
-      <p className="font-extralight text-small">Activity noticed</p>
     </div>
   );
 }

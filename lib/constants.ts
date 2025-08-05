@@ -7,6 +7,9 @@ export const DBS = {
 export const COLLECTIONS = {
   _USERS: "users",
   _EVENTS: "events",
+  _USER_FEED: "user_feed",
+  _EVENT_FEED: "event_feed",
+  _USER_STATUSES: "user_statuses",
 };
 
 // event statuses
@@ -53,4 +56,5 @@ export const TEST_IDS = {
 export const REF = {
   _EVENT: "Event",
   _USER: "User",
+  _FEED: "Feed",
 };

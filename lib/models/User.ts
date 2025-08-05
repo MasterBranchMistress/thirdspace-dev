@@ -42,16 +42,27 @@ export interface UserDoc {
   pendingFriendRequests?: ObjectId[];
   createdAt?: Date;
   updatedAt?: Date;
+  bioLastUpdatedAt?: Date;
+  avatarLastUpdatedAt?: Date;
+  locationLastUpdatedAt?: Date;
+  statusLastUpdatedAt?: Date;
+  tagsLastupdatedAt?: Date;
+  joinedEventDate?: Date;
+  acceptedFriendDate?: Date;
+  addedEventDate?: Date;
   notifications: Notification[];
   isAdmin?: boolean;
-  karmaScore?: number; // starts at 100
+  karmaScore?: number;
   qualityBadge?: "bronze" | "silver" | "gold" | "platinum";
   eventsAttended?: number;
   eventsHosted?: number;
   lastMinuteCancels?: number;
   tags?: string[];
   location?: string;
-  lang?: string; //for later features
+  lang?: string;
+  status: string;
+  followers?: ObjectId[];
+  following?: ObjectId[];
 }
 
 const fullWeek = [
@@ -110,6 +121,14 @@ const UserSchema = new Schema(
     lastName: { type: String, required: true },
     username: { type: String, required: true },
     usernameLastChangedAt: { type: Date },
+    bioLastUpdatedAt: { type: Date },
+    avatarLastUpdatedAt: { type: Date },
+    locationLastUpdatedAt: { type: Date },
+    statusLastUpdatedAt: { type: Date },
+    tagsLastupdatedAt: { type: Date },
+    joinedEventDate: { type: Date },
+    addedEventDate: { type: Date },
+    acceptedFriendDate: { type: Date },
     email: { type: String, required: true },
     passwordHash: { type: String, required: true },
     avatar: { type: String, required: false }, //TODO: figure out bug with IMAGE Type
@@ -141,6 +160,9 @@ const UserSchema = new Schema(
     tags: [{ type: String, ref: REF._USER }],
     location: { type: String },
     lang: { type: String },
+    followers: { type: ObjectId, ref: REF._USER },
+    following: { type: ObjectId, ref: REF._USER },
+    status: { type: String, required: false },
   },
   { timestamps: true }
 );

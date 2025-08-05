@@ -2,17 +2,40 @@ import { ObjectId } from "mongodb";
 import { EventDoc } from "@/lib/models/Event";
 import { UserDoc } from "@/lib/models/User";
 import { getGravatarUrl } from "../gravatar";
-import { FeedItemUser, FeedActor } from "@/types/user-feed";
+import { FeedItemUser } from "@/types/user-feed";
+import clientPromise from "@/lib/mongodb";
+import { COLLECTIONS, DBS } from "@/lib/constants";
+import { UserFeedDoc } from "@/lib/models/UserFeedDoc";
 
 export async function generateUserFeed(
   user: UserDoc,
   friends: UserDoc[],
   events: EventDoc[]
 ): Promise<FeedItemUser[]> {
-  const feedItems: FeedItemUser[] = [];
+  const client = await clientPromise;
+  const db = client.db(DBS._THIRDSPACE);
+  const feedCollection = db.collection<UserFeedDoc>(COLLECTIONS._USER_FEED);
+  const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
+
+  async function logFeedItem(item: Omit<UserFeedDoc, "_id">) {
+    const exists = await feedCollection.findOne({
+      userId: item.userId,
+      type: item.type,
+      "actor.id": item.actor.id,
+      "target.userId": item.target?.userId,
+      "target.eventId": item.target?.eventId,
+    });
+
+    if (!exists) {
+      await feedCollection.insertOne({
+        ...item,
+        timestamp: item.timestamp ?? new Date(),
+      });
+    }
+  }
 
   for (const friend of friends) {
-    const actor: FeedActor = {
+    const actor = {
       id: friend._id!.toString(),
       firstName: friend.firstName,
       lastName: friend.lastName,
@@ -20,54 +43,157 @@ export async function generateUserFeed(
       avatar: friend.avatar || getGravatarUrl(friend.email),
     };
 
-    // ✅ Profile Updated
-    if (friend.updatedAt) {
-      feedItems.push({
-        id: new ObjectId(),
-        type: "profile_updated",
+    // ✅ Friend Accepted
+    for (const friendId of user.friends || []) {
+      const friend = await userCollection.findOne({ _id: friendId });
+
+      if (!friend || !friend.friends) continue;
+
+      for (const friendOfFriendId of friend.friends) {
+        const isSelf = friendOfFriendId.equals(user._id);
+        const alreadyFriends = user.friends?.some((id) =>
+          id.equals(friendOfFriendId)
+        );
+        const connectedFriend = await userCollection.findOne({
+          _id: friendOfFriendId,
+        });
+
+        if (!isSelf && !alreadyFriends && friend.acceptedFriendDate) {
+          await logFeedItem({
+            userId: user._id!,
+            type: "friend_accepted",
+            actor: {
+              id: friend._id.toString(),
+              firstName: friend.firstName,
+              lastName: friend.lastName,
+              username: friend.username,
+              avatar: friend.avatar!,
+            },
+            target: {
+              userId: friendOfFriendId,
+              snippet: connectedFriend?.firstName,
+            },
+            timestamp: new Date().toISOString(),
+          });
+        }
+      }
+    }
+
+    // ✅ Hosted Events
+    for (const event of events) {
+      const isHost = event.host.equals(friend._id);
+      if (!isHost) continue;
+
+      const now = new Date();
+      const twoWeeksFromNow = new Date(
+        now.getTime() + 1000 * 60 * 60 * 24 * 14
+      );
+      const isUpcoming = event.date >= now && event.date <= twoWeeksFromNow;
+
+      if (isUpcoming) {
+        await logFeedItem({
+          userId: user._id!,
+          type: "hosted_event",
+          actor,
+          target: { eventId: event._id, snippet: event.title },
+          timestamp: new Date().toISOString(),
+        });
+      }
+    }
+
+    // ✅ Joined Events (but not hosted)
+    for (const event of events) {
+      const isAttending = event.attendees?.some((id) => id.equals(friend._id));
+      const isHost = event.host.equals(friend._id);
+
+      if (isAttending && !isHost && friend.joinedEventDate) {
+        await logFeedItem({
+          userId: user._id!,
+          type: "joined_event",
+          actor,
+          target: {
+            userId: friend._id!,
+            snippet: event.title,
+          },
+          timestamp: new Date().toISOString(),
+        });
+      }
+    }
+
+    // ✅ Profile Updates
+    if (friend.bio && friend.bioLastUpdatedAt) {
+      await logFeedItem({
+        userId: user._id!,
+        type: "profile_bio_updated",
+        actor,
+        target: { userId: friend._id!, snippet: friend.bio },
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    if (friend.avatar && friend.avatarLastUpdatedAt) {
+      await logFeedItem({
+        userId: user._id!,
+        type: "profile_avatar_updated",
+        actor,
+        target: { userId: friend._id!, snippet: friend.avatar },
+        timestamp: friend.avatarLastUpdatedAt.toISOString(),
+      });
+    }
+
+    if (friend.location && friend.locationLastUpdatedAt) {
+      await logFeedItem({
+        userId: user._id!,
+        type: "profile_location_updated",
+        actor,
+        target: { userId: friend._id!, snippet: friend.location },
+        timestamp: friend.locationLastUpdatedAt.toISOString(),
+      });
+    }
+
+    if (friend.tags?.length && friend.tagsLastupdatedAt) {
+      await logFeedItem({
+        userId: user._id!,
+        type: "profile_tags_updated",
+        actor,
+        target: { userId: friend._id!, snippet: friend.tags.join(",") },
+        timestamp: friend.tagsLastupdatedAt.toISOString(),
+      });
+    }
+
+    if (friend.status && friend.statusLastUpdatedAt) {
+      await logFeedItem({
+        userId: user._id!,
+        type: "profile_status_updated",
         actor,
         target: {
           userId: friend._id!,
-          snippet: friend.bio,
-          location: friend.location,
-          schedule: friend.availibility,
-          profilePicture: friend.avatar,
-          badge: friend.qualityBadge,
-          interests: friend.interests,
+          snippet: friend.status,
         },
-        timestamp: friend.updatedAt.toISOString(),
-      });
-    }
-
-    // ✅ Friend Accepted
-    if (friend.friends?.some((id) => id.equals(user._id))) {
-      feedItems.push({
-        id: new ObjectId(),
-        type: "friend_accepted",
-        actor,
-        target: {
-          userId: user._id!,
-        },
-        timestamp: friend.updatedAt?.toISOString() ?? new Date().toISOString(),
-      });
-    }
-
-    // ✅ Joined/Hosted Events
-    for (const event of events) {
-      if (!event.attendees?.some((id) => id.equals(friend._id))) continue;
-
-      feedItems.push({
-        id: new ObjectId(),
-        type: event.host.equals(friend._id) ? "hosted_event" : "joined_event",
-        actor,
-        target: {
-          eventId: event._id!,
-          title: event.title,
-        },
-        timestamp: event.updatedAt?.toISOString() ?? event.date.toISOString(),
+        timestamp: friend.statusLastUpdatedAt.toISOString(),
       });
     }
   }
+
+  const feed = await feedCollection
+    .find({ userId: user._id })
+    .sort({ timestamp: -1 })
+    .limit(50)
+    .toArray();
+
+  const feedItems: FeedItemUser[] = feed.map((doc) => ({
+    id: String(doc._id!),
+    type: doc.type,
+    actor: {
+      id: doc.actor.id,
+      firstName: doc.actor.firstName ?? "",
+      lastName: doc.actor.lastName ?? "",
+      username: doc.actor.username,
+      avatar: doc.actor.avatar ?? "",
+    },
+    target: doc.target,
+    timestamp: doc.timestamp.toString(),
+  }));
 
   return feedItems;
 }

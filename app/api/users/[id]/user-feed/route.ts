@@ -17,6 +17,7 @@ export async function GET(
   const db = client.db(DBS._THIRDSPACE);
   const usersCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
   const eventsCollection = db.collection<EventDoc>(COLLECTIONS._EVENTS);
+  const feedCollection = db.collection<FeedItem>(COLLECTIONS._USER_FEED);
 
   try {
     const user = await usersCollection.findOne({ _id: new ObjectId(id) });
@@ -39,6 +40,15 @@ export async function GET(
     const page = Math.max(Number(searchParams.get("page")) || 1, 1);
     const limit = Math.max(Number(searchParams.get("limit")) || 10, 1);
     const skip = (page - 1) * limit;
+    const sinceParam = searchParams.get("since");
+    let sinceDate: Date | null = null;
+
+    if (sinceParam) {
+      const parsed = new Date(decodeURIComponent(sinceParam));
+      if (!isNaN(parsed.getTime())) {
+        sinceDate = parsed;
+      }
+    }
 
     // ✅ Fetch friends + recent events
     const [friends, events] = await Promise.all([
@@ -56,17 +66,37 @@ export async function GET(
         .toArray(),
     ]);
 
-    // ✅ Generate feed items
-    const userFeed = await generateUserFeed(user, friends, events);
-    const eventFeed = await generateEventFeed(user, events);
+    const feedQuery: any = { userId: user._id };
+    if (sinceDate) {
+      feedQuery.timestamp = { $gt: sinceDate };
+    }
 
-    const mergedFeed: FeedItem[] = [...userFeed, ...eventFeed].sort(
-      (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
+    // ✅ Generate feed items
+    let userFeed: FeedItem[] = await feedCollection
+      .find(feedQuery)
+      .sort({ timestamp: -1 })
+      .toArray();
+
+    if (userFeed.length === 0) {
+      const generatedUserFeed = await generateUserFeed(user, friends, events);
+      const generatedEventFeed = await generateEventFeed(user, events, friends);
+      const combined = [...generatedUserFeed, ...generatedEventFeed];
+
+      if (combined.length > 0) {
+        await feedCollection.insertMany(combined);
+      }
+
+      userFeed = combined;
+    }
+
+    const mergedFeed: FeedItem[] = userFeed; // Already sorted
 
     const total = mergedFeed.length;
     const paginatedFeed = mergedFeed.slice(skip, skip + limit);
+
+    // if (userFeed.length > 0 || eventFeed.length > 0) {
+    //   await feedCollection.deleteMany({ userId: user._id });
+    // }
 
     return NextResponse.json({
       message: "✅ Friends' events fetched",

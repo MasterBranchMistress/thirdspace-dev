@@ -142,39 +142,34 @@ export default function LoginPage() {
             {!loading && "Login"}
           </Button>
 
-          <div className="flex justify-center items-center gap-6 mt-2">
-            <button className="hover:cursor-pointer">
-              <Image
-                src="/third-space-logos/icons8-google-64.png"
-                alt="Google"
-                width={32}
-                height={32}
-              />
-            </button>
-            <button className="hover:cursor-pointer">
-              <Image
-                src="/third-space-logos/icons8-facebook-64.png"
-                alt="Facebook"
-                width={32}
-                height={32}
-              />
-            </button>
-            <button className="hover:cursor-pointer">
-              <Image
-                src="/third-space-logos/icons8-twitch-50.png"
-                alt="Twitch"
-                width={32}
-                height={32}
-              />
-            </button>
-            <button className="hover:cursor-pointer">
-              <Image
-                src="/third-space-logos/icons8-discord-50.png"
-                alt="Discord"
-                width={32}
-                height={32}
-              />
-            </button>
+          <div className="flex flex-row w-full justify-center items-center gap-6 mt-2">
+            <Image
+              src="/third-space-logos/icons8-google-64.png"
+              alt="Google"
+              width={32}
+              height={32}
+            />
+
+            <Image
+              src="/third-space-logos/icons8-facebook-64.png"
+              alt="Facebook"
+              width={32}
+              height={32}
+            />
+
+            <Image
+              src="/third-space-logos/icons8-twitch-50.png"
+              alt="Twitch"
+              width={32}
+              height={32}
+            />
+
+            <Image
+              src="/third-space-logos/icons8-discord-50.png"
+              alt="Discord"
+              width={32}
+              height={32}
+            />
           </div>
           <button
             type="button"

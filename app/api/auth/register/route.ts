@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
     }
 
     const passwordHash = await hashPassword(password);
+    const now = new Date();
 
     const baseUserDefaults: Omit<
       UserDoc,
@@ -79,7 +80,18 @@ export async function POST(req: NextRequest) {
       location: "",
       lang: "en",
       tags: [],
-      usernameLastChangedAt: new Date(),
+      usernameLastChangedAt: now,
+      bioLastUpdatedAt: now,
+      avatarLastUpdatedAt: now,
+      locationLastUpdatedAt: now,
+      statusLastUpdatedAt: now,
+      tagsLastupdatedAt: now,
+      joinedEventDate: now,
+      acceptedFriendDate: now,
+      addedEventDate: now,
+      status: "",
+      followers: [],
+      following: [],
     };
 
     const newUser: UserDoc = {

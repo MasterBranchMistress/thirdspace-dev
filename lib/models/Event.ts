@@ -35,6 +35,7 @@ export interface EventDoc {
     currency?: string;
     notes?: string;
   };
+  orbiters?: ObjectId[];
 }
 
 const MessageSchema = new Schema(
@@ -83,6 +84,7 @@ const EventSchema = new Schema(
       currency: { type: String, default: "USD" },
       notes: { type: String },
     },
+    orbiters: { type: ObjectId, ref: REF._USER },
   },
   { timestamps: true }
 );

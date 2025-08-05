@@ -4,19 +4,30 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useCallback } from "react";
 import { useFeed } from "@/app/context/UserFeedContext";
-
+import Lottie from "lottie-react";
 import { FeedBackground } from "@/components/background-animations/UserFeedBackground";
 import LoadingPage from "@/components/spinner/LoadingPage";
 import FeedItemCard from "@/components/feed-item-card/FeedItemCard";
 import GreetingHeader from "@/components/feed-item-card/GreetingHeader";
-import { Spinner } from "@heroui/react";
+import { Alert, Button, Spinner } from "@heroui/react";
 import EmptyFeedState from "@/components/empty-feed-state/EmptyFeedState";
+import animationData from "@/public/lottie/end-of-feed.json";
+import { useSmartFeedRefresh } from "@/utils/smart-refresh/useSmartRefresh";
+import { FeedItem } from "@/types/user-feed";
+import spaceman from "@/public/lottie/space-man.json";
+import backToTop from "@/public/lottie/back-to-top.json";
 
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const { items, loading, error, hasMore, loadMore } = useFeed();
+  const { items, loading, error, hasMore, loadMore, prependItems } = useFeed();
+
+  const { newItems, applyNewItems } = useSmartFeedRefresh({
+    userId: session?.user.id!,
+    feedItems: items,
+    setFeedItems: prependItems as (items: FeedItem[]) => void,
+  });
 
   const observer = useRef<IntersectionObserver | null>(null);
 
@@ -50,21 +61,82 @@ export default function Home() {
   return (
     <div>
       <FeedBackground />
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col">
         <GreetingHeader />
+        {newItems.length > 0 && (
+          <div className="sticky top-0 z-40 w-full bg-concrete text-primary text-md flex items-center justify-center animate-appearance-in">
+            <div className="flex items-center gap-3">
+              <Lottie
+                animationData={spaceman}
+                loop
+                autoplay
+                style={{
+                  height: "70px",
+                  width: "70px",
+                  zIndex: 100,
+                  // marginRight: "-1rem",
+                }}
+              />
+              <span className="font-light tracking-tight">
+                New Updates Available!
+              </span>
+              <button
+                color="primary"
+                onClick={applyNewItems}
+                className="bg-none text-sm underline-offset-2 hover:text-white transition"
+              >
+                <Lottie
+                  animationData={backToTop}
+                  loop
+                  autoplay
+                  style={{
+                    height: "30px",
+                    width: "30px",
+                    zIndex: 100,
+                    marginLeft: "5px",
+                  }}
+                />
+              </button>
+            </div>
+          </div>
+        )}
+
         {items.map((item, i) => {
+          // TODO: Replace with stable key once backend IDs are consistent
+
           const isLast = i === items.length - 1;
           return (
-            <div key={item.id} ref={isLast ? lastItemRef : null}>
+            <div key={i} ref={isLast ? lastItemRef : null}>
               <FeedItemCard item={item} />
             </div>
           );
         })}
         {loading && <Spinner color="primary" variant="wave" />}
         {!hasMore && !loading && (
-          <p className="text-xs text-center text-secondary">
-            You’ve reached the end!
-          </p>
+          <div className="flex flex-col items-center justify-center gap-2 animate-appearance-in mt-7">
+            <p className="text-primary text-center text-lg font-extralight tracking-tight mb-4">
+              Looks like you're all caught up, {session?.user.firstName} ✨
+            </p>
+            <Lottie
+              animationData={animationData}
+              loop
+              autoplay
+              style={{
+                height: "200px",
+                width: "200px",
+                marginBottom: "-1rem",
+                marginTop: "-2rem",
+              }}
+            />
+            <div className="flex flex-wrap justify-center gap-3 mb-8">
+              <button className="bg-primary text-concrete font-light rounded-md shadow-md px-4 py-2">
+                Explore Events
+              </button>
+              <button className="bg-transparent text-primary border border-primary font-light rounded-md px-4 py-2">
+                Add an Event
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>

@@ -8,6 +8,7 @@ export async function PATCH() {
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
   const usersCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
+  const now = new Date();
 
   try {
     // Find users missing any of these fields or with null values
@@ -35,6 +36,12 @@ export async function PATCH() {
           { tags: { $exists: false } },
           { location: { $exists: false } },
           { lang: { $exists: false } },
+          { bioLastUpdatedAt: { $exists: false } },
+          { avatarLastUpdatedAt: { $exists: false } },
+          { locationLastUpdatedAt: { $exists: false } },
+          { statusLastUpdatedAt: { $exists: false } },
+          { tagsLastupdatedAt: { $exists: false } },
+          { usernameLastChangedAt: { $exists: false } },
         ],
       },
       {
@@ -60,7 +67,13 @@ export async function PATCH() {
           tags: [],
           location: "",
           lang: "en",
-          updatedAt: new Date(),
+          updatedAt: now,
+          bioLastUpdatedAt: now,
+          avatarLastUpdatedAt: now,
+          locationLastUpdatedAt: now,
+          statusLastUpdatedAt: now,
+          tagsLastupdatedAt: now,
+          usernameLastChangedAt: now,
         },
       }
     );

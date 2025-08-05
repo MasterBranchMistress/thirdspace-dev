@@ -6,30 +6,30 @@ import {
   useEffect,
   useState,
   ReactNode,
+  useCallback,
 } from "react";
 import { useSession } from "next-auth/react";
-type FeedItem = {
-  id: string;
-  type:
-    | "profile_updated"
-    | "friend_accepted"
-    | "joined_event"
-    | "event_coming_up";
-  actor: any;
-  target: any;
-  timestamp: string;
-};
+import { mergeFeedItems } from "@/utils/merge-feed-items/mergeFeedItems";
+import { FeedItem } from "@/types/user-feed";
 
 interface FeedContextType {
   items: FeedItem[];
   loading: boolean;
   error: string | null;
   hasMore: boolean;
-  refresh: () => void;
+  refresh?: () => void;
   loadMore: () => void;
+  prependItems?: (newItems: FeedItem[]) => void;
 }
 
-const FeedContext = createContext<FeedContextType | undefined>(undefined);
+const FeedContext = createContext<FeedContextType>({
+  items: [],
+  loadMore: () => {},
+  loading: false,
+  hasMore: false,
+  error: null,
+  prependItems: () => {}, // <-- add this line
+});
 
 export function FeedProvider({ children }: { children: ReactNode }) {
   const { data: session } = useSession();
@@ -38,6 +38,10 @@ export function FeedProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+
+  const prependItems = (incoming: FeedItem[]) => {
+    setItems((prev) => mergeFeedItems(prev, incoming));
+  };
 
   const fetchFeed = async (pageToFetch = 1, isRefresh = false) => {
     if (!session?.user?.id) return;
@@ -49,9 +53,9 @@ export function FeedProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
 
       if (isRefresh) {
-        setItems(data.feed);
+        setItems(data.feed); // Fresh load, no merge
       } else {
-        setItems((prev) => [...prev, ...data.feed]);
+        setItems((prev) => mergeFeedItems(prev, data.feed));
       }
 
       setHasMore(data.pagination.hasNextPage);
@@ -84,7 +88,15 @@ export function FeedProvider({ children }: { children: ReactNode }) {
 
   return (
     <FeedContext.Provider
-      value={{ items, loading, error, hasMore, refresh, loadMore }}
+      value={{
+        items,
+        loading,
+        error,
+        hasMore,
+        refresh,
+        loadMore,
+        prependItems,
+      }}
     >
       {children}
     </FeedContext.Provider>
