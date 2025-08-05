@@ -64,7 +64,7 @@ export default function Home() {
       <div className="flex flex-col">
         <GreetingHeader />
         {newItems.length > 0 && (
-          <div className="sticky top-0 z-40 w-full bg-concrete text-primary text-md flex items-center justify-center animate-appearance-in">
+          <div className="animate-appearance-in sticky top-0 z-40 w-full bg-concrete text-primary text-md flex items-center justify-center">
             <div className="flex items-center gap-3">
               <Lottie
                 animationData={spaceman}
