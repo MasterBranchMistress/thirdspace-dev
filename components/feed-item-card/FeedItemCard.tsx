@@ -180,15 +180,17 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
               {Array.isArray(target?.attachments) &&
                 target.attachments.length > 0 && (
                   <div className="flex gap-2 flex-wrap mt-1">
-                    {target.attachments.map((url) => (
-                      <img
-                        key={url}
-                        src={url}
-                        alt="status attachment"
-                        className="w-full h-auto object-cover rounded-md"
-                        loading="lazy"
-                      />
-                    ))}
+                    {target.attachments.map((url) =>
+                      url ? (
+                        <img
+                          key={url}
+                          src={url}
+                          alt="status attachment"
+                          className="w-full h-auto object-cover rounded-md"
+                          loading="lazy"
+                        />
+                      ) : null
+                    )}
                   </div>
                 )}
             </div>
