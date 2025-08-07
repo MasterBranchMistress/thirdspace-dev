@@ -58,3 +58,24 @@ export const REF = {
   _USER: "User",
   _FEED: "Feed",
 };
+
+export const FEED_BUTTON_DROPDOWN_OPTIONS = {
+  items: [
+    {
+      key: "report",
+      label: "Report",
+    },
+    {
+      key: "hide",
+      label: "Hide",
+    },
+    {
+      key: "block",
+      label: "Block User",
+    },
+    {
+      key: "delete",
+      label: "Delete file",
+    },
+  ],
+};

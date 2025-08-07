@@ -13,11 +13,12 @@ import {
   Tooltip,
 } from "@heroui/react";
 
+import bell from "@/public/lottie/bell.json";
+
 import { useSession, signOut } from "next-auth/react";
 import {
   Cog6ToothIcon,
   MapPinIcon,
-  PlusIcon,
   ArrowLeftStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import Lottie from "lottie-react";
@@ -94,9 +95,20 @@ export default function NavBar() {
           <Dropdown placement="bottom-end">
             <Badge
               color="primary"
-              content={""}
+              content={
+                <Lottie
+                  animationData={bell}
+                  loop
+                  autoplay
+                  style={{
+                    height: "40px",
+                    width: "40px",
+                    background: "transparent",
+                  }}
+                />
+              }
               placement="top-right"
-              className=""
+              className="bg-transparent border-none"
             >
               <DropdownTrigger>
                 <Avatar

@@ -7,6 +7,7 @@ import { EventDoc } from "@/lib/models/Event";
 import { generateEventFeed } from "@/utils/feed-generator/generateEventFeed";
 import { generateUserFeed } from "@/utils/feed-generator/generateUserFeed";
 import { FeedItem } from "@/types/user-feed";
+import { shuffleFeed } from "@/utils/shuffle-feed/shuffleFeed";
 
 export async function GET(
   req: NextRequest,
@@ -77,30 +78,26 @@ export async function GET(
       .sort({ timestamp: -1 })
       .toArray();
 
-    if (userFeed.length === 0) {
-      const generatedUserFeed = await generateUserFeed(user, friends, events);
-      const generatedEventFeed = await generateEventFeed(user, events, friends);
-      const combined = [...generatedUserFeed, ...generatedEventFeed];
+    const generatedUserFeed = await generateUserFeed(user, friends, events);
+    const generatedEventFeed = await generateEventFeed(user, events, friends);
+    const combined = [...generatedUserFeed, ...generatedEventFeed];
 
-      if (combined.length > 0) {
-        await feedCollection.insertMany(combined);
-      }
-
-      userFeed = combined;
+    if (combined.length > 0) {
+      await feedCollection.insertMany(combined);
     }
+
+    userFeed = combined;
 
     const mergedFeed: FeedItem[] = userFeed; // Already sorted
 
     const total = mergedFeed.length;
     const paginatedFeed = mergedFeed.slice(skip, skip + limit);
 
-    // if (userFeed.length > 0 || eventFeed.length > 0) {
-    //   await feedCollection.deleteMany({ userId: user._id });
-    // }
+    const shuffledFeed = shuffleFeed(paginatedFeed);
 
     return NextResponse.json({
       message: "✅ Friends' events fetched",
-      feed: paginatedFeed,
+      feed: shuffledFeed,
       pagination: {
         page,
         limit,

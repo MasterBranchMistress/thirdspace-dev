@@ -4,6 +4,7 @@ import { FeedItemEvent } from "@/types/user-feed";
 import clientPromise from "@/lib/mongodb";
 import { COLLECTIONS, DBS } from "@/lib/constants";
 import { EventFeedDoc } from "@/lib/models/EventFeedDoc";
+import { ObjectId } from "mongodb";
 
 export async function generateEventFeed(
   user: UserDoc,
@@ -12,41 +13,42 @@ export async function generateEventFeed(
 ): Promise<FeedItemEvent[]> {
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
-  const feedCollection = db.collection<EventFeedDoc>(COLLECTIONS._EVENT_FEED);
+  const feedCollection = db.collection<EventFeedDoc>(COLLECTIONS._USER_FEED);
+  const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
 
   const now = new Date();
 
+  // Utility to insert or update if missing/incomplete
   async function logFeedItem(item: Omit<EventFeedDoc, "_id">) {
-    const exists = await feedCollection.findOne({
-      userId: item.userId,
-      type: item.type,
-      "actor.eventId": item.actor.eventId,
-      "target.eventId": item.target?.eventId,
-    });
-
-    if (!exists) {
-      await feedCollection.insertOne({
-        ...item,
-        timestamp: item.timestamp ?? new Date(),
-      });
-    }
+    await feedCollection.updateOne(
+      {
+        userId: item.userId,
+        type: item.type,
+        "actor.eventId": item.actor.eventId,
+        "target.eventId": item.target?.eventId,
+      },
+      { $setOnInsert: { ...item, timestamp: new Date() } },
+      { upsert: true }
+    );
   }
 
   for (const event of events) {
     const isUpcoming =
-      event.date.getTime() - now.getTime() < 1000 * 60 * 60 * 48; // within 48 hours
-    const isPopular = (event.attendees?.length || 0) > 15;
+      event.date.getTime() - now.getTime() < 1000 * 60 * 60 * 48; // within 48h
+    const isPopular = (event.attendees?.length || 0) > 3;
 
-    const isFriendHost = friends.some((f) => event.host.equals(f._id));
-    const isUserAttending = event.attendees?.some((id) => id.equals(user._id));
+    // Lookup host user from friends or DB
+    let hostUser =
+      friends.find((f) => f._id?.equals(event.host)) ||
+      (await userCollection.findOne({ _id: event.host }));
 
-    const base = {
+    const base: Omit<EventFeedDoc, "_id"> = {
       userId: user._id!,
       actor: {
         eventId: event._id?.toString() || "",
         eventName: event.title || "Untitled Event",
         location: {
-          name: event.title ?? "Cool Event",
+          name: event.location?.name || "Cool Event",
           lat: event.location?.lat ?? 0,
           lng: event.location?.lng ?? 0,
         },
@@ -56,10 +58,21 @@ export async function generateEventFeed(
       target: {
         eventId: event._id!,
         title: event.title,
+        host: hostUser?.firstName,
+        location: {
+          name: event.location?.name,
+          lat: event.location?.lat,
+          lng: event.location?.lng,
+        },
+        description: event.description,
+        budget: event.budgetInfo,
+        tags: event.tags || [],
       },
+      timestamp: new Date(),
+      type: "event_coming_up", // temporary default, overwritten below
     };
 
-    if (isPopular && !isFriendHost && !isUserAttending) {
+    if (isPopular) {
       await logFeedItem({
         ...base,
         type: "event_is_popular",
@@ -67,7 +80,7 @@ export async function generateEventFeed(
       });
     }
 
-    if (isUpcoming && !isFriendHost && !isUserAttending) {
+    if (isUpcoming) {
       await logFeedItem({
         ...base,
         type: "event_coming_up",
@@ -76,7 +89,7 @@ export async function generateEventFeed(
     }
   }
 
-  // ✅ Fetch recent event feed items for this user
+  // Fetch the latest event feed items for this user
   const results = await feedCollection
     .find({
       userId: user._id,
@@ -96,8 +109,23 @@ export async function generateEventFeed(
       totalAttendance: doc.actor.totalAttendance,
       startingDate: doc.actor.startingDate,
     },
-    target: doc.target,
-    timestamp: doc.timestamp.toISOString(),
+    target: {
+      eventId: doc.target?.eventId || undefined,
+      host: doc.target?.host || undefined,
+      title: doc.target?.title || "",
+      location: {
+        name: doc.target?.location?.name || "",
+        lat: doc.target?.location?.lat ?? undefined,
+        lng: doc.target?.location?.lng ?? undefined,
+      },
+      description: doc.target?.description || "",
+      budget: doc.target?.budget || undefined,
+      tags: doc.target?.tags || [],
+      notes: doc.target?.notes || "",
+      currency: doc.target?.currency || undefined,
+      cost: doc.target?.cost ?? undefined,
+    },
+    timestamp: doc.timestamp.toString(),
   }));
 
   return feed;

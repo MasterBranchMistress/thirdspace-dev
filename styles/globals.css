@@ -47,6 +47,29 @@ button,
   background-color: transparent;
 }
 
+:where(.group)[aria-focus-visible="true"] * {
+  --tw-ring-offset-color: transparent;
+  background-color: transparent; /* optional: soft background */
+}
+
+:where(.group)[aria-expanded="false"] * {
+  border: transparent;
+}
+svg:focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+div:focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+:where(.group)[aria-focus="true"] * {
+  background-color: transparent; /* or transparent if preferred */
+}
+
 /* -----------------------------
    🌒 Dark Mode Matching
    (Optional for smooth contrast)
@@ -103,4 +126,19 @@ a[data-focus-visible="true"] {
   background-color: transparent; /* or use theme color */
   outline: none !important;
   box-shadow: none !important;
+}
+
+/* -----------------------------
+   Swiper Styling
+------------------------------ */
+.swiper {
+  width: 100%;
+  height: auto;
+}
+span.swiper-pagination-bullet {
+  background: #5c6cc4;
+}
+/* specfic i know. swiperjs is janky, dont murder me */
+.flex.w-full.p-3.flex-auto.flex-col.place-content-inherit.align-items-inherit.h-auto.break-words.overflow-y-auto.subpixel-antialiased.px-3.py-0.text-small.text-center.tracking-tight.font-light {
+  overflow-y: clip;
 }

@@ -1,9 +1,9 @@
 import React from "react";
 import { FeedStats } from "./FeedStats";
-import { MapPinIcon } from "@heroicons/react/24/outline";
 import { Image } from "@heroui/react";
-import { FeedTarget } from "@/types/user-feed";
 import { ObjectId } from "mongodb";
+import MapPin from "@/public/lottie/map-pin.json";
+import Lottie from "lottie-react";
 
 interface FeedCardFooterProps {
   type: string;
@@ -16,14 +16,18 @@ interface FeedCardFooterProps {
     eventName?: string;
     location?: {
       name?: string | undefined;
-      lat: number;
-      lng: number;
+      lat?: number;
+      lng?: number;
     };
     totalAttendance?: number;
     startingDate?: string | Date;
   };
   target?: {
-    location?: string;
+    location?: {
+      name?: string;
+      lat?: number;
+      lng?: number;
+    };
     snippet?: string;
     eventId?: string | ObjectId;
     userId?: string | ObjectId;
@@ -38,17 +42,25 @@ export default function FeedCardFooter({
   actor,
 }: FeedCardFooterProps) {
   const location =
-    actor?.location?.name || target?.location || "🌍 Somewhere mysterious";
+    actor?.location?.name || target?.location?.name || "Somewhere mysterious";
+
   return (
-    <div className="flex flex-col items-center gap-1 w-full">
+    <div className="flex flex-col items-center gap-1 tracking-tight w-full text-center px-3">
       {/* Optional location display for events */}
       {["joined_event", "hosted_event", "event_coming_up"].includes(type) && (
-        <div className="flex gap-1 justify-center align-middle">
-          <p className="font-extrabold text-small">
-            <MapPinIcon width={15} />
-          </p>
-          <p className="font-extralight text-small pb-2">
-            {target?.location || "Somewhere nearby"}
+        <div className="flex gap-2justify-center align-middle">
+          <Lottie
+            animationData={MapPin}
+            loop
+            autoplay
+            style={{
+              height: "20px",
+              width: "20px",
+              marginBottom: "1rem",
+            }}
+          />
+          <p className="font-extralight tracking-tight text-small mx-1 pb-2">
+            {location}
           </p>
         </div>
       )}

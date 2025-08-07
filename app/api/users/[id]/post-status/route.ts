@@ -13,7 +13,7 @@ export async function POST(
 ) {
   try {
     const { id } = await context.params;
-    const { callerId, content, attachments } = await req.json();
+    const { content, attachments } = await req.json();
 
     // Basic validations
     if (!content || typeof content !== "string" || content.length > 300) {
@@ -31,11 +31,6 @@ export async function POST(
     }
 
     //TODO: check session for authorization
-    // const isAllowed = isAuthorized(callerId, id);
-
-    // if (!isAllowed) {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
 
     const client = await clientPromise;
     const db = client.db(DBS._THIRDSPACE);
@@ -58,17 +53,32 @@ export async function POST(
 
     if (!user) return;
 
+    const actorPayload = {
+      id: id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      username: user.username,
+      avatar: user.avatar!,
+    };
+
+    // 1. Insert feed item for the user themselves
+    await feedCollection.insertOne({
+      userId: user._id, // feed owner is the user
+      type: "profile_status_updated",
+      actor: actorPayload,
+      target: {
+        snippet: content.trim(),
+        attachments,
+      },
+      timestamp: new Date().toISOString(),
+    });
+
+    // 2. Insert feed items for each friend
     for (const friendId of user.friends || []) {
       await feedCollection.insertOne({
         userId: friendId, // feed owner is the friend
-        type: "status_posted",
-        actor: {
-          id: id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          username: user.username,
-          avatar: user.avatar!,
-        },
+        type: "profile_status_updated",
+        actor: actorPayload,
         target: {
           snippet: content.trim(),
           attachments,

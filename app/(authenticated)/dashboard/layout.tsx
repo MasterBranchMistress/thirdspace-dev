@@ -10,7 +10,6 @@ import NavBar from "@/components/navbar/NavBar";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { redirect } from "next/navigation";
-import LoadingPage from "@/components/spinner/LoadingPage";
 
 export const metadata: Metadata = {
   title: {

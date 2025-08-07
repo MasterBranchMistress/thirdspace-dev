@@ -42,9 +42,9 @@ export interface FeedEventActor {
   eventId: string | ObjectId;
   eventName: string;
   location?: {
-    name: string;
-    lat: number;
-    lng: number;
+    name?: string;
+    lat?: number;
+    lng?: number;
   };
   totalAttendance?: number;
   startingDate?: string | Date; // store as string in API responses
@@ -58,7 +58,13 @@ export interface FeedTarget {
   userId?: string | ObjectId;
   title?: string;
   snippet?: string;
-  location?: string;
+  description?: string;
+  host?: string;
+  location?: {
+    name?: string;
+    lat?: number;
+    lng?: number;
+  };
   attachments?: string[];
   schedule?: Availability[];
   username?: string;
@@ -66,6 +72,14 @@ export interface FeedTarget {
   badge?: "bronze" | "silver" | "gold" | "platinum";
   tags?: string[];
   status?: string;
+  notes?: string;
+  currency?: string;
+  cost?: number;
+  budget?: {
+    estimatedCost?: number;
+    notes?: string;
+    currency?: string;
+  };
 }
 
 /**

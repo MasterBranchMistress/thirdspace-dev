@@ -1,12 +1,11 @@
-import {
-  ChatBubbleLeftEllipsisIcon,
-  FireIcon,
-  HeartIcon,
-  UserGroupIcon,
-} from "@heroicons/react/24/outline";
 import { faker } from "@faker-js/faker";
 import { useMemo } from "react";
 import { Tooltip } from "@heroui/react";
+import Lottie from "lottie-react";
+import ViewsIcon from "@/public/lottie/view.json";
+import HeartsIcon from "@/public/lottie/hearts.json";
+import CommentsIcon from "@/public/lottie/comments.json";
+import BoostIcon from "@/public/lottie/fire.json";
 
 export function FeedStats() {
   const stats = useMemo(
@@ -20,30 +19,59 @@ export function FeedStats() {
   );
   return (
     <>
-      <Tooltip content={`Orbiters`}>
+      <Tooltip content={`Views`}>
         <div className="flex gap-1 items-center align-middle">
-          <UserGroupIcon width={12} className="w-4 h-4 text-primary" />
+          <Lottie
+            animationData={ViewsIcon}
+            autoplay={false}
+            style={{
+              height: "27px",
+              width: "27px",
+            }}
+          />
+          {/*TODO: make this a view count below */}
           <p className="font-extrabold text-small">{stats.followers}</p>
         </div>
       </Tooltip>
       <Tooltip content={"Comments"}>
         <div className="flex gap-1 items-center align-middle">
-          <ChatBubbleLeftEllipsisIcon
-            width={12}
-            className="w-4 h-4 text-primary"
+          <Lottie
+            animationData={CommentsIcon}
+            loop
+            autoplay
+            style={{
+              height: "22px",
+              width: "22px",
+            }}
           />
           <p className="font-extrabold text-small">{stats.comments}</p>
         </div>
       </Tooltip>
       <Tooltip content={"Likes"}>
         <div className="flex gap-1 items-center align-middle">
-          <HeartIcon width={12} className="w-4 h-4 text-primary" />
+          <Lottie
+            animationData={HeartsIcon}
+            loop
+            autoplay={true}
+            style={{
+              height: "21px",
+              width: "21px",
+            }}
+          />
           <p className="font-extrabold text-small">{stats.likes}</p>
         </div>
       </Tooltip>
-      <Tooltip content={"Orbiters talking about this"}>
+      <Tooltip content={"Orbiters"}>
         <div className="flex gap-1 items-center align-middle">
-          <FireIcon width={12} className="w-4 h-4 text-primary" />
+          <Lottie
+            animationData={BoostIcon}
+            autoplay
+            style={{
+              height: "25px",
+              width: "25px",
+              marginBottom: ".5rem",
+            }}
+          />
           <p className="font-extrabold text-small">{stats.heat}</p>
         </div>
       </Tooltip>

@@ -2,50 +2,26 @@ import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { faker } from "@faker-js/faker";
 import { COLLECTIONS, DBS, EVENT_STATUSES, TEST_IDS } from "@/lib/constants";
-
-// export interface EventDoc {
-//   _id?: ObjectId;
-//   title: string;
-//   description: string;
-//   date: Date;
-//   location?: {
-//     name?: string;
-//     lat?: number;
-//     lng?: number;
-//   };
-//   host: ObjectId;
-//   attendees: ObjectId[];
-//   tags?: string[];
-//   messages?: {
-//     user: ObjectId;
-//     text: string;
-//     timestamp: Date;
-//   }[];
-//   status?: string;
-//   createdAt?: Date;
-//   updatedAt?: Date;
-//   banned?: ObjectId[];
-//   public?: boolean;
-// }
+import { EventDoc } from "@/lib/models/Event";
+import { ObjectId } from "mongodb";
 
 export async function GET() {
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
 
-  // ✅ Known IDs
-  const hostId = TEST_IDS._HOST_ID;
-  const otherIds = TEST_IDS._OTHER_IDS;
+  // Known IDs for test data
+  const hostId = new ObjectId(TEST_IDS._HOST_ID);
+  const otherIds = TEST_IDS._OTHER_IDS.map((id) => new ObjectId(id));
 
-  // Generate N fake events
-  const eventsToInsert = Array.from({ length: 5 }).map(() => {
-    // random subset of attendees
-    const shuffled = faker.helpers.shuffle(otherIds);
-    const someAttendees = shuffled.slice(
+  const eventsToInsert: EventDoc[] = Array.from({ length: 5 }).map(() => {
+    // Random subset of attendees
+    const shuffledAttendees = faker.helpers.shuffle(otherIds);
+    const someAttendees = shuffledAttendees.slice(
       0,
       faker.number.int({ min: 0, max: otherIds.length })
     );
 
-    // random messages
+    // Random messages
     const messages = Array.from({
       length: faker.number.int({ min: 1, max: 4 }),
     }).map(() => ({
@@ -57,34 +33,56 @@ export async function GET() {
     return {
       title: faker.company.catchPhrase(),
       description: faker.lorem.paragraph(),
-      date: faker.date.soon({ days: 30 }), // within 30 days
+      date: faker.date.soon({ days: 1 }), // within 30 days
+      startTime: faker.helpers.arrayElement([
+        "09:00",
+        "14:30",
+        "18:00",
+        "20:15",
+      ]),
       location: {
-        name: faker.location.city(),
+        name: `${faker.location.streetAddress()}, ${faker.location.city()}, ${faker.location.state()}`,
         lat: parseFloat(faker.location.latitude().toString()),
         lng: parseFloat(faker.location.longitude().toString()),
       },
-      host: hostId,
-      status: faker.helpers.arrayElement([
-        EVENT_STATUSES._CANCELED,
-        EVENT_STATUSES._COMPLETED,
-        EVENT_STATUSES._ACTIVE,
-      ]),
+      host: faker.helpers.arrayElement([hostId, ...otherIds]),
       attendees: someAttendees,
       tags: faker.helpers.arrayElements(
         ["bowling", "music", "coding", "food", "gaming", "outdoors"],
         { min: 1, max: 3 }
       ),
       messages,
+      status: EVENT_STATUSES._ACTIVE,
       createdAt: new Date(),
       updatedAt: new Date(),
       banned: [],
-      public: faker.helpers.arrayElement([true, false]),
+      public: faker.datatype.boolean(),
+      recurring: faker.datatype.boolean(),
+      recurrenceRule: faker.helpers.arrayElement([
+        "daily",
+        "weekly",
+        "monthly",
+        undefined,
+      ]) as EventDoc["recurrenceRule"],
+      recurrenceEndDate: faker.date.soon({ days: 120 }),
+      recurringParentEventId: faker.datatype.boolean()
+        ? new ObjectId()
+        : undefined,
+      budgetInfo: {
+        estimatedCost: faker.number.int({ min: 50, max: 1000 }),
+        currency: faker.helpers.arrayElement(["USD", "EUR", "GBP"]),
+        notes: faker.lorem.sentence(),
+      },
+      orbiters: faker.helpers.arrayElements(otherIds, {
+        min: 0,
+        max: otherIds.length,
+      }),
     };
   });
 
-  // ✅ Insert them all
+  // Insert into DB
   const result = await db
-    .collection(COLLECTIONS._EVENTS)
+    .collection<EventDoc>(COLLECTIONS._EVENTS)
     .insertMany(eventsToInsert);
 
   return NextResponse.json({

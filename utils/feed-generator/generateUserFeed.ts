@@ -34,6 +34,8 @@ export async function generateUserFeed(
     }
   }
 
+  const now = new Date().toISOString();
+
   for (const friend of friends) {
     const actor = {
       id: friend._id!.toString(),
@@ -73,7 +75,7 @@ export async function generateUserFeed(
               userId: friendOfFriendId,
               snippet: connectedFriend?.firstName,
             },
-            timestamp: new Date().toISOString(),
+            timestamp: now,
           });
         }
       }
@@ -84,11 +86,12 @@ export async function generateUserFeed(
       const isHost = event.host.equals(friend._id);
       if (!isHost) continue;
 
-      const now = new Date();
+      const now_in_date_format = new Date();
       const twoWeeksFromNow = new Date(
-        now.getTime() + 1000 * 60 * 60 * 24 * 14
+        now_in_date_format.getTime() + 1000 * 60 * 60 * 24 * 14
       );
-      const isUpcoming = event.date >= now && event.date <= twoWeeksFromNow;
+      const isUpcoming =
+        event.date >= now_in_date_format && event.date <= twoWeeksFromNow;
 
       if (isUpcoming) {
         await logFeedItem({
@@ -96,7 +99,7 @@ export async function generateUserFeed(
           type: "hosted_event",
           actor,
           target: { eventId: event._id, snippet: event.title },
-          timestamp: new Date().toISOString(),
+          timestamp: now,
         });
       }
     }
@@ -115,7 +118,7 @@ export async function generateUserFeed(
             userId: friend._id!,
             snippet: event.title,
           },
-          timestamp: new Date().toISOString(),
+          timestamp: now,
         });
       }
     }
@@ -127,7 +130,7 @@ export async function generateUserFeed(
         type: "profile_bio_updated",
         actor,
         target: { userId: friend._id!, snippet: friend.bio },
-        timestamp: new Date().toISOString(),
+        timestamp: now,
       });
     }
 
@@ -137,7 +140,7 @@ export async function generateUserFeed(
         type: "profile_avatar_updated",
         actor,
         target: { userId: friend._id!, snippet: friend.avatar },
-        timestamp: friend.avatarLastUpdatedAt.toISOString(),
+        timestamp: now,
       });
     }
 
@@ -147,7 +150,7 @@ export async function generateUserFeed(
         type: "profile_location_updated",
         actor,
         target: { userId: friend._id!, snippet: friend.location },
-        timestamp: friend.locationLastUpdatedAt.toISOString(),
+        timestamp: now,
       });
     }
 
@@ -157,7 +160,7 @@ export async function generateUserFeed(
         type: "profile_tags_updated",
         actor,
         target: { userId: friend._id!, snippet: friend.tags.join(",") },
-        timestamp: friend.tagsLastupdatedAt.toISOString(),
+        timestamp: now,
       });
     }
 
@@ -170,7 +173,7 @@ export async function generateUserFeed(
           userId: friend._id!,
           snippet: friend.status,
         },
-        timestamp: friend.statusLastUpdatedAt.toISOString(),
+        timestamp: now,
       });
     }
   }
