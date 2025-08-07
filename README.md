@@ -280,3 +280,48 @@ const FeedContext = createContext<FeedContextType | undefined>(undefined);
 
   ![interactive_1](public/screenshots/fun.png)
   ![interactive_2](public/screenshots/more-fun.png)
+
+## 🚀 Current Status
+
+- ✅ MVP in active development (August 2025)
+- ✅ Backend architecture live with MongoDB, Express, and Next.js
+- ✅ Frontend rewritten with TailwindCSS + HeroUI
+- ✅ Auth + Smart Session Handling via NextAuth
+- ✅ Feed system launched with deep real-time functionality
+
+---
+
+## 🔄 Recent Worklog (July–August 2025)
+
+### 🎯 Status Feed Overhaul (`/feed`)
+
+- ✅ Implemented `status_posted` and `profile_status_updated` feed item types
+- ✅ Added logic for self-status visibility (users now see their own posts)
+- ✅ Normalized `actor` and `target` structure across feed generators
+- ✅ Added timestamp control for smart refreshes and delta-based updates
+
+### 🪓 Data Debugging & Cleanup
+
+- ✅ Discovered malformed feed targets (`ttile` typo, etc.)
+- ✅ Wrote a nuke route (`DELETE /api/dev/wipe`) for quick dev resets
+- ✅ Refactored `generateUserFeed()` to pull from MongoDB and reduce duplication
+
+### 🐞 Bug Fixes (Big ones)
+
+- 🧠 Fixed JSX bug where attachments were hidden inside a function block
+- 🕳️ Tracked down silent fails in `status_posted` feed items due to shape mismatches
+- ⚠️ Swiper CSS bugs (extra bottom bar, overflow) patched with deep Tailwind overrides
+- ⏱️ Fixed Smart Refresh logic to actually respect timestamp deltas (60s)
+
+### 🎨 Frontend UX
+
+- ✅ SwiperJS integration for photo attachments (status + events)
+- ✅ Responsive grid layout for multi-attachment feed cards
+- ✅ Fallback for gravatar and username display
+- ✅ Tooltips + accessibility cleanups
+
+![mrbell](public/screenshots/notification-bell.png)
+![event-feed](public/screenshots/event-feed.png)
+![swipe-one](public/screenshots/swipe.png)
+![swipe-two](public/screenshots/swipe-two.png)
+![swipe-three](public/screenshots/swipe-three.png)
