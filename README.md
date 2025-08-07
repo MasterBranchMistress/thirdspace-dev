@@ -58,6 +58,10 @@ Licensed under the [MIT license](https://github.com/heroui-inc/next-app-template
 
 ---
 
+# VIDEO DEMOS:
+
+[Google Drive](https://drive.google.com/drive/folders/1PXuyRo8X-e0AiXwJJtfpQM2DY0uiE85U?usp=sharing)
+
 ## 🚀 Tech Stack
 
 - **Framework**: [Next.js 15](https://nextjs.org/)
