@@ -2,7 +2,7 @@ import { faker } from "@faker-js/faker";
 import { useMemo } from "react";
 import { Tooltip } from "@heroui/react";
 import Lottie from "lottie-react";
-import ViewsIcon from "@/public/lottie/view.json";
+import ViewsIcon from "@/public/lottie/eye.json";
 import HeartsIcon from "@/public/lottie/hearts.json";
 import CommentsIcon from "@/public/lottie/comments.json";
 import BoostIcon from "@/public/lottie/fire.json";
@@ -24,9 +24,10 @@ export function FeedStats() {
           <Lottie
             animationData={ViewsIcon}
             autoplay={false}
+            loop
             style={{
-              height: "27px",
-              width: "27px",
+              height: "25px",
+              width: "25px",
             }}
           />
           {/*TODO: make this a view count below */}

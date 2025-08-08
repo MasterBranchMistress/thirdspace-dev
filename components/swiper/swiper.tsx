@@ -22,9 +22,7 @@ export default function AttachmentSwiper({
         slidesPerView={1}
         pagination={{ dynamicBullets: true }}
         className="w-90 bg-concrete mt-3 overflow-hidden pb-2"
-        style={{ marginBottom: "-1rem" }}
         onSlideChange={(swiper) => {
-          // Pause all videos
           swiper.slides.forEach((slide) => {
             const vid = slide.querySelector("video") as HTMLVideoElement;
             if (vid) vid.pause();
@@ -61,8 +59,8 @@ export default function AttachmentSwiper({
               ) : (
                 <Image
                   src={url}
-                  // width={400}
-                  height={500}
+                  width="100%"
+                  // height={500}
                   alt={`Attachment ${index + 1}`}
                   className="w-full h-[500px] object-cover rounded-md pb-10"
                 />

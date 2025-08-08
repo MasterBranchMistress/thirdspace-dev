@@ -202,7 +202,10 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             <div className="mt-2 tracking-tight font-bold">
               {target?.snippet}
               {target?.attachments && target.attachments.length > 0 && (
-                <div className="h-full overflow-hidden">
+                <div
+                  className="h-full overflow-hidden"
+                  style={{ marginBottom: "-2rem" }}
+                >
                   <AttachmentSwiper attachments={target.attachments} />
                 </div>
               )}
@@ -224,11 +227,11 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             </div>
           )}
         </div>
-        <span className="text-xs text-primary tracking-tight font-bold text-center mt-2">
+        <span className="text-xs z-20 text-primary tracking-tight font-bold text-center mt-2">
           {formatDistanceToNow(timestamp, { addSuffix: true })}
         </span>
       </CardBody>
-      <CardFooter className="flex gap-2 px-2 w-full">
+      <CardFooter className="flex gap-2 px-2 w-full z-30">
         <FeedCardFooter type={type} target={target} actor={actor} />
       </CardFooter>
     </Card>
