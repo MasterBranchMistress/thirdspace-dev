@@ -5,6 +5,7 @@ import { COLLECTIONS, DBS } from "@/lib/constants";
 import { UserDoc } from "@/lib/models/User";
 import { UserFeedDoc } from "@/lib/models/UserFeedDoc";
 import { isAuthorized } from "@/utils/auth";
+import { getLocationImage } from "@/utils/get-location-images/getLocationImages";
 
 export async function PATCH(
   req: NextRequest,
@@ -115,6 +116,22 @@ export async function PATCH(
       updateFields.location = trimmed;
       changes.location = trimmed;
       updateFields.locationLastUpdatedAt = new Date();
+
+      let attachments: string[] = [];
+      let photoCredit:
+        | { name: string; username: string; profileUrl: string; link: string }
+        | undefined;
+
+      try {
+        const result = await getLocationImage(trimmed);
+
+        if (result) {
+          attachments = [result];
+        }
+      } catch (err) {
+        console.error("Unable to get photo: ", err);
+      }
+
       feedItemsToInsert.push({
         userId: null!,
         type: "profile_location_updated",
@@ -125,7 +142,11 @@ export async function PATCH(
           username: user.username,
           avatar: user.avatar!,
         },
-        target: { snippet: trimmed },
+        target: {
+          snippet: trimmed,
+          attachments,
+          photoCredit,
+        },
         timestamp,
       });
     }

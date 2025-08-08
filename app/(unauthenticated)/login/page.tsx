@@ -142,7 +142,7 @@ export default function LoginPage() {
             {!loading && "Login"}
           </Button>
 
-          <div className="flex flex-row w-full justify-center items-center gap-6 mt-2">
+          <div className="flex flex-row w-full justify-center items-center gap-9 mt-2">
             <Image
               src="/third-space-logos/icons8-google-64.png"
               alt="Google"

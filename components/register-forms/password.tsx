@@ -1,6 +1,6 @@
 "use client";
 
-import { Form, Input, Button } from "@heroui/react";
+import { Form, Input, Button, Tooltip } from "@heroui/react";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Typewriter from "typewriter-effect";
@@ -43,9 +43,9 @@ export default function PasswordStep({
 
   const strengthShadow = useMemo(() => {
     const shadows: Record<PasswordStrength, string> = {
-      Weak: "text-white text-shadow-[0_0_4px_red]",
-      Okay: "text-white text-shadow-[0_0_4px_yellow]",
-      Strong: "text-white text-shadow-[0_0_4px_green]",
+      Weak: "text-danger text-shadow-lg",
+      Okay: "text-shadow-lg",
+      Strong: "text-success text-shadow-lg",
     };
 
     return shadows[passwordStrength as "Weak" | "Okay" | "Strong"];
@@ -141,9 +141,14 @@ export default function PasswordStep({
                   boxShadow: "0 0 0px 1000px transparent inset",
                 }}
               />
-              <p className={`w-full z-20 text-sm font-bold ${strengthShadow}`}>
-                Password Strength: {passwordStrength} <span>{getEmoji()}</span>
-              </p>
+              <div className="flex flex-row items-center justify-center w-full text-center space-x-2">
+                <p className="text-sm tracking-tight">Password Strength:</p>
+                <p
+                  className={`text-sm tracking-wider font-extrabold ${strengthShadow}`}
+                >
+                  {passwordStrength} <span>{getEmoji()}</span>
+                </p>
+              </div>
 
               <Input
                 name="confirmPassword"
@@ -158,9 +163,13 @@ export default function PasswordStep({
                     className="flex items-center justify-center p-1"
                   >
                     {showConfirm ? (
-                      <EyeSlashIcon className="h-5 w-5 text-purple-primary" />
+                      <Tooltip content="Show Password">
+                        <EyeSlashIcon className="h-5 w-5 text-purple-primary" />
+                      </Tooltip>
                     ) : (
-                      <EyeIcon className="h-5 w-5 text-purple-primary" />
+                      <Tooltip content="Hide Password">
+                        <EyeIcon className="h-5 w-5 text-purple-primary" />
+                      </Tooltip>
                     )}
                   </button>
                 }

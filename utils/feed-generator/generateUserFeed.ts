@@ -1,4 +1,3 @@
-import { ObjectId } from "mongodb";
 import { EventDoc } from "@/lib/models/Event";
 import { UserDoc } from "@/lib/models/User";
 import { getGravatarUrl } from "../gravatar";
@@ -60,6 +59,7 @@ export async function generateUserFeed(
           _id: friendOfFriendId,
         });
 
+        //TODO: decide if we need this in the feed
         if (!isSelf && !alreadyFriends && friend.acceptedFriendDate) {
           await logFeedItem({
             userId: user._id!,
@@ -83,8 +83,8 @@ export async function generateUserFeed(
 
     // ✅ Hosted Events
     for (const event of events) {
-      const isHost = event.host.equals(friend._id);
-      if (!isHost) continue;
+      // const isHost = event.host.equals(friend._id);
+      // if (!isHost) continue;
 
       const now_in_date_format = new Date();
       const twoWeeksFromNow = new Date(
@@ -98,7 +98,15 @@ export async function generateUserFeed(
           userId: user._id!,
           type: "hosted_event",
           actor,
-          target: { eventId: event._id, snippet: event.title },
+          target: {
+            eventId: event._id,
+            snippet: event.title,
+            location: {
+              name: event.location?.name,
+              lat: event.location?.lat,
+              lng: event.location?.lng,
+            },
+          },
           timestamp: now,
         });
       }
@@ -107,9 +115,8 @@ export async function generateUserFeed(
     // ✅ Joined Events (but not hosted)
     for (const event of events) {
       const isAttending = event.attendees?.some((id) => id.equals(friend._id));
-      const isHost = event.host.equals(friend._id);
 
-      if (isAttending && !isHost && friend.joinedEventDate) {
+      if (isAttending) {
         await logFeedItem({
           userId: user._id!,
           type: "joined_event",
@@ -117,6 +124,11 @@ export async function generateUserFeed(
           target: {
             userId: friend._id!,
             snippet: event.title,
+            location: {
+              name: event.location?.name,
+              lat: event.location?.lat,
+              lng: event.location?.lng,
+            },
           },
           timestamp: now,
         });

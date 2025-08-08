@@ -1,7 +1,7 @@
 "use client";
 
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination } from "swiper/modules";
+import { Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -10,7 +10,7 @@ import { Image } from "@heroui/react";
 export default function AttachmentSwiper({
   attachments,
 }: {
-  attachments: string[];
+  attachments: (string | { url: string; type?: string })[];
 }) {
   if (!attachments || attachments.length === 0) return null;
 
@@ -20,21 +20,56 @@ export default function AttachmentSwiper({
         modules={[Pagination]}
         spaceBetween={10}
         slidesPerView={1}
-        scrollbar={false}
-        navigation={false}
         pagination={{ dynamicBullets: true }}
-        className="w-90 bg-concrete mt-3  overflow-hidden pb-2"
+        className="w-90 bg-concrete mt-3 overflow-hidden pb-2"
+        style={{ marginBottom: "-1rem" }}
+        onSlideChange={(swiper) => {
+          // Pause all videos
+          swiper.slides.forEach((slide) => {
+            const vid = slide.querySelector("video") as HTMLVideoElement;
+            if (vid) vid.pause();
+          });
+
+          // Play the active one
+          const activeSlide = swiper.slides[swiper.activeIndex];
+          const activeVideo = activeSlide.querySelector(
+            "video"
+          ) as HTMLVideoElement;
+          if (activeVideo) {
+            activeVideo.muted = true; // Required for autoplay
+            activeVideo.play().catch(() => {});
+          }
+        }}
       >
-        {attachments.map((url, index) => (
-          <SwiperSlide key={index}>
-            <Image
-              src={url}
-              width={500}
-              alt={`Attachment ${index + 1}`}
-              className="w-full h-[400px] object-cover rounded-md pb-10"
-            />
-          </SwiperSlide>
-        ))}
+        {attachments.map((attachment, index) => {
+          const isObj = typeof attachment === "object";
+          const url = isObj ? attachment.url : attachment;
+          const type = isObj ? attachment.type : undefined;
+
+          return (
+            <SwiperSlide key={index}>
+              {type === "video" || url?.match(/\.(mp4|mov|avi|webm|mkv)$/i) ? (
+                <video
+                  src={url}
+                  controls={true}
+                  loop
+                  muted
+                  playsInline
+                  autoPlay={true}
+                  className="w-full h-[500px] object-cover px-5 rounded-md pb-10"
+                />
+              ) : (
+                <Image
+                  src={url}
+                  // width={400}
+                  height={500}
+                  alt={`Attachment ${index + 1}`}
+                  className="w-full h-[500px] object-cover rounded-md pb-10"
+                />
+              )}
+            </SwiperSlide>
+          );
+        })}
       </Swiper>
     </div>
   );

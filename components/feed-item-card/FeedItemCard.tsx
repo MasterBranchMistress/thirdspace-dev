@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { FeedEventActor, FeedItem, FeedUserActor } from "@/types/user-feed";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
 import AttachmentSwiper from "../swiper/swiper";
+import detectMediaType from "@/utils/detect-media-type/detectMediaType";
 // import { FEED_BUTTON_DROPDOWN_OPTIONS } from "@/lib/constants";
 
 interface FeedItemCardProps {
@@ -26,17 +27,10 @@ interface FeedItemCardProps {
 export default function FeedItemCard({ item }: FeedItemCardProps) {
   const { type, target, actor, timestamp } = item;
 
-  const router = useRouter();
-  // const dropDownItems = FEED_BUTTON_DROPDOWN_OPTIONS;
-
-  const isEvent = (
-    actor: FeedUserActor | FeedEventActor
-  ): actor is FeedEventActor => {
-    return (
-      !!actor &&
-      typeof (actor as any).eventName === "string" &&
-      !!(actor as any).location
-    );
+  const isUserActor = (
+    a: FeedUserActor | FeedEventActor | null | undefined
+  ): a is FeedUserActor => {
+    return !!a && typeof (a as any).id === "string";
   };
 
   const items = [
@@ -59,43 +53,43 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
   const message =
     type === "event_is_popular"
       ? `"${target?.title}" is trending 🔥`
-      : type === "event_coming_up"
+      : type === "event_coming_up" && !isUserActor(actor)
         ? `"${target?.title}" is coming up ⏰`
-        : isEvent(actor)
-          ? `📍 "${actor.eventName}" is coming up near you!`
-          : type === "friend_accepted"
+        : type === "hosted_event" && isUserActor(actor)
+          ? `${actor.firstName}`
+          : type === "friend_accepted" && isUserActor(actor)
             ? `${actor.firstName} has a new Orbiter!`
-            : type === "joined_event"
+            : type === "joined_event" && isUserActor(actor)
               ? `${actor.firstName} joined "${title}"`
-              : type === "status_posted"
-                ? ``
-                : type === "hosted_event"
-                  ? `${actor.firstName} is hosting "${title}"`
-                  : type === "created_event"
-                    ? `${actor.firstName} just created "${title}"`
-                    : type === "profile_bio_updated"
-                      ? `${actor.firstName} wrote in their bio 📝`
-                      : type === "profile_avatar_updated"
-                        ? `${actor.firstName} updated their look 😎`
-                        : type === "profile_location_updated"
-                          ? `${actor.firstName} moved somewhere new 📍`
-                          : type === "profile_tags_updated"
-                            ? `${actor.firstName} picked new interests 🧠`
-                            : type === "profile_status_updated"
-                              ? ``
-                              : `${actor.firstName} is doing something cool 🤔`;
+              : type === "created_event" && isUserActor(actor)
+                ? `${actor.firstName} just created "${title}"`
+                : type === "profile_bio_updated" && isUserActor(actor)
+                  ? `${actor.firstName} wrote in their bio 📝`
+                  : type === "profile_avatar_updated" && isUserActor(actor)
+                    ? `${actor.firstName} updated their look 😎`
+                    : type === "profile_location_updated" && isUserActor(actor)
+                      ? `${actor.firstName} moved somewhere new 📍`
+                      : type === "profile_tags_updated" && isUserActor(actor)
+                        ? `${actor.firstName} picked new interests 🧠`
+                        : type === "profile_status_updated" &&
+                            isUserActor(actor)
+                          ? ``
+                          : isUserActor(actor) &&
+                            `${actor.firstName} is doing something cool 🤔`;
 
   const tags =
     type === "profile_tags_updated" && typeof target?.snippet === "string"
       ? target.snippet.split(",").map((tag) => tag.trim())
       : [];
 
+  // console.log("event host: ", target?.hostName);
+
   return (
     <Card
       radius="none"
       className="w-full shadow-none text-primary bg-concrete mb-3"
     >
-      <CardHeader className="flex justify-between items-center mb-2">
+      <CardHeader className="flex justify-between items-center">
         <div className="flex gap-5">
           <div className="hover:cursor-pointer">
             <Avatar
@@ -104,21 +98,21 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
               radius="full"
               size="md"
               src={
-                isEvent(actor)
-                  ? "/misc/jake-the-dog.png"
+                isUserActor(actor)
+                  ? actor?.avatar
                   : actor?.avatar || "/misc/party.jpg"
               }
             />
           </div>
-          {isEvent(actor) ? (
+          {!isUserActor(actor) ? (
             <div className="flex flex-col gap-1 items-center justify-center">
               <h6 className="text-small font-semibold justify-center tracking-tight leading-none text-primary">
-                {target?.host}'s event has an Update!
+                {target?.host ?? target?.hostName}'s event has an Update!
               </h6>
               <h5 className="text-small font-light tracking-tight text-primary">
                 Starts{" "}
-                {actor.startingDate
-                  ? format(new Date(actor.startingDate), "PPP p")
+                {target?.startingDate
+                  ? format(new Date(target?.startingDate), "PPP p")
                   : "TBD"}
               </h5>
             </div>
@@ -127,9 +121,11 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
               <h4 className="text-small font-extralight tracking-wide leading-none text-primary">
                 {`${actor?.firstName || ""} ${actor?.lastName || ""}`.trim()}
               </h4>
-              <h5 className="text-small tracking-tight text-primary">
-                @{actor?.username}
-              </h5>
+              {isUserActor(actor) && (
+                <h5 className="text-small tracking-tight text-primary">
+                  @{actor?.username}
+                </h5>
+              )}
             </div>
           )}
         </div>
@@ -154,11 +150,27 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
         <p className="font-bold text-center tracking-tight">{message}</p>
         <div className="flex flex-col justify-center items-center">
           {type === "profile_bio_updated" && target?.snippet && (
-            <span className="font-light mt-2">{target.snippet}</span>
+            <span className="font-light mt-2 w-85">{target.snippet}</span>
           )}
           {type === "profile_status_updated" && (
             <div className="mt-2 tracking-tight font-normal text-sm">
-              <p>{target?.snippet}</p>
+              <p className="w-85">{target?.snippet}</p>
+
+              {target?.attachments && target.attachments.length > 0 && (
+                <div className="h-full overflow-hidden">
+                  <AttachmentSwiper attachments={target.attachments} />
+                </div>
+              )}
+            </div>
+          )}
+          {type === "hosted_event" && !isUserActor(actor) && (
+            <div className="mt-2 tracking-tight font-normal text-sm">
+              <div className="flex flex-col items-center justify-center text-center">
+                <div className="font-bold pb-1">{target?.title}</div>
+                <div className="tracking-tight text-sm w-85">
+                  {target?.snippet}
+                </div>
+              </div>
 
               {target?.attachments && target.attachments.length > 0 && (
                 <div className="h-full overflow-hidden">
@@ -168,6 +180,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             </div>
           )}
 
+          {/* TODO: Friend updates might be uneccessary. Will decide later*/}
           {type === "friend_accepted" && (
             <div className="mt-2">
               Send a shout to {title} if you know them!
@@ -185,32 +198,14 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
               ))}
             </div>
           )}
-          {type === "status_posted" && (
-            <div className="flex flex-col gap-1">
-              <p className="text-sm text-primary font-light tracking-wide">
-                {title}
-              </p>
-              {Array.isArray(target?.attachments) &&
-                target.attachments.length > 0 && (
-                  <div className="flex gap-2 flex-wrap mt-1">
-                    {target.attachments.map((url) =>
-                      url ? (
-                        <img
-                          key={url}
-                          src={url}
-                          alt="status attachment"
-                          className="w-full h-auto object-cover rounded-md"
-                          loading="lazy"
-                        />
-                      ) : null
-                    )}
-                  </div>
-                )}
-            </div>
-          )}
           {type === "profile_location_updated" && (
             <div className="mt-2 tracking-tight font-bold">
               {target?.snippet}
+              {target?.attachments && target.attachments.length > 0 && (
+                <div className="h-full overflow-hidden">
+                  <AttachmentSwiper attachments={target.attachments} />
+                </div>
+              )}
             </div>
           )}
           {type === "event_is_popular" && (
@@ -221,6 +216,11 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           {type === "event_coming_up" && (
             <div className="my-3 font-light tracking-tight">
               {target?.description}
+              {target?.attachments && target.attachments.length > 0 && (
+                <div className="h-full overflow-hidden">
+                  <AttachmentSwiper attachments={target.attachments} />
+                </div>
+              )}
             </div>
           )}
         </div>

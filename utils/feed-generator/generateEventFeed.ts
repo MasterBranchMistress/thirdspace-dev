@@ -4,7 +4,6 @@ import { FeedItemEvent } from "@/types/user-feed";
 import clientPromise from "@/lib/mongodb";
 import { COLLECTIONS, DBS } from "@/lib/constants";
 import { EventFeedDoc } from "@/lib/models/EventFeedDoc";
-import { ObjectId } from "mongodb";
 
 export async function generateEventFeed(
   user: UserDoc,
@@ -38,27 +37,25 @@ export async function generateEventFeed(
     const isPopular = (event.attendees?.length || 0) > 3;
 
     // Lookup host user from friends or DB
-    let hostUser =
+    const hostUser =
       friends.find((f) => f._id?.equals(event.host)) ||
       (await userCollection.findOne({ _id: event.host }));
 
     const base: Omit<EventFeedDoc, "_id"> = {
       userId: user._id!,
       actor: {
-        eventId: event._id?.toString() || "",
+        eventId: event._id,
         eventName: event.title || "Untitled Event",
-        location: {
-          name: event.location?.name || "Cool Event",
-          lat: event.location?.lat ?? 0,
-          lng: event.location?.lng ?? 0,
-        },
-        totalAttendance: event.attendees?.length || 0,
-        startingDate: event.date,
+        host: hostUser?.firstName,
+        startingDate: event.date.toISOString(),
+        avatar: hostUser?.avatar,
       },
       target: {
         eventId: event._id!,
         title: event.title,
         host: hostUser?.firstName,
+        avatar: hostUser?.avatar,
+        totalAttendance: event.attendees?.length || 0,
         location: {
           name: event.location?.name,
           lat: event.location?.lat,
@@ -67,6 +64,8 @@ export async function generateEventFeed(
         description: event.description,
         budget: event.budgetInfo,
         tags: event.tags || [],
+        startingDate: event.date.toISOString(),
+        attachments: event.attachments,
       },
       timestamp: new Date(),
       type: "event_coming_up", // temporary default, overwritten below
@@ -76,7 +75,7 @@ export async function generateEventFeed(
       await logFeedItem({
         ...base,
         type: "event_is_popular",
-        timestamp: event.updatedAt ?? event.date,
+        timestamp: new Date(),
       });
     }
 
@@ -84,7 +83,7 @@ export async function generateEventFeed(
       await logFeedItem({
         ...base,
         type: "event_coming_up",
-        timestamp: event.date,
+        timestamp: new Date(),
       });
     }
   }
@@ -108,6 +107,7 @@ export async function generateEventFeed(
       location: doc.actor.location,
       totalAttendance: doc.actor.totalAttendance,
       startingDate: doc.actor.startingDate,
+      avatar: doc.actor.avatar,
     },
     target: {
       eventId: doc.target?.eventId || undefined,
@@ -124,8 +124,15 @@ export async function generateEventFeed(
       notes: doc.target?.notes || "",
       currency: doc.target?.currency || undefined,
       cost: doc.target?.cost ?? undefined,
+
+      startingDate:
+        doc.target?.startingDate?.toString() ??
+        doc.actor?.startingDate ??
+        undefined,
+
+      attachments: doc.target?.attachments ?? [],
     },
-    timestamp: doc.timestamp.toString(),
+    timestamp: doc.timestamp,
   }));
 
   return feed;

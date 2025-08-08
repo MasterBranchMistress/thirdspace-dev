@@ -48,7 +48,7 @@ export default function FeedCardFooter({
     <div className="flex flex-col items-center gap-1 tracking-tight w-full text-center px-3">
       {/* Optional location display for events */}
       {["joined_event", "hosted_event", "event_coming_up"].includes(type) && (
-        <div className="flex gap-2justify-center align-middle">
+        <div className="flex gap-0.5 justify-center align-middle">
           <Lottie
             animationData={MapPin}
             loop

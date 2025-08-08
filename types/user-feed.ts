@@ -35,11 +35,23 @@ export interface FeedUserActor {
   timestamp?: string; // rarely needed, mostly used for actor-specific updates
 }
 
+export type AttachmentType = "image" | "video" | "unknown";
+
+export interface Attachment {
+  url: string;
+  type?: AttachmentType; // optional for legacy; we can infer if missing
+  poster?: string; // optional: video thumbnail if you ever add it
+}
+
 /**
  * Actor representing an event in the feed.
  */
 export interface FeedEventActor {
-  eventId: string | ObjectId;
+  hostFirstName?: string;
+  hostUser?: string;
+  host?: string;
+  eventId?: ObjectId;
+  avatar?: string;
   eventName: string;
   location?: {
     name?: string;
@@ -47,7 +59,7 @@ export interface FeedEventActor {
     lng?: number;
   };
   totalAttendance?: number;
-  startingDate?: string | Date; // store as string in API responses
+  startingDate?: string;
 }
 
 /**
@@ -57,15 +69,26 @@ export interface FeedTarget {
   eventId?: string | ObjectId;
   userId?: string | ObjectId;
   title?: string;
+  type?: FeedItemType;
   snippet?: string;
   description?: string;
   host?: string;
+  hostName?: string;
   location?: {
     name?: string;
     lat?: number;
     lng?: number;
   };
-  attachments?: string[];
+
+  // ✅ Backward compatible: strings (legacy) OR objects (new)
+  attachments?: (string | Attachment)[];
+  avatar?: string;
+  photoCredit?: {
+    name: string;
+    username: string;
+    profileUrl: string;
+    link: string;
+  };
   schedule?: Availability[];
   username?: string;
   profilePicture?: string;
@@ -80,6 +103,19 @@ export interface FeedTarget {
     notes?: string;
     currency?: string;
   };
+  startingDate?: string;
+  totalAttendance?: number;
+
+  // (Optional/legacy) If you’re standardizing on attachments, consider deprecating these:
+  mediaUrls?: string[];
+  thumbnailUrl?: string;
+  mediaType?: "image" | "video" | null;
+
+  views?: number;
+  commentsCount?: number;
+  comments?: string[];
+  likes?: number;
+  orbiters?: number;
 }
 
 /**
@@ -91,6 +127,7 @@ export interface FeedItemUser {
   actor: FeedUserActor;
   status?: string;
   target?: FeedTarget;
+  avatar?: string;
   timestamp: string; // ISO string
 }
 
@@ -102,7 +139,7 @@ export interface FeedItemEvent {
   type: FeedItemType;
   actor: FeedEventActor;
   target?: FeedTarget;
-  timestamp: string; // ISO string
+  timestamp: Date; // ISO string
 }
 
 /**

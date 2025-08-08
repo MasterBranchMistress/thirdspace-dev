@@ -6,6 +6,7 @@ import { DBS, COLLECTIONS } from "@/lib/constants";
 import { UserStatusDoc } from "@/lib/models/UserStatusDoc";
 import { UserDoc } from "@/lib/models/User";
 import { UserFeedDoc } from "@/lib/models/UserFeedDoc";
+import detectMediaType from "@/utils/detect-media-type/detectMediaType";
 
 export async function POST(
   req: NextRequest,
@@ -13,7 +14,7 @@ export async function POST(
 ) {
   try {
     const { id } = await context.params;
-    const { content, attachments } = await req.json();
+    const { content, attachments = [] } = await req.json();
 
     // Basic validations
     if (!content || typeof content !== "string" || content.length > 300) {
@@ -30,6 +31,11 @@ export async function POST(
       );
     }
 
+    const parsedAttachments = attachments.map((url: string) => ({
+      url,
+      type: detectMediaType(url) || "unknown",
+    }));
+
     //TODO: check session for authorization
 
     const client = await clientPromise;
@@ -45,7 +51,7 @@ export async function POST(
       userId: id,
       content: content.trim(),
       createdAt: new Date(),
-      attachments,
+      attachments: parsedAttachments,
     };
 
     const result = await statusCollection.insertOne(newStatus);

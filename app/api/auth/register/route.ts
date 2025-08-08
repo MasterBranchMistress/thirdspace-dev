@@ -8,7 +8,8 @@ import { getGravatarUrl } from "@/utils/gravatar";
 
 export async function POST(req: NextRequest) {
   try {
-    const { firstName, lastName, email, password, bio } = await req.json();
+    const { firstName, lastName, email, password, bio, tags } =
+      await req.json();
     const missing = [];
     if (!email) missing.push("email");
     if (!password) missing.push("password");
@@ -79,7 +80,7 @@ export async function POST(req: NextRequest) {
       updatedAt: new Date(),
       location: "",
       lang: "en",
-      tags: [],
+      tags: tags ?? [],
       usernameLastChangedAt: now,
       bioLastUpdatedAt: now,
       avatarLastUpdatedAt: now,
@@ -102,6 +103,7 @@ export async function POST(req: NextRequest) {
       username: generateAnonUsername(),
       passwordHash,
       bio,
+      tags, // this was missing
       ...baseUserDefaults,
     };
 

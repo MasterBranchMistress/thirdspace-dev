@@ -19,6 +19,7 @@ export default function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [bio, setBio] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
 
   const router = useRouter();
   const { notify } = useToast();
@@ -33,16 +34,15 @@ export default function RegisterForm() {
   };
 
   const handleSubmit = async () => {
-    //TODO: verfiy these on the backend
-    console.log({ firstName, lastName, email, bio });
     const err = await handleRegisterUser(
       firstName,
       lastName,
       email,
       password,
       bio,
-      router
+      tags // ✅ use the fresh value directly here
     );
+
     if (err) {
       notify("We couldn't sign you up 🥲", err);
     } else {
@@ -50,6 +50,7 @@ export default function RegisterForm() {
     }
   };
 
+  console.log({ firstName, lastName, email, bio, tags });
   return (
     <div className="relative animate-appearance-in min-h-screen w-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-pink-200 via-purple-100 to-white">
       <ParticalBackground />

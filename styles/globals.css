@@ -56,18 +56,24 @@ button,
   border: transparent;
 }
 svg:focus {
-  outline: none;
-  border: none;
-  box-shadow: none;
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }
+
 div:focus {
-  outline: none;
-  border: none;
-  box-shadow: none;
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+button:focus {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 :where(.group)[aria-focus="true"] * {
-  background-color: transparent; /* or transparent if preferred */
+  background-color: transparent;
 }
 
 /* -----------------------------
@@ -120,10 +126,10 @@ a[data-focus-visible="true"] {
   box-shadow: none !important;
 }
 [data-focus="true"] {
-  color: transparent !important;
+  /* color: transparent !important; */
   outline: none !important;
   box-shadow: none !important;
-  background-color: transparent; /* or use theme color */
+  background-color: transparent;
   outline: none !important;
   box-shadow: none !important;
 }

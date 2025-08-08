@@ -2,9 +2,12 @@ import { Schema, model, models, Types } from "mongoose";
 import { ObjectId } from "mongodb";
 import { EVENT_STATUSES, REF } from "../constants";
 
+type Attachment = { url: string; type: "image" | "video" | undefined };
+
 export interface EventDoc {
   _id?: ObjectId;
   title: string;
+  type?: string;
   description: string;
   date: Date;
   startTime?: string;
@@ -25,6 +28,7 @@ export interface EventDoc {
   createdAt?: Date;
   updatedAt?: Date;
   banned?: ObjectId[];
+  attachments?: Attachment[];
   public?: boolean;
   recurring?: boolean;
   recurrenceRule?: "daily" | "weekly" | "monthly";
@@ -35,6 +39,7 @@ export interface EventDoc {
     currency?: string;
     notes?: string;
   };
+  timestamp: Date;
   orbiters?: ObjectId[];
 }
 

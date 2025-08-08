@@ -60,9 +60,13 @@ export function FeedProvider({ children }: { children: ReactNode }) {
       if (currentRequestId !== requestIdRef.current) return;
 
       if (isRefresh) {
-        setItems((prev) => (data.feed.length > 0 ? data.feed : prev));
+        setItems((prev) =>
+          Array.isArray(data.feed) && data.feed.length > 0 ? data.feed : prev
+        );
       } else {
-        setItems((prev) => [...prev, ...data.feed]);
+        setItems((prev) =>
+          Array.isArray(data.feed) ? [...prev, ...data.feed] : prev
+        );
       }
 
       setHasMore(data.pagination.hasNextPage);

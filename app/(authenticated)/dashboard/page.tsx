@@ -55,7 +55,7 @@ export default function Home() {
 
   if (status === "loading") return <LoadingPage />;
   if (error) return <p>{error}</p>;
-  if (!items?.length && !loading)
+  if ((!items || items.length === 0) && !loading)
     return <EmptyFeedState name={session?.user.firstName} />;
 
   return (
