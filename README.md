@@ -329,3 +329,31 @@ const FeedContext = createContext<FeedContextType | undefined>(undefined);
 ![swipe-one](public/screenshots/swipe.png)
 ![swipe-two](public/screenshots/swipe-two.png)
 ![swipe-three](public/screenshots/swipe-three.png)
+
+## 🆕 Recent Update — Location Attachments in Feed
+
+We’ve added support for **location-based profile updates** with image attachments pulled from the **Unsplash API**.
+
+### How it works
+
+- When a user updates their **location** in their profile, the backend now queries Unsplash for a relevant photo based on the city/state string.
+- The first result (if available) is attached to the **`profile_location_updated`** feed item.
+- Photo credit metadata is stored alongside the attachment for attribution.
+- If Unsplash is down or rate-limited, the feed item still posts without an attachment.
+
+### Visibility rules
+
+- Currently, all location updates appear in friends’ feeds.
+- Future updates will incorporate **follower-based visibility** for public/private events and profile changes.
+
+### Developer Notes
+
+- **Frontend** displays these attachments inside the `AttachmentSwiper` component for a smooth swipe-through UI.
+- **Backend** enforces type consistency:
+  - Dates stored as `Date` objects server-side.
+  - Strings for timestamps in API responses.
+  - ObjectIds stored for relationships, cast to strings in responses.
+- Code changes located in:
+  - `PATCH /users/:id` (profile update logic)
+  - `UserFeedDoc` model (`target.attachments` & `target.photoCredit`)
+  - `AttachmentSwiper` component
