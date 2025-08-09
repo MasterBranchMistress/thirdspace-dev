@@ -10,6 +10,7 @@ import NavBar from "@/components/navbar/NavBar";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { redirect } from "next/navigation";
+import Footer from "@/components/footer/Footer";
 
 export const metadata: Metadata = {
   title: {
@@ -54,6 +55,7 @@ export default async function RootLayout({
               {children}
             </main>
           </div>
+          <Footer />
         </Providers>
       </body>
     </html>

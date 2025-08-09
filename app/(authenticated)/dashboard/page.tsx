@@ -9,13 +9,14 @@ import { FeedBackground } from "@/components/background-animations/UserFeedBackg
 import LoadingPage from "@/components/spinner/LoadingPage";
 import FeedItemCard from "@/components/feed-item-card/FeedItemCard";
 import GreetingHeader from "@/components/feed-item-card/GreetingHeader";
-import { Alert, Button, Spinner } from "@heroui/react";
+import { Alert, Button, Spinner, Tooltip } from "@heroui/react";
 import EmptyFeedState from "@/components/empty-feed-state/EmptyFeedState";
 import animationData from "@/public/lottie/end-of-feed.json";
 import { useSmartFeedRefresh } from "@/utils/smart-refresh/useSmartRefresh";
 import { FeedItem } from "@/types/user-feed";
 import spaceman from "@/public/lottie/space-man.json";
 import backToTop from "@/public/lottie/back-to-top.json";
+import boost from "@/public/lottie/boost.json";
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -30,6 +31,10 @@ export default function Home() {
   });
 
   const observer = useRef<IntersectionObserver | null>(null);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const lastItemRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -113,7 +118,10 @@ export default function Home() {
         })}
         {loading && <Spinner color="primary" variant="wave" />}
         {!hasMore && !loading && (
-          <div className="flex flex-col items-center justify-center gap-2 animate-appearance-in mt-7">
+          <div
+            className="flex flex-col items-center justify-center gap-2 animate-appearance-in mt-7"
+            style={{ marginBottom: "2rem" }}
+          >
             <p className="text-primary text-center text-lg font-extralight tracking-tight mb-4">
               Looks like you're all caught up, {session?.user.firstName} ✨
             </p>
@@ -139,6 +147,20 @@ export default function Home() {
           </div>
         )}
       </div>
+      {/* TODO: Do we really need? */}
+      <Tooltip content="Back to Top" placement="left">
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-15 right-0 z-50 ml-5"
+        >
+          <Lottie
+            animationData={boost}
+            loop
+            autoplay
+            style={{ width: "40px", height: "40px" }}
+          />
+        </button>
+      </Tooltip>
     </div>
   );
 }

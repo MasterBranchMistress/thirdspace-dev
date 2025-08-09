@@ -15,13 +15,13 @@ export default function AttachmentSwiper({
   if (!attachments || attachments.length === 0) return null;
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="w-full max-w-xl mx-auto">
       <Swiper
         modules={[Pagination]}
         spaceBetween={10}
         slidesPerView={1}
         pagination={{ dynamicBullets: true }}
-        className="w-90 bg-concrete mt-3 overflow-hidden pb-2"
+        className="w-full bg-concrete mt-3 overflow-hidden pb-2"
         onSlideChange={(swiper) => {
           swiper.slides.forEach((slide) => {
             const vid = slide.querySelector("video") as HTMLVideoElement;
@@ -54,7 +54,7 @@ export default function AttachmentSwiper({
                   muted
                   playsInline
                   autoPlay={true}
-                  className="w-full h-[500px] object-cover px-5 rounded-md"
+                  className="h-[500px] object-cover rounded-md"
                 />
               ) : (
                 <Image

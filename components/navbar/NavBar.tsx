@@ -11,18 +11,22 @@ import {
   Badge,
   Image,
   Tooltip,
+  Switch,
 } from "@heroui/react";
 
 import bell from "@/public/lottie/bell.json";
+import EnableDarkMode from "../theme-switch/EnableDarkModeSwitcher";
 
 import { useSession, signOut } from "next-auth/react";
 import {
-  Cog6ToothIcon,
-  MapPinIcon,
   ArrowLeftStartOnRectangleIcon,
+  PhoneArrowDownLeftIcon,
+  BugAntIcon,
+  FaceFrownIcon,
 } from "@heroicons/react/24/outline";
 import Lottie from "lottie-react";
-import animationData from "@/public/lottie/add-event.json";
+import animationData from "@/public/lottie/boost.json";
+import { ThemeSwitch } from "../theme-switch";
 
 export const SearchIcon = ({
   size = 24,
@@ -68,16 +72,9 @@ export default function NavBar() {
     <Navbar
       isBordered={false}
       position="static"
-      className="bg-concrete justify-center animate-appearance-in"
+      className="bg-concrete justify-between animate-appearance-in"
     >
-      {status !== "loading" && (
-        <Lottie
-          animationData={animationData}
-          loop
-          autoplay
-          style={{ height: "40px", width: "40px", zIndex: 20 }}
-        />
-      )}
+      {status !== "loading" && <EnableDarkMode />}
       <div className="absolute left-1/2 transform -translate-x-1/2">
         <Image
           src="/third-space-logos/thirdspace-logo-4.png"
@@ -130,52 +127,31 @@ export default function NavBar() {
               className="tracking-wide"
             >
               <DropdownItem key="profile" className="h-10 gap-2">
-                <p className="font-extralight text-center">
-                  Welcome back, {user.firstName}! 👋
+                <p className="font-extralight tracking-tight text-center">
+                  <span className="mr-2">
+                    {" "}
+                    How can we help, {user.firstName}?
+                  </span>{" "}
+                  👀
                 </p>
               </DropdownItem>
               <DropdownItem
-                key={"event"}
-                color="warning" /*its dark blue. Dont kill me :)*/
-                endContent={<MapPinIcon width={20} />}
+                key="feedback"
+                endContent={<BugAntIcon width={20} />}
               >
-                My Events
+                Report a Bug
               </DropdownItem>
               <DropdownItem
-                key={"friend_requests"}
-                color="warning"
-                endContent={
-                  <div className="w-5 h-4 rounded-md bg-concrete text-primary text-sm flex items-center justify-center align-middle">
-                    {1}
-                  </div>
-                }
+                key="support"
+                endContent={<PhoneArrowDownLeftIcon width={20} />}
               >
-                Friend Requests
+                Contact Support
               </DropdownItem>
               <DropdownItem
-                key={"messages"}
-                color="warning"
-                endContent={
-                  <div className="w-5 h-4 rounded-md bg-concrete text-primary text-sm flex items-center justify-center align-middle">
-                    {1}
-                  </div>
-                }
+                key="abuse"
+                endContent={<FaceFrownIcon width={20} />}
               >
-                Messages
-              </DropdownItem>
-              <DropdownItem
-                key={"settings"}
-                color="warning"
-                endContent={<Cog6ToothIcon width={20} />}
-              >
-                Settings
-              </DropdownItem>
-              <DropdownItem
-                key={"search"}
-                color="warning"
-                endContent={<SearchIcon width={20} />}
-              >
-                Search
+                Report Abuse
               </DropdownItem>
               <DropdownItem
                 key="logout"

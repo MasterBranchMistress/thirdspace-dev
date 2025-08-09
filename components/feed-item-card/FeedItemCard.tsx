@@ -15,7 +15,13 @@ import React from "react";
 import FeedCardFooter from "./FeedCardFooter";
 import { useRouter } from "next/navigation";
 import { FeedEventActor, FeedItem, FeedUserActor } from "@/types/user-feed";
-import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
+import {
+  EllipsisVerticalIcon,
+  ExclamationCircleIcon,
+  EyeSlashIcon,
+  FlagIcon,
+  UserMinusIcon,
+} from "@heroicons/react/24/outline";
 import AttachmentSwiper from "../swiper/swiper";
 import detectMediaType from "@/utils/detect-media-type/detectMediaType";
 // import { FEED_BUTTON_DROPDOWN_OPTIONS } from "@/lib/constants";
@@ -120,16 +126,34 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           <DropdownTrigger>
             <EllipsisVerticalIcon color="primary" width={30} />
           </DropdownTrigger>
-          <DropdownMenu aria-label="Dynamic Actions" items={items}>
-            {(item) => (
-              <DropdownItem
-                key={item.key}
-                className={item.key === "delete" ? "text-danger" : ""}
-                color={item.key === "delete" ? "danger" : "default"}
-              >
-                {item.label}
-              </DropdownItem>
-            )}
+          <DropdownMenu aria-label="Dynamic Actions">
+            <DropdownItem
+              key="hide"
+              className="text-concrete bg-none"
+              color="danger"
+              variant="solid"
+              endContent={<EyeSlashIcon width={20} />}
+            >
+              Hide Post
+            </DropdownItem>
+            <DropdownItem
+              key="block"
+              className="text-concrete bg-none"
+              color="danger"
+              variant="solid"
+              endContent={<UserMinusIcon width={20} />}
+            >
+              Block User
+            </DropdownItem>
+            <DropdownItem
+              key="report"
+              className="text-concrete bg-danger"
+              color="danger"
+              variant="solid"
+              endContent={<ExclamationCircleIcon width={20} />}
+            >
+              Report Post
+            </DropdownItem>
           </DropdownMenu>
         </Dropdown>
       </CardHeader>
@@ -137,29 +161,27 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
         <p className="font-bold text-center tracking-tight mt-2">{message}</p>
         <div className="flex flex-col justify-center items-center">
           {type === "profile_bio_updated" && target?.snippet && (
-            <span className="font-light mt-2 w-85">{target.snippet}</span>
+            <span className="font-light mt-2 max-w-[50%]">
+              {target.snippet}
+            </span>
           )}
           {type === "profile_status_updated" && (
-            <div className="font-light tracking-tight text-center">
-              <p className="mx-auto max-w-[75%] text-sm mb-2">
-                {target?.snippet}
-              </p>
+            <div className="font-light tracking-tight max-w-[100%] text-center">
+              <p className="mx-auto text-sm mb-2">{target?.snippet}</p>
               {target?.attachments && target.attachments.length > 0 && (
-                <div className="h-full overflow-hidden">
+                <div className="h-full">
                   <AttachmentSwiper attachments={target.attachments} />
                 </div>
               )}
             </div>
           )}
           {type === "hosted_event" && !isUserActor(actor) && (
-            <div className="mt-2 tracking-tight font-normal text-sm">
+            <div className="mt-2 tracking-tight max-w-[100%] font-normal text-sm">
               <div className="flex flex-col items-center justify-center text-center">
                 <div className="font-bold pb-1">
                   {target?.host} is hosting {target?.title}!
                 </div>
-                <div className="tracking-tight text-sm w-85">
-                  {target?.snippet}
-                </div>
+                <div className="tracking-tight text-sm">{target?.snippet}</div>
               </div>
               {target?.attachments && target.attachments.length > 0 && (
                 <div className="h-full overflow-hidden">
@@ -169,7 +191,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             </div>
           )}
           {type === "profile_location_updated" && (
-            <div className="mt-2 tracking-tight font-bold">
+            <div className="mt-2 tracking-tight font-bold max-w-[100%]">
               {target?.snippet}
               {target?.attachments && target.attachments.length > 0 && (
                 <div className="h-full overflow-hidden">
@@ -179,15 +201,13 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             </div>
           )}
           {type === "event_is_popular" && (
-            <div className="font-light mt-3 tracking-tight">
+            <div className="font-light max-w-[100%] mt-3 tracking-tight">
               {target?.description}
             </div>
           )}
           {type === "event_coming_up" && (
-            <div className="my-3 font-light tracking-tight text-center">
-              <div className="mx-auto max-w-[75%] text-sm mb-2">
-                {target?.description}
-              </div>
+            <div className="my-3 font-light max-w-[100%] tracking-tight text-center">
+              <div className="mx-auto text-sm mb-2">{target?.description}</div>
               {target?.attachments && target.attachments.length > 0 && (
                 <div className="h-full overflow-hidden flex justify-center">
                   <AttachmentSwiper attachments={target.attachments} />

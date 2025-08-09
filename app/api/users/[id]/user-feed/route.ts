@@ -93,11 +93,9 @@ export async function GET(
     const total = mergedFeed.length;
     const paginatedFeed = mergedFeed.slice(skip, skip + limit);
 
-    const shuffledFeed = shuffleFeed(paginatedFeed);
-
     return NextResponse.json({
       message: "✅ Friends' events fetched",
-      feed: shuffledFeed,
+      feed: paginatedFeed,
       pagination: {
         page,
         limit,
