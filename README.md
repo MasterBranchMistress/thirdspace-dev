@@ -357,3 +357,34 @@ We’ve added support for **location-based profile updates** with image attachme
   - `PATCH /users/:id` (profile update logic)
   - `UserFeedDoc` model (`target.attachments` & `target.photoCredit`)
   - `AttachmentSwiper` component
+
+## Recent Updates
+
+### 🆕 Features
+
+- **Sticky Mobile Footer Navigation**  
+  Added a fixed footer nav bar for mobile view with quick access to:
+
+  - Search
+  - My Events
+  - Settings
+  - Back to Top
+  - Direct Messages (DM)
+
+- **Back to Top Floating Button**  
+  Added a floating Back to Top button (Lottie animation) positioned bottom-right on main feed for quick scrolling. Tooltip on hover for clarity.
+
+- **Primary-Color Switch Styling**  
+  Updated theme toggle switch to retain primary brand background color in both on/off states, ensuring visual consistency.
+
+### 🐛 Bug Fixes
+
+- **Duplicate Feed Item Fix**  
+  Fixed a race condition that caused duplicate `profile_location_updated` feed entries (one with Unsplash image, one without). Updates now guard against simultaneous PATCH requests and only insert feed items when a real change occurs.
+
+- **Theme Reset to Light Mode**  
+  Cleared persisted dark mode settings and enforced light theme as default to prevent unwanted style overrides on inputs/buttons.
+
+  ![Nav and Footer](public/screenshots/nav-and-footer.png)
+  ![New Dropdown Menu](public/screenshots/new-dropdown.png)
+  ![New Post Options Tab](public/screenshots/new-post-options-tab.png)
