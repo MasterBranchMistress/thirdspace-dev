@@ -142,7 +142,7 @@ a[data-focus-visible="true"] {
   height: auto;
 }
 span.swiper-pagination-bullet {
-  background: #5c6cc4;
+  background: #ffffff;
 }
 /* specfic i know. swiperjs is janky, dont murder me */
 .flex.w-full.p-3.flex-auto.flex-col.place-content-inherit.align-items-inherit.h-auto.break-words.overflow-y-auto.subpixel-antialiased.px-3.py-0.text-small.text-center.tracking-tight.font-light {

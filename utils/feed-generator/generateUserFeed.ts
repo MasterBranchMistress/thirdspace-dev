@@ -5,6 +5,7 @@ import { FeedItemUser } from "@/types/user-feed";
 import clientPromise from "@/lib/mongodb";
 import { COLLECTIONS, DBS } from "@/lib/constants";
 import { UserFeedDoc } from "@/lib/models/UserFeedDoc";
+import { ObjectId } from "mongodb";
 
 export async function generateUserFeed(
   user: UserDoc,
@@ -14,7 +15,6 @@ export async function generateUserFeed(
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
   const feedCollection = db.collection<UserFeedDoc>(COLLECTIONS._USER_FEED);
-  const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
 
   async function logFeedItem(item: Omit<UserFeedDoc, "_id">) {
     const exists = await feedCollection.findOne({
@@ -43,43 +43,6 @@ export async function generateUserFeed(
       username: friend.username,
       avatar: friend.avatar || getGravatarUrl(friend.email),
     };
-
-    // ✅ Friend Accepted
-    for (const friendId of user.friends || []) {
-      const friend = await userCollection.findOne({ _id: friendId });
-
-      if (!friend || !friend.friends) continue;
-
-      for (const friendOfFriendId of friend.friends) {
-        const isSelf = friendOfFriendId.equals(user._id);
-        const alreadyFriends = user.friends?.some((id) =>
-          id.equals(friendOfFriendId)
-        );
-        const connectedFriend = await userCollection.findOne({
-          _id: friendOfFriendId,
-        });
-
-        //TODO: decide if we need this in the feed
-        if (!isSelf && !alreadyFriends && friend.acceptedFriendDate) {
-          await logFeedItem({
-            userId: user._id!,
-            type: "friend_accepted",
-            actor: {
-              id: friend._id.toString(),
-              firstName: friend.firstName,
-              lastName: friend.lastName,
-              username: friend.username,
-              avatar: friend.avatar!,
-            },
-            target: {
-              userId: friendOfFriendId,
-              snippet: connectedFriend?.firstName,
-            },
-            timestamp: now,
-          });
-        }
-      }
-    }
 
     // ✅ Hosted Events
     for (const event of events) {
@@ -112,40 +75,6 @@ export async function generateUserFeed(
       }
     }
 
-    // ✅ Joined Events (but not hosted)
-    for (const event of events) {
-      const isAttending = event.attendees?.some((id) => id.equals(friend._id));
-
-      if (isAttending) {
-        await logFeedItem({
-          userId: user._id!,
-          type: "joined_event",
-          actor,
-          target: {
-            userId: friend._id!,
-            snippet: event.title,
-            location: {
-              name: event.location?.name,
-              lat: event.location?.lat,
-              lng: event.location?.lng,
-            },
-          },
-          timestamp: now,
-        });
-      }
-    }
-
-    // ✅ Profile Updates
-    if (friend.bio && friend.bioLastUpdatedAt) {
-      await logFeedItem({
-        userId: user._id!,
-        type: "profile_bio_updated",
-        actor,
-        target: { userId: friend._id!, snippet: friend.bio },
-        timestamp: now,
-      });
-    }
-
     if (friend.avatar && friend.avatarLastUpdatedAt) {
       await logFeedItem({
         userId: user._id!,
@@ -162,16 +91,6 @@ export async function generateUserFeed(
         type: "profile_location_updated",
         actor,
         target: { userId: friend._id!, snippet: friend.location },
-        timestamp: now,
-      });
-    }
-
-    if (friend.tags?.length && friend.tagsLastupdatedAt) {
-      await logFeedItem({
-        userId: user._id!,
-        type: "profile_tags_updated",
-        actor,
-        target: { userId: friend._id!, snippet: friend.tags.join(",") },
         timestamp: now,
       });
     }

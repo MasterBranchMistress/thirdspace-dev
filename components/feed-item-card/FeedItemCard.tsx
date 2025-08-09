@@ -56,38 +56,25 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
       : type === "event_coming_up" && !isUserActor(actor)
         ? `"${target?.title}" is coming up ⏰`
         : type === "hosted_event" && isUserActor(actor)
-          ? `${actor.firstName}`
-          : type === "friend_accepted" && isUserActor(actor)
-            ? `${actor.firstName} has a new Orbiter!`
-            : type === "joined_event" && isUserActor(actor)
-              ? `${actor.firstName} joined "${title}"`
-              : type === "created_event" && isUserActor(actor)
-                ? `${actor.firstName} just created "${title}"`
-                : type === "profile_bio_updated" && isUserActor(actor)
-                  ? `${actor.firstName} wrote in their bio 📝`
-                  : type === "profile_avatar_updated" && isUserActor(actor)
-                    ? `${actor.firstName} updated their look 😎`
-                    : type === "profile_location_updated" && isUserActor(actor)
-                      ? `${actor.firstName} moved somewhere new 📍`
-                      : type === "profile_tags_updated" && isUserActor(actor)
-                        ? `${actor.firstName} picked new interests 🧠`
-                        : type === "profile_status_updated" &&
-                            isUserActor(actor)
-                          ? ``
-                          : isUserActor(actor) &&
-                            `${actor.firstName} is doing something cool 🤔`;
+          ? `${actor.firstName} is hosting "${target?.snippet}"`
+          : type === "profile_avatar_updated" && isUserActor(actor)
+            ? `${actor.firstName} updated their look 😎`
+            : type === "profile_location_updated" && isUserActor(actor)
+              ? `${actor.firstName} moved somewhere new 📍`
+              : type === "profile_status_updated" && isUserActor(actor)
+                ? ``
+                : isUserActor(actor) &&
+                  `${actor.firstName} is doing something cool 🤔`;
 
   const tags =
     type === "profile_tags_updated" && typeof target?.snippet === "string"
       ? target.snippet.split(",").map((tag) => tag.trim())
       : [];
 
-  // console.log("event host: ", target?.hostName);
-
   return (
     <Card
       radius="none"
-      className="w-full shadow-none text-primary bg-concrete mb-3"
+      className="w-full shadow-none text-primary bg-concrete mb-7"
     >
       <CardHeader className="flex justify-between items-center">
         <div className="flex gap-5">
@@ -147,15 +134,16 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
         </Dropdown>
       </CardHeader>
       <CardBody className="px-3 py-0 text-small text-center tracking-tight font-light">
-        <p className="font-bold text-center tracking-tight">{message}</p>
+        <p className="font-bold text-center tracking-tight mt-2">{message}</p>
         <div className="flex flex-col justify-center items-center">
           {type === "profile_bio_updated" && target?.snippet && (
             <span className="font-light mt-2 w-85">{target.snippet}</span>
           )}
           {type === "profile_status_updated" && (
-            <div className="mt-2 tracking-tight font-normal text-sm">
-              <p className="w-85">{target?.snippet}</p>
-
+            <div className="font-light tracking-tight text-center">
+              <p className="mx-auto max-w-[75%] text-sm mb-2">
+                {target?.snippet}
+              </p>
               {target?.attachments && target.attachments.length > 0 && (
                 <div className="h-full overflow-hidden">
                   <AttachmentSwiper attachments={target.attachments} />
@@ -166,12 +154,13 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           {type === "hosted_event" && !isUserActor(actor) && (
             <div className="mt-2 tracking-tight font-normal text-sm">
               <div className="flex flex-col items-center justify-center text-center">
-                <div className="font-bold pb-1">{target?.title}</div>
+                <div className="font-bold pb-1">
+                  {target?.host} is hosting {target?.title}!
+                </div>
                 <div className="tracking-tight text-sm w-85">
                   {target?.snippet}
                 </div>
               </div>
-
               {target?.attachments && target.attachments.length > 0 && (
                 <div className="h-full overflow-hidden">
                   <AttachmentSwiper attachments={target.attachments} />
@@ -179,33 +168,11 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
               )}
             </div>
           )}
-
-          {/* TODO: Friend updates might be uneccessary. Will decide later*/}
-          {type === "friend_accepted" && (
-            <div className="mt-2">
-              Send a shout to {title} if you know them!
-            </div>
-          )}
-          {tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-3 tracking-wide">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="bg-indigo-100 text-primary text-xs font-semibold px-2.5 py-0.5 rounded"
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          )}
           {type === "profile_location_updated" && (
             <div className="mt-2 tracking-tight font-bold">
               {target?.snippet}
               {target?.attachments && target.attachments.length > 0 && (
-                <div
-                  className="h-full overflow-hidden"
-                  style={{ marginBottom: "-2rem" }}
-                >
+                <div className="h-full overflow-hidden">
                   <AttachmentSwiper attachments={target.attachments} />
                 </div>
               )}
@@ -217,17 +184,19 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             </div>
           )}
           {type === "event_coming_up" && (
-            <div className="my-3 font-light tracking-tight">
-              {target?.description}
+            <div className="my-3 font-light tracking-tight text-center">
+              <div className="mx-auto max-w-[75%] text-sm mb-2">
+                {target?.description}
+              </div>
               {target?.attachments && target.attachments.length > 0 && (
-                <div className="h-full overflow-hidden">
+                <div className="h-full overflow-hidden flex justify-center">
                   <AttachmentSwiper attachments={target.attachments} />
                 </div>
               )}
             </div>
           )}
         </div>
-        <span className="text-xs z-20 text-primary tracking-tight font-bold text-center mt-2">
+        <span className="text-xs z-20 text-primary tracking-tight font-extralight text-center mt-3">
           {formatDistanceToNow(timestamp, { addSuffix: true })}
         </span>
       </CardBody>

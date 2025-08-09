@@ -13,7 +13,6 @@ export async function getLocationImage(location: string) {
       Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`,
     },
   });
-  console.log("Returned from Unsplash: ", res);
   if (!res.ok) throw new Error(`Unsplash error: ${res.statusText}`);
 
   const data = await res.json();

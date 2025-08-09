@@ -54,7 +54,7 @@ export default function AttachmentSwiper({
                   muted
                   playsInline
                   autoPlay={true}
-                  className="w-full h-[500px] object-cover px-5 rounded-md pb-10"
+                  className="w-full h-[500px] object-cover px-5 rounded-md"
                 />
               ) : (
                 <Image
@@ -62,7 +62,7 @@ export default function AttachmentSwiper({
                   width="100%"
                   // height={500}
                   alt={`Attachment ${index + 1}`}
-                  className="w-full h-[500px] object-cover rounded-md pb-10"
+                  className="w-full h-[500px] object-cover rounded-md"
                 />
               )}
             </SwiperSlide>

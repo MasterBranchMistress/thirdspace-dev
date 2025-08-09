@@ -2,12 +2,11 @@ import { Schema, model, models, Types } from "mongoose";
 import { ObjectId } from "mongodb";
 import { EVENT_STATUSES, REF } from "../constants";
 
-type Attachment = { url: string; type: "image" | "video" | undefined };
+type Attachment = { url: string; type?: "image" | "video" | undefined };
 
 export interface EventDoc {
   _id?: ObjectId;
   title: string;
-  type?: string;
   description: string;
   date: Date;
   startTime?: string;

@@ -35,7 +35,7 @@ export interface FeedUserActor {
   timestamp?: string; // rarely needed, mostly used for actor-specific updates
 }
 
-export type AttachmentType = "image" | "video" | "unknown";
+export type AttachmentType = "image" | "video" | undefined;
 
 export interface Attachment {
   url: string;

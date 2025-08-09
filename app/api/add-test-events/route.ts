@@ -4,6 +4,7 @@ import { faker } from "@faker-js/faker";
 import { COLLECTIONS, DBS, EVENT_STATUSES, TEST_IDS } from "@/lib/constants";
 import { EventDoc } from "@/lib/models/Event";
 import { ObjectId } from "mongodb";
+import { Attachment } from "@/types/user-feed";
 
 export async function GET() {
   const client = await clientPromise;
@@ -12,6 +13,22 @@ export async function GET() {
   // Known IDs for test data
   const hostId = new ObjectId(TEST_IDS._HOST_ID);
   const otherIds = TEST_IDS._OTHER_IDS.map((id) => new ObjectId(id));
+
+  // Factory returns the right shape; no runtime use of `Attachment`
+  const makeAttachment = (): Attachment => {
+    const isVideo = faker.datatype.boolean();
+    return {
+      type: isVideo ? "video" : "image",
+      url: isVideo
+        ? `${faker.internet.url()}`
+        : faker.image.urlLoremFlickr({ width: 400 }),
+    };
+  };
+
+  // Building array of attachments here
+  const attachments = faker.helpers.multiple<Attachment>(makeAttachment, {
+    count: faker.number.int({ min: 0, max: 5 }),
+  });
 
   const eventsToInsert: EventDoc[] = Array.from({ length: 5 }).map(() => {
     // Random subset of attendees
@@ -52,8 +69,9 @@ export async function GET() {
         { min: 1, max: 3 }
       ),
       messages,
+      attachments,
       status: EVENT_STATUSES._ACTIVE,
-      createdAt: new Date(),
+      timestamp: new Date(),
       updatedAt: new Date(),
       banned: [],
       public: faker.datatype.boolean(),
