@@ -388,3 +388,4 @@ We’ve added support for **location-based profile updates** with image attachme
   ![Nav and Footer](public/screenshots/nav-and-footer.png)
   ![New Dropdown Menu](public/screenshots/new-dropdown.png)
   ![New Post Options Tab](public/screenshots/new-post-options-tab.png)
+  ![Back To Top and Video Support](public/screenshots/video-support.png)
