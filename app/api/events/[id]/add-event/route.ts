@@ -105,8 +105,12 @@ export async function POST(
       location: {
         address: data.location.address,
         name: data.location?.name,
-        lat: lat,
-        lng: lng,
+        lat,
+        lng,
+        geo: {
+          type: "Point",
+          coordinates: [lng, lat],
+        },
       },
       host: new ObjectId(user?._id),
       attendees: [],
@@ -158,6 +162,10 @@ export async function POST(
           name: data.location.name,
           lat: lat,
           lng: lng,
+          geo: {
+            type: "Point",
+            coordinates: [lng, lat], // IMPORTANT: lng first, then lat
+          },
         },
       },
       timestamp: now,

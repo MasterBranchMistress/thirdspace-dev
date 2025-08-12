@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { useFeed } from "@/app/context/UserFeedContext";
 import Lottie from "lottie-react";
 import { FeedBackground } from "@/components/background-animations/UserFeedBackground";
@@ -24,6 +24,7 @@ export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { status: locStatus, coords } = useBrowserLocation();
+  const [enabled, setEnabled] = useState(false);
 
   const { items, loading, error, hasMore, loadMore, prependItems } = useFeed();
 
@@ -78,7 +79,7 @@ export default function Home() {
     }
   }, [status, locStatus, coords, session?.user?.id]);
 
-  if (status === "loading") return <LoadingPage />;
+  if (status === "loading" || !coords) return <LoadingPage />;
   if (error) return <p>{error}</p>;
   if ((!items || items.length === 0) && !loading)
     return <EmptyFeedState name={session?.user.firstName} />;
@@ -89,7 +90,10 @@ export default function Home() {
       <div className="flex flex-col">
         <GreetingHeader />
         {newItems.length > 0 && (
-          <div className="animate-appearance-in sticky top-0 z-40 w-full bg-concrete text-primary text-md flex items-center justify-center">
+          <div
+            className="animate-appearance-in sticky top-0 z-40 w-full bg-concrete text-primary text-md flex items-center justify-center"
+            onClick={applyNewItems}
+          >
             <div className="flex items-center gap-3">
               <Lottie
                 animationData={spaceman}
@@ -107,7 +111,6 @@ export default function Home() {
               </span>
               <button
                 color="primary"
-                onClick={applyNewItems}
                 className="bg-none text-sm underline-offset-2 hover:text-white transition"
               >
                 <Lottie

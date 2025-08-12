@@ -17,6 +17,10 @@ export interface EventDoc {
     name?: string;
     lat?: number;
     lng?: number;
+    geo?: {
+      type: string;
+      coordinates: number[];
+    };
   };
   host: ObjectId;
   attendees: ObjectId[];

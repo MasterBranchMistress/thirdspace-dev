@@ -83,6 +83,10 @@ export interface FeedTarget {
     name?: string;
     lat?: number;
     lng?: number;
+    geo?: {
+      type: string;
+      coordinates: number[];
+    };
   };
   distanceMiles?: number;
 

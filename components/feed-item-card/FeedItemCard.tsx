@@ -15,7 +15,6 @@ import {
 } from "@heroui/react";
 import React, { useMemo } from "react";
 import FeedCardFooter from "./FeedCardFooter";
-import { useRouter } from "next/navigation";
 import { FeedEventActor, FeedItem, FeedUserActor } from "@/types/user-feed";
 import {
   EllipsisVerticalIcon,
@@ -52,17 +51,12 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
     return null;
   }, [userLocation, target?.location]);
 
-  // console.log("[FeedItemCard] distance (mi):", `${eventDistance} miles away`);
-
   const isUserActor = (
     a: FeedUserActor | FeedEventActor | null | undefined
   ): a is FeedUserActor => {
     return !!a && typeof (a as any).id === "string";
   };
 
-  // console.log(!isUserActor(actor) && target);
-
-  // console.log(isUserActor(actor), target);
   const buttonText = isUserActor(actor) ? "Follow" : null;
 
   const message =
@@ -121,7 +115,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                 className="text-xs font-extralight tracking-tight text-primary leading-snug
                      whitespace-normal break-words"
               >
-                {eventDistance} mi away •{" "}
+                {eventDistance ?? 0} mi away •{" "}
                 {target?.startingDate
                   ? format(new Date(target?.startingDate), "PPP p")
                   : "TBD"}
@@ -272,7 +266,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             </div>
           )}
         </div>
-        <span className="text-xs z-20 text-primary tracking-tight font-extralight text-center mt-3">
+        <span className="text-xs z-20 w-full text-primary tracking-tight font-extralight text-center mt-3">
           {formatDistanceToNow(timestamp, { addSuffix: true })}
         </span>
       </CardBody>

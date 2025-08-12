@@ -72,7 +72,7 @@ export default function NavBar() {
     <Navbar
       isBordered={false}
       position="static"
-      className="bg-concrete justify-between animate-appearance-in"
+      className="bg-concrete justify-center align-middle animate-appearance-in"
     >
       {status !== "loading" && <EnableDarkMode />}
       <div className="absolute left-1/2 transform -translate-x-1/2">
@@ -86,7 +86,7 @@ export default function NavBar() {
       <NavbarContent
         as="div"
         className="items-center animate-appearance-in"
-        justify="end"
+        justify="center"
       >
         {user && (
           <Dropdown placement="bottom-end">

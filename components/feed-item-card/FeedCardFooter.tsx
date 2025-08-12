@@ -4,6 +4,8 @@ import { Image } from "@heroui/react";
 import { ObjectId } from "mongodb";
 import MapPin from "@/public/lottie/map-pin.json";
 import Lottie from "lottie-react";
+import dynamic from "next/dynamic";
+import { useInView } from "react-intersection-observer";
 
 interface FeedCardFooterProps {
   type: string;
@@ -37,33 +39,62 @@ interface FeedCardFooterProps {
   };
 }
 
+const EventMiniMap = dynamic(
+  () => import("@/components/event-mini-map/eventMiniMap"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-40 rounded-md bg-default-100 animate-pulse" />
+    ),
+  }
+);
+
 export default function FeedCardFooter({
   type,
   target,
   actor,
 }: FeedCardFooterProps) {
-  const location = target?.location?.address || "Somewhere mysterious";
+  const hasCoords =
+    typeof target?.location?.lat === "number" &&
+    typeof target?.location?.lng === "number" &&
+    target.location.lat !== 0 &&
+    target.location.lng !== 0;
+
+  const { ref, inView } = useInView({ triggerOnce: true, rootMargin: "200px" });
 
   return (
     <div className="flex flex-col items-center gap-1 tracking-tight w-full text-center px-3">
-      {/* Optional location display for events */}
-      {["joined_event", "hosted_event", "event_coming_up"].includes(type) && (
-        <div className="flex gap-0.5 justify-center align-middle">
-          <Lottie
+      {[
+        "joined_event",
+        "hosted_event",
+        "event_coming_up",
+        "event_is_popular",
+      ].includes(type) && (
+        <div
+          ref={ref}
+          className="flex flex-col gap-1 w-full justify-center align-middle"
+        >
+          {/* <Lottie
             animationData={MapPin}
             loop
             autoplay
-            style={{
-              height: "20px",
-              width: "20px",
-              marginBottom: "1rem",
-            }}
-          />
-          <p className="font-extralight tracking-tight text-small mx-1 pb-2">
-            {target?.location?.name ?? target?.location?.address}
+            style={{ height: "20px", width: "20px" }}
+          /> */}
+          <p className="font-bold tracking-tight text-small mx-1 pb-2">
+            {target?.location?.name ??
+              target?.location?.address ??
+              "Somewhere mysterious"}
           </p>
+          {inView && hasCoords && (
+            <EventMiniMap
+              lat={target?.location?.lat}
+              lng={target?.location?.lng}
+              interactive={false}
+            />
+          )}
         </div>
       )}
+
       {type === "profile_avatar_updated" && (
         <Image
           src={actor?.avatar}
@@ -72,6 +103,7 @@ export default function FeedCardFooter({
           className="z-30 rounded-xl object-cover mb-4"
         />
       )}
+
       <div className="flex justify-center gap-10 w-full">
         <FeedStats />
       </div>

@@ -24,7 +24,8 @@ export async function PATCH(
           location: {
             lat: location.lat,
             lng: location.lng,
-            name: location.name || "", // optional
+            name: location.name || "",
+            geo: { type: "Point", coordinates: [location.lng, location.lat] },
           },
           locationLastUpdatedAt: new Date(),
         },
