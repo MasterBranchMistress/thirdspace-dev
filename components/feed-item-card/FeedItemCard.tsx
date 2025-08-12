@@ -1,3 +1,5 @@
+"use client";
+
 import { formatDistanceToNow, format } from "date-fns";
 import {
   Card,
@@ -11,7 +13,7 @@ import {
   Button,
   Dropdown,
 } from "@heroui/react";
-import React from "react";
+import React, { useMemo } from "react";
 import FeedCardFooter from "./FeedCardFooter";
 import { useRouter } from "next/navigation";
 import { FeedEventActor, FeedItem, FeedUserActor } from "@/types/user-feed";
@@ -19,12 +21,11 @@ import {
   EllipsisVerticalIcon,
   ExclamationCircleIcon,
   EyeSlashIcon,
-  FlagIcon,
   UserMinusIcon,
 } from "@heroicons/react/24/outline";
 import AttachmentSwiper from "../swiper/swiper";
-import detectMediaType from "@/utils/detect-media-type/detectMediaType";
-// import { FEED_BUTTON_DROPDOWN_OPTIONS } from "@/lib/constants";
+import { useBrowserLocation } from "@/utils/geolocation/get-user-location/getUserLocation";
+import { getDistFromMiles } from "@/utils/geolocation/get-distance-from-event/getDistFromEvent";
 
 interface FeedItemCardProps {
   item: FeedItem;
@@ -33,28 +34,36 @@ interface FeedItemCardProps {
 export default function FeedItemCard({ item }: FeedItemCardProps) {
   const { type, target, actor, timestamp } = item;
 
+  const userLocation = useBrowserLocation();
+
+  const eventDistance = useMemo(() => {
+    if (
+      userLocation.status === "success" &&
+      target?.location?.lat &&
+      target?.location?.lng
+    ) {
+      return getDistFromMiles(
+        userLocation.coords.lat,
+        userLocation.coords.lng,
+        target.location.lat,
+        target.location.lng
+      )?.toFixed(1);
+    }
+    return null;
+  }, [userLocation, target?.location]);
+
+  // console.log("[FeedItemCard] distance (mi):", `${eventDistance} miles away`);
+
   const isUserActor = (
     a: FeedUserActor | FeedEventActor | null | undefined
   ): a is FeedUserActor => {
     return !!a && typeof (a as any).id === "string";
   };
 
-  const items = [
-    {
-      key: "report",
-      label: "Report",
-    },
-    {
-      key: "hide",
-      label: "Hide",
-    },
-    {
-      key: "block",
-      label: "Block User",
-    },
-  ];
+  // console.log(!isUserActor(actor) && target);
 
-  const title = target?.snippet || "an event";
+  // console.log(isUserActor(actor), target);
+  const buttonText = isUserActor(actor) ? "Follow" : null;
 
   const message =
     type === "event_is_popular"
@@ -62,15 +71,17 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
       : type === "event_coming_up" && !isUserActor(actor)
         ? `"${target?.title}" is coming up ⏰`
         : type === "hosted_event" && isUserActor(actor)
-          ? `${actor.firstName} is hosting "${target?.snippet}"`
-          : type === "profile_avatar_updated" && isUserActor(actor)
-            ? `${actor.firstName} updated their look 😎`
-            : type === "profile_location_updated" && isUserActor(actor)
-              ? `${actor.firstName} moved somewhere new 📍`
-              : type === "profile_status_updated" && isUserActor(actor)
-                ? ``
-                : isUserActor(actor) &&
-                  `${actor.firstName} is doing something cool 🤔`;
+          ? ``
+          : type === "hosted_event" && !isUserActor(actor)
+            ? ``
+            : type === "profile_avatar_updated" && isUserActor(actor)
+              ? `${actor.firstName} updated their look 😎`
+              : type === "profile_location_updated" && isUserActor(actor)
+                ? `${actor.firstName} moved somewhere new 📍`
+                : type === "profile_status_updated" && isUserActor(actor)
+                  ? ``
+                  : isUserActor(actor) &&
+                    `${actor.firstName} is doing something cool 🤔`;
 
   const tags =
     type === "profile_tags_updated" && typeof target?.snippet === "string"
@@ -83,6 +94,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
       className="w-full shadow-none text-primary bg-concrete mb-7"
     >
       <CardHeader className="flex justify-between items-center">
+        {/* Left side: avatar + user/event info */}
         <div className="flex gap-5">
           <div className="hover:cursor-pointer">
             <Avatar
@@ -98,16 +110,22 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             />
           </div>
           {!isUserActor(actor) ? (
-            <div className="flex flex-col gap-1 items-center justify-center">
-              <h6 className="text-small font-semibold justify-center tracking-tight leading-none text-primary">
+            <div className="flex flex-col gap-0.5 items-start justify-center w-full min-w-0">
+              <h6
+                className="text-sm tracking-tighter text-primary leading-snug
+                     whitespace-normal break-words line-clamp-1"
+              >
                 {target?.host ?? target?.hostName}'s event has an Update!
               </h6>
-              <h5 className="text-small font-light tracking-tight text-primary">
-                Starts{" "}
+              <p
+                className="text-xs font-extralight tracking-tight text-primary leading-snug
+                     whitespace-normal break-words"
+              >
+                {eventDistance} mi away •{" "}
                 {target?.startingDate
                   ? format(new Date(target?.startingDate), "PPP p")
                   : "TBD"}
-              </h5>
+              </p>
             </div>
           ) : (
             <div className="flex flex-col gap-1 items-start justify-center">
@@ -122,49 +140,64 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             </div>
           )}
         </div>
-        <Dropdown>
-          <DropdownTrigger>
-            <EllipsisVerticalIcon color="primary" width={30} />
-          </DropdownTrigger>
-          <DropdownMenu aria-label="Dynamic Actions">
-            <DropdownItem
-              key="hide"
-              className="text-concrete bg-none"
-              color="danger"
-              variant="solid"
-              endContent={<EyeSlashIcon width={20} />}
+
+        {/* Right side: Orbit button + ellipses */}
+        <div className="flex items-center shrink-0">
+          {isUserActor(actor) && (
+            <Button
+              variant="shadow"
+              size="sm"
+              color="primary"
+              className="p-1 text-xs rounded-full"
             >
-              Hide Post
-            </DropdownItem>
-            <DropdownItem
-              key="block"
-              className="text-concrete bg-none"
-              color="danger"
-              variant="solid"
-              endContent={<UserMinusIcon width={20} />}
-            >
-              Block User
-            </DropdownItem>
-            <DropdownItem
-              key="report"
-              className="text-concrete bg-danger"
-              color="danger"
-              variant="solid"
-              endContent={<ExclamationCircleIcon width={20} />}
-            >
-              Report Post
-            </DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
+              {buttonText}
+            </Button>
+          )}
+          <Dropdown>
+            <DropdownTrigger>
+              <EllipsisVerticalIcon className="text-primary" width={27} />
+            </DropdownTrigger>
+            <DropdownMenu aria-label="Dynamic Actions">
+              <DropdownItem
+                key="hide"
+                className="text-concrete bg-none"
+                color="danger"
+                variant="solid"
+                endContent={<EyeSlashIcon width={20} />}
+              >
+                Hide Post
+              </DropdownItem>
+              <DropdownItem
+                key="block"
+                className="text-concrete bg-none"
+                color="danger"
+                variant="solid"
+                endContent={<UserMinusIcon width={20} />}
+              >
+                Block User
+              </DropdownItem>
+              <DropdownItem
+                key="report"
+                className="text-concrete bg-danger"
+                color="danger"
+                variant="solid"
+                endContent={<ExclamationCircleIcon width={20} />}
+              >
+                Report Post
+              </DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
+        </div>
       </CardHeader>
+
       <CardBody className="px-3 py-0 text-small text-center tracking-tight font-light">
-        <p className="font-bold text-center tracking-tight mt-2">{message}</p>
+        <p className="font-bold text-center tracking-tighter">{message}</p>
         <div className="flex flex-col justify-center items-center">
-          {type === "profile_bio_updated" && target?.snippet && (
+          {/* {type === "profile_bio_updated" && target?.snippet && (
             <span className="font-light mt-2 max-w-[50%]">
               {target.snippet}
             </span>
-          )}
+          )} */}
           {type === "profile_status_updated" && (
             <div className="font-light tracking-tight max-w-[100%] text-center">
               <p className="mx-auto text-sm mb-2">{target?.snippet}</p>
@@ -178,10 +211,33 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           {type === "hosted_event" && !isUserActor(actor) && (
             <div className="mt-2 tracking-tight max-w-[100%] font-normal text-sm">
               <div className="flex flex-col items-center justify-center text-center">
-                <div className="font-bold pb-1">
-                  {target?.host} is hosting {target?.title}!
+                <div className="font-bold text-sm text-center">
+                  <span className="font-light">{target?.host} is hosting</span>
+                  {"  "}"{target?.title}"
                 </div>
-                <div className="tracking-tight text-sm">{target?.snippet}</div>
+                <div className="tracking-tight italic text-sm mt-3">
+                  {target?.snippet}
+                </div>
+              </div>
+              {target?.attachments && target.attachments.length > 0 && (
+                <div className="h-full overflow-hidden">
+                  <AttachmentSwiper attachments={target.attachments} />
+                </div>
+              )}
+            </div>
+          )}
+          {type === "hosted_event" && isUserActor(actor) && (
+            <div className="mt-2 tracking-tight max-w-[100%] font-normal text-sm">
+              <div className="flex flex-col items-center justify-center text-center">
+                <div className="font-bold pb-1 text-sm text-center">
+                  <span className="font-light">
+                    {actor.firstName} is hosting
+                  </span>
+                  {"  "}"{target?.title}"
+                </div>
+                <div className="tracking-tight font-light italic text-sm mt-3">
+                  {target?.snippet}
+                </div>
               </div>
               {target?.attachments && target.attachments.length > 0 && (
                 <div className="h-full overflow-hidden">

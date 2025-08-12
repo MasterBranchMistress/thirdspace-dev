@@ -17,10 +17,13 @@ import { FeedItem } from "@/types/user-feed";
 import spaceman from "@/public/lottie/space-man.json";
 import backToTop from "@/public/lottie/back-to-top.json";
 import boost from "@/public/lottie/boost.json";
+import UserLocation from "@/components/user-location/userLocation";
+import { useBrowserLocation } from "@/utils/geolocation/get-user-location/getUserLocation";
 
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { status: locStatus, coords } = useBrowserLocation();
 
   const { items, loading, error, hasMore, loadMore, prependItems } = useFeed();
 
@@ -31,10 +34,6 @@ export default function Home() {
   });
 
   const observer = useRef<IntersectionObserver | null>(null);
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
 
   const lastItemRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -57,6 +56,27 @@ export default function Home() {
       router.replace("/login");
     }
   }, [status, router]);
+
+  useEffect(() => {
+    if (
+      status === "authenticated" &&
+      locStatus === "success" &&
+      session?.user?.id &&
+      coords.lat &&
+      coords.lng
+    ) {
+      fetch(`/api/users/${session.user.id}/save-location`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          location: {
+            lat: coords.lat,
+            lng: coords.lng,
+          },
+        }),
+      }).catch((err) => console.error("Failed to update location:", err));
+    }
+  }, [status, locStatus, coords, session?.user?.id]);
 
   if (status === "loading") return <LoadingPage />;
   if (error) return <p>{error}</p>;
@@ -147,20 +167,6 @@ export default function Home() {
           </div>
         )}
       </div>
-      {/* TODO: Do we really need? */}
-      <Tooltip content="Back to Top" placement="left">
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-15 right-0 z-50 ml-5"
-        >
-          <Lottie
-            animationData={boost}
-            loop
-            autoplay
-            style={{ width: "40px", height: "40px" }}
-          />
-        </button>
-      </Tooltip>
     </div>
   );
 }

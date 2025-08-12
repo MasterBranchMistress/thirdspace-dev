@@ -32,7 +32,11 @@ export interface FeedUserActor {
   lastName?: string;
   username?: string;
   avatar?: string;
-  timestamp?: string; // rarely needed, mostly used for actor-specific updates
+  timestamp?: string;
+  eventSnippet?: string;
+  eventAttachments?: Attachment[];
+  distanceFromEvent?: number;
+  eventLocation?: string;
 }
 
 export type AttachmentType = "image" | "video" | undefined;
@@ -75,10 +79,12 @@ export interface FeedTarget {
   host?: string;
   hostName?: string;
   location?: {
+    address?: string;
     name?: string;
     lat?: number;
     lng?: number;
   };
+  distanceMiles?: number;
 
   // ✅ Backward compatible: strings (legacy) OR objects (new)
   attachments?: (string | Attachment)[];

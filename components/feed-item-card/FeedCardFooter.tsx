@@ -24,6 +24,7 @@ interface FeedCardFooterProps {
   };
   target?: {
     location?: {
+      address?: string;
       name?: string;
       lat?: number;
       lng?: number;
@@ -41,8 +42,7 @@ export default function FeedCardFooter({
   target,
   actor,
 }: FeedCardFooterProps) {
-  const location =
-    actor?.location?.name || target?.location?.name || "Somewhere mysterious";
+  const location = target?.location?.address || "Somewhere mysterious";
 
   return (
     <div className="flex flex-col items-center gap-1 tracking-tight w-full text-center px-3">
@@ -60,7 +60,7 @@ export default function FeedCardFooter({
             }}
           />
           <p className="font-extralight tracking-tight text-small mx-1 pb-2">
-            {location}
+            {target?.location?.name ?? target?.location?.address}
           </p>
         </div>
       )}

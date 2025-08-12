@@ -1,16 +1,19 @@
 import { Schema, model, models, Types } from "mongoose";
 import { ObjectId } from "mongodb";
 import { EVENT_STATUSES, REF } from "../constants";
+import { FeedItemType } from "@/types/user-feed";
 
 type Attachment = { url: string; type?: "image" | "video" | undefined };
 
 export interface EventDoc {
   _id?: ObjectId;
+  type?: FeedItemType;
   title: string;
   description: string;
   date: Date;
   startTime?: string;
   location?: {
+    address?: string;
     name?: string;
     lat?: number;
     lng?: number;

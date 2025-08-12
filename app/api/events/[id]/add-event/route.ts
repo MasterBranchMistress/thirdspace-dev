@@ -4,6 +4,7 @@ import { EventFeedDoc } from "@/lib/models/EventFeedDoc";
 import { UserDoc } from "@/lib/models/User";
 import clientPromise from "@/lib/mongodb";
 import detectMediaType from "@/utils/detect-media-type/detectMediaType";
+import { geocodeAddress } from "@/utils/geolocation/geocode-address/geocodeAddress";
 
 import { ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
@@ -22,7 +23,7 @@ export async function POST(
   try {
     const { data, attachments = [] } = await req.json();
 
-    console.log(`Data: ${data}`);
+    // console.log(`Data: ${data}`);
 
     const user = id
       ? await userCollection.findOne({ _id: new ObjectId(id) })
@@ -50,6 +51,49 @@ export async function POST(
       type: detectMediaType(url) || undefined,
     }));
 
+    const locIn = data.location ?? {};
+    let lat = typeof locIn.lat === "number" ? locIn.lat : undefined;
+    let lng = typeof locIn.lng === "number" ? locIn.lng : undefined;
+    let place = "";
+
+    if (lat == null || lng == null) {
+      const addr = locIn.address ?? locIn.name ?? "";
+      const geo = await geocodeAddress(addr);
+
+      if (geo) {
+        lat = geo.lat;
+        lng = geo.lng;
+      }
+
+      if (lat && lng) {
+        const revRes = await fetch(
+          `${process.env.BASE_URL}/api/reverse-geocode`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              lat: lat,
+              lng: lng,
+            }),
+          }
+        );
+
+        if (revRes) {
+          const { place_name } = await revRes.json();
+          data.location.address = place_name;
+          console.log(place);
+        }
+      }
+    }
+
+    // If still no coords, you can reject or allow, your call:
+    if (lat == null || lng == null) {
+      return NextResponse.json(
+        { error: "Could not geocode location" },
+        { status: 422 }
+      );
+    }
+
     const now = new Date();
     const baseEvent: EventDoc = {
       title: data.title,
@@ -59,9 +103,10 @@ export async function POST(
       date: new Date(data.date),
       startTime: data.startTime,
       location: {
+        address: data.location.address,
         name: data.location?.name,
-        lat: data.location?.lat,
-        lng: data.location?.lng,
+        lat: lat,
+        lng: lng,
       },
       host: new ObjectId(user?._id),
       attendees: [],
@@ -109,9 +154,10 @@ export async function POST(
         attachments: parsedAttachments,
         startingDate: data.date,
         location: {
+          address: place,
           name: data.location.name,
-          lat: data.location.lat,
-          lng: data.location.lng,
+          lat: lat,
+          lng: lng,
         },
       },
       timestamp: now,
@@ -140,9 +186,10 @@ export async function POST(
           startTime: data.startTime,
           attachments: parsedAttachments,
           location: {
+            address: place,
             name: data.location?.name,
-            lat: data.location?.lat,
-            lng: data.location?.lng,
+            lat: lat,
+            lng: lng,
           },
           host: new ObjectId(String(data.host)),
           attendees: [],

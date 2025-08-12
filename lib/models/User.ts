@@ -58,7 +58,11 @@ export interface UserDoc {
   eventsHosted?: number;
   lastMinuteCancels?: number;
   tags?: string[];
-  location?: string;
+  location?: {
+    name?: string;
+    lat?: number;
+    lng?: number;
+  };
   lang?: string;
   status: string;
   followers?: ObjectId[];

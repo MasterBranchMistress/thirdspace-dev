@@ -4,7 +4,7 @@ export async function getLocationImage(location: string) {
   const params = new URLSearchParams({
     query: location,
     content_filter: "high",
-    orientation: "landscape", // better for banners/cards
+    orientation: "portrait", // better for banners/cards
     per_page: "1", // just grab the first relevant one
   });
 
