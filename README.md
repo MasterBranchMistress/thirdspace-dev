@@ -389,3 +389,64 @@ We’ve added support for **location-based profile updates** with image attachme
   ![New Dropdown Menu](public/screenshots/new-dropdown.png)
   ![New Post Options Tab](public/screenshots/new-post-options-tab.png)
   ![Back To Top and Video Support](public/screenshots/video-support.png)
+
+  # ThirdSpace
+
+ThirdSpace is a low-pressure social coordination platform that helps friends, communities, and new connections find each other, meet up, and share events — all in real time.
+
+---
+
+## 🚀 Recent Updates (Aug 2025)
+
+### Geospatial Features
+
+- **Interactive Event Maps** — All events now display an embedded, zoomable map powered by MapLibre.
+- **Nearby Events API** (`/api/users/:id/get-nearby-events`)
+  - Finds events within a given radius of the user.
+  - Uses MongoDB `$nearSphere` queries on a `2dsphere` index.
+  - Stores coordinates as **GeoJSON Point** `[lng, lat]`.
+- **Nearby Users API** (`/api/users/:id/get-nearby-users`)
+  - Finds users within a radius that share overlapping tags.
+  - Uses `$geoNear` for distance sorting and `$setIntersection` for tag matching.
+  - Scores results by tag overlap (weighted) and proximity.
+- **Indexes**:
+  - `location.geo` (2dsphere) for both events and users.
+  - `tags` for faster shared-interest matching.
+
+### Data Improvements
+
+- **Default Location Fallback** — If no coordinates are provided, system uses geocoding or a safe default.
+- **AI Keyword Extraction** — Auto-generates tags from bios/interests for better nearby user matching.
+- **Type Safety Fixes** — Resolved `number | undefined` issues for lat/lng props.
+
+### UI Fixes
+
+- **Footer Scroll Bug** — Footer hides when scrolling down. visible when when scrolling up (sticky + z-index fix).
+- **Smart Refresh Click Target** — “New update available” banner now makes the entire banner clickable, not just the arrow.
+
+---
+
+## 📦 API Endpoints
+
+### **Nearby Events**
+
+Returns users within the radius that share at least `minShared` tags.
+
+---
+
+## ⚙️ Setup Notes
+
+- Ensure MongoDB collections for `users` and `events` have `2dsphere` indexes on `location.geo`.
+- Geocoding utilities require environment variable `BASE_URL` for reverse geocoding calls.
+
+---
+
+## 📅 Next Steps
+
+- Add client-side UI for nearby user discovery.
+- Improve AI tag extraction fallback and caching.
+- Filter nearby events by user interests.
+
+![location-enabled](public/screenshots/location-ask.png)
+![distance-to-event-shown](public/screenshots/location-ask-one.png)
+![map-showcase](public/screenshots/location-ask-map.png)
