@@ -1,11 +1,9 @@
-// lib/api/handleRegisterUser.ts
 export const handleRegisterUser = async (
   firstName: string,
   lastName: string,
   email: string,
   password: string,
-  bio: string,
-  tags: string[]
+  bio: string
 ) => {
   try {
     const tagRes = await fetch("/api/extract-tags-from-bio", {

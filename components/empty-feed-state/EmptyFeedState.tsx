@@ -42,7 +42,7 @@ export default function EmptyFeedState({ name }: EmptyFeedStateProps) {
             className="bg-primary tracking-tighter"
             spinner={<Spinner variant="wave" color="secondary" />}
           >
-            Create Your First Event
+            Browse Events
           </Button>
         </Link>
       </div>

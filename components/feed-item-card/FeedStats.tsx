@@ -41,14 +41,14 @@ export function FeedStats() {
             loop
             autoplay
             style={{
-              height: "22px",
-              width: "22px",
+              height: "25px",
+              width: "25px",
             }}
           />
           <p className="font-extrabold text-small">{stats.comments}</p>
         </div>
       </Tooltip>
-      <Tooltip content={"Likes"}>
+      {/* <Tooltip content={"Likes"}>
         <div className="flex gap-1 items-center align-middle">
           <Lottie
             animationData={HeartsIcon}
@@ -61,8 +61,8 @@ export function FeedStats() {
           />
           <p className="font-extrabold text-small">{stats.likes}</p>
         </div>
-      </Tooltip>
-      <Tooltip content={"Orbiters"}>
+      </Tooltip> */}
+      <Tooltip content={"Sparks"}>
         <div className="flex gap-1 items-center align-middle">
           <Lottie
             animationData={BoostIcon}

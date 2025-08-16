@@ -59,10 +59,13 @@ export interface UserDoc {
   lastMinuteCancels?: number;
   tags?: string[];
   location?: {
-    name?: string;
+    name: string;
     lat?: number;
     lng?: number;
+    geo?: { type: "Point"; coordinates: [number, number] };
   };
+  shareLocation?: boolean;
+  shareJoinedEvents?: boolean;
   lang?: string;
   status: string;
   followers?: ObjectId[];

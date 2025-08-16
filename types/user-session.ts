@@ -16,6 +16,10 @@ export type SessionUser = {
   lastMinuteCancels?: number;
   bio?: string;
   tags?: string[];
-  location?: string;
+  location?: {
+    name: string;
+    lat: number;
+    lng: number;
+  };
   lang?: string;
 };

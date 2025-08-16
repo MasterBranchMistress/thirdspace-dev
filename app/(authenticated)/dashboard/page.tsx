@@ -9,15 +9,13 @@ import { FeedBackground } from "@/components/background-animations/UserFeedBackg
 import LoadingPage from "@/components/spinner/LoadingPage";
 import FeedItemCard from "@/components/feed-item-card/FeedItemCard";
 import GreetingHeader from "@/components/feed-item-card/GreetingHeader";
-import { Alert, Button, Spinner, Tooltip } from "@heroui/react";
+import { Spinner } from "@heroui/react";
 import EmptyFeedState from "@/components/empty-feed-state/EmptyFeedState";
 import animationData from "@/public/lottie/end-of-feed.json";
 import { useSmartFeedRefresh } from "@/utils/smart-refresh/useSmartRefresh";
 import { FeedItem } from "@/types/user-feed";
 import spaceman from "@/public/lottie/space-man.json";
 import backToTop from "@/public/lottie/back-to-top.json";
-import boost from "@/public/lottie/boost.json";
-import UserLocation from "@/components/user-location/userLocation";
 import { useBrowserLocation } from "@/utils/geolocation/get-user-location/getUserLocation";
 
 export default function Home() {
@@ -66,18 +64,28 @@ export default function Home() {
       coords.lat &&
       coords.lng
     ) {
+      // Don't overwrite if profile already has a location name
+      if (session.user.location?.name) return;
+
       fetch(`/api/users/${session.user.id}/save-location`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           location: {
+            name: session.user.location?.name || "", // preserve if available
             lat: coords.lat,
             lng: coords.lng,
           },
         }),
       }).catch((err) => console.error("Failed to update location:", err));
     }
-  }, [status, locStatus, coords, session?.user?.id]);
+  }, [
+    status,
+    locStatus,
+    coords,
+    session?.user?.id,
+    session?.user?.location?.name,
+  ]);
 
   if (status === "loading" || !coords) return <LoadingPage />;
   if (error) return <p>{error}</p>;

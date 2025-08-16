@@ -39,8 +39,7 @@ export default function RegisterForm() {
       lastName,
       email,
       password,
-      bio,
-      tags // ✅ use the fresh value directly here
+      bio
     );
 
     if (err) {

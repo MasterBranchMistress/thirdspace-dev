@@ -70,17 +70,16 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             ? ``
             : type === "profile_avatar_updated" && isUserActor(actor)
               ? `${actor.firstName} updated their look 😎`
-              : type === "profile_location_updated" && isUserActor(actor)
-                ? `${actor.firstName} moved somewhere new 📍`
-                : type === "profile_status_updated" && isUserActor(actor)
-                  ? ``
-                  : isUserActor(actor) &&
-                    `${actor.firstName} is doing something cool 🤔`;
-
-  const tags =
-    type === "profile_tags_updated" && typeof target?.snippet === "string"
-      ? target.snippet.split(",").map((tag) => tag.trim())
-      : [];
+              : type === "joined_platform" && isUserActor(actor)
+                ? `${actor.firstName} just joined ThirdSpace! 🚀`
+                : type === "profile_location_updated" && isUserActor(actor)
+                  ? `${actor.firstName} moved somewhere new 📍`
+                  : type === "profile_bio_updated" && isUserActor(actor)
+                    ? `${actor.firstName} updated their bio 🖊️`
+                    : type === "profile_status_updated" && isUserActor(actor)
+                      ? ``
+                      : isUserActor(actor) &&
+                        `${actor.firstName} is doing something cool 🤔`;
 
   return (
     <Card
@@ -187,11 +186,27 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
       <CardBody className="px-3 py-0 text-small text-center tracking-tight font-light">
         <p className="font-bold text-center tracking-tighter">{message}</p>
         <div className="flex flex-col justify-center items-center">
-          {/* {type === "profile_bio_updated" && target?.snippet && (
-            <span className="font-light mt-2 max-w-[50%]">
+          {type === "profile_bio_updated" && target?.snippet && (
+            <span className="font-light mt-2 max-w-[100%]">
               {target.snippet}
             </span>
-          )} */}
+          )}
+          {type === "joined_platform" && isUserActor(actor) && (
+            <Button
+              size="sm"
+              color="primary"
+              variant="shadow"
+              radius="md"
+              className="mt-3"
+              onPress={() => {
+                //TODO: hook up say hi action here (send friend req, DM, etc.)
+                console.log(`Said hi to ${actor.firstName}`);
+              }}
+            >
+              Send a Spark ✨
+            </Button>
+          )}
+
           {type === "profile_status_updated" && (
             <div className="font-light tracking-tight max-w-[100%] text-center">
               <p className="mx-auto text-sm mb-2">{target?.snippet}</p>

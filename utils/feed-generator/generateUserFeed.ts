@@ -25,7 +25,6 @@ export async function generateUserFeed(
       "target.userId": item.target?.userId,
       "target.eventId": item.target?.eventId,
     });
-
     if (!exists) {
       await feedCollection.insertOne({
         ...item,
@@ -37,31 +36,53 @@ export async function generateUserFeed(
   const nowIso = new Date().toISOString();
   const viewerLat = user.location?.lat;
   const viewerLng = user.location?.lng;
+  const viewerHasCoords =
+    typeof viewerLat === "number" && typeof viewerLng === "number";
+  const ALLOWED_TYPES = [
+    "joined_platform",
+    "hosted_event",
+    "profile_avatar_updated",
+    "profile_bio_updated",
+    "profile_status_updated",
+  ];
 
   const radiusMiles =
     (user as any)?.settings?.nearbyRadiusMiles &&
     Number.isFinite((user as any).settings.nearbyRadiusMiles)
       ? Number((user as any).settings.nearbyRadiusMiles)
-      : 40; // default radius
+      : 40;
 
-  for (const friend of friends) {
+  //New users just joined to get feed going
+  logFeedItem({
+    userId: user._id!,
+    type: "joined_platform",
+    actor: {
+      id: user._id?.toString(),
+      firstName: user.firstName,
+      lastName: user.lastName,
+      username: user.username,
+      avatar: user.avatar,
+    },
+    target: {
+      snippet: `${user.firstName} just joined ThirdSpace! 🚀`,
+    },
+    timestamp: new Date().toISOString(),
+  });
+  // ✅ Include the viewer as an actor so their own updates show up even with 0 friends.
+  const actors: UserDoc[] = [user, ...friends];
+
+  for (const actorUser of actors) {
     for (const event of events) {
-      // TODO: Events hosted only by friends?
-      // if (String(event.hostId) !== String(friend._id)) continue;
-
-      // Upcoming: within next 14 days
+      // Only events hosted by this actor
+      // if (String(event.host) !== String(actorUser._id)) continue;
       const now = new Date();
-      const twoWeeksFromNow = new Date(
-        now.getTime() + 1000 * 60 * 60 * 24 * 14
-      );
-      const isUpcoming = event.date >= now && event.date <= twoWeeksFromNow;
-
+      const twoWeeks = new Date(now.getTime() + 1000 * 60 * 60 * 24 * 14);
+      const isUpcoming = event.date >= now && event.date <= twoWeeks;
       if (!isUpcoming) continue;
 
-      // Ensure event coords (prefer stored coords, else geocode address/name)
+      // Event coords (fallback to geocode)
       let evLat = event.location?.lat;
       let evLng = event.location?.lng;
-
       if (typeof evLat !== "number" || typeof evLng !== "number") {
         const addr = event.location?.address ?? event.location?.name ?? "";
         if (!addr) continue;
@@ -71,98 +92,103 @@ export async function generateUserFeed(
         evLng = geo.lng;
       }
 
-      // Compute distance from viewer; skip if viewer location unknown
-      const distMiles = getDistFromMiles(viewerLat, viewerLng, evLat, evLng);
-      const isNearby =
-        typeof distMiles === "number" && distMiles <= radiusMiles;
+      // Distance: if viewer coords unknown, don't gate by distance
+      let distMiles: number | null = null;
+      if (viewerHasCoords) {
+        const d = getDistFromMiles(viewerLat, viewerLng, evLat!, evLng!);
+        distMiles = typeof d === "number" ? Number(d.toFixed(1)) : null;
+      }
 
+      const passesDistance = viewerHasCoords
+        ? distMiles !== null && distMiles <= radiusMiles
+        : true;
+
+      if (!passesDistance) continue;
+
+      // Actor payload normalized
       const actor = {
-        id: friend._id!.toString(),
-        firstName: friend.firstName,
-        lastName: friend.lastName,
-        username: friend.username,
-        avatar: friend.avatar || getGravatarUrl(friend.email),
+        id: actorUser._id!.toString(),
+        firstName: actorUser.firstName,
+        lastName: actorUser.lastName,
+        username: actorUser.username,
+        avatar: actorUser.avatar || getGravatarUrl(actorUser.email),
         eventSnippet: event.description,
-        attachments: event.attachments,
-        distanceFromEvent: Number((distMiles as number).toFixed(1)),
+        eventAttachments: event.attachments,
+        distanceFromEvent: distMiles, // can be null
         eventLocation: event.location?.name,
       };
 
-      // console.log(actor);
-
-      if (isUpcoming && isNearby) {
-        await logFeedItem({
-          userId: user._id!,
-          type: "hosted_event",
-          actor,
-          target: {
-            eventId: event._id,
-            title: event.title,
-            snippet: event.description ?? "",
-            startingDate: event.date.toISOString(),
-            location: event.location
-              ? {
-                  name: event.location.name,
-                  address: event.location.address,
-                  lat: event.location.lat ?? evLat,
-                  lng: event.location.lng ?? evLng,
-                }
-              : undefined,
-            distanceMiles: Number((distMiles as number).toFixed(1)),
-            attachments: event.attachments,
-          },
-          timestamp: nowIso,
-        });
-      }
+      await logFeedItem({
+        userId: user._id!, // the viewer's feed
+        type: "hosted_event",
+        actor: {
+          ...actor,
+          distanceFromEvent: distMiles ?? undefined,
+        },
+        target: {
+          eventId: event._id,
+          title: event.title,
+          snippet: event.description ?? "",
+          startingDate: event.date.toISOString(),
+          location: event.location
+            ? {
+                name: event.location.name,
+                lat: event.location.lat ?? evLat!,
+                lng: event.location.lng ?? evLng!,
+              }
+            : undefined,
+          distanceMiles: distMiles ?? undefined,
+          attachments: event.attachments,
+        },
+        timestamp: nowIso,
+      });
     }
 
-    if (friend.avatar && friend.avatarLastUpdatedAt) {
-      const actor = {
-        id: friend._id!.toString(),
-        firstName: friend.firstName,
-        lastName: friend.lastName,
-        username: friend.username,
-        avatar: friend.avatar || getGravatarUrl(friend.email),
-      };
+    // Profile updates from each actor (viewer included so self-updates show)
+    if (actorUser.avatar && actorUser.avatarLastUpdatedAt) {
       await logFeedItem({
         userId: user._id!,
         type: "profile_avatar_updated",
-        actor,
-        target: { userId: friend._id!, snippet: friend.avatar },
+        actor: {
+          id: actorUser._id!.toString(),
+          firstName: actorUser.firstName,
+          lastName: actorUser.lastName,
+          username: actorUser.username,
+          avatar: actorUser.avatar || getGravatarUrl(actorUser.email),
+        },
+        target: { userId: actorUser._id!, snippet: actorUser.avatar },
         timestamp: nowIso,
       });
     }
 
-    if (friend.location && friend.locationLastUpdatedAt) {
-      const actor = {
-        id: friend._id!.toString(),
-        firstName: friend.firstName,
-        lastName: friend.lastName,
-        username: friend.username,
-        avatar: friend.avatar || getGravatarUrl(friend.email),
-      };
+    if (actorUser.location && actorUser.locationLastUpdatedAt) {
       await logFeedItem({
         userId: user._id!,
         type: "profile_location_updated",
-        actor,
-        target: { userId: friend._id!, snippet: friend.location.name },
+        actor: {
+          id: actorUser._id!.toString(),
+          firstName: actorUser.firstName,
+          lastName: actorUser.lastName,
+          username: actorUser.username,
+          avatar: actorUser.avatar || getGravatarUrl(actorUser.email),
+        },
+        target: { userId: actorUser._id!, snippet: actorUser.location.name },
         timestamp: nowIso,
       });
     }
 
-    if (friend.status && friend.statusLastUpdatedAt) {
-      const actor = {
-        id: friend._id!.toString(),
-        firstName: friend.firstName,
-        lastName: friend.lastName,
-        username: friend.username,
-        avatar: friend.avatar || getGravatarUrl(friend.email),
-      };
+    if (actorUser.status && actorUser.statusLastUpdatedAt) {
       await logFeedItem({
         userId: user._id!,
         type: "profile_status_updated",
-        actor,
-        target: { userId: friend._id!, snippet: friend.status },
+        actor: {
+          id: actorUser._id!.toString(),
+          firstName: actorUser.firstName,
+          lastName: actorUser.lastName,
+          username: actorUser.username,
+          avatar: actorUser.avatar || getGravatarUrl(actorUser.email),
+        },
+        target: { userId: actorUser._id!, snippet: actorUser.status },
         timestamp: nowIso,
       });
     }
@@ -174,23 +200,26 @@ export async function generateUserFeed(
     .limit(50)
     .toArray();
 
-  const feedItems: FeedItemUser[] = feed.map((doc) => ({
-    id: String(doc._id!), // if you have a dedupe 'key', use that instead
-    type: doc.type,
-    actor: {
-      id: doc.actor.id,
-      firstName: doc.actor.firstName ?? "",
-      lastName: doc.actor.lastName ?? "",
-      username: doc.actor.username,
-      avatar: doc.actor.avatar ?? "",
-      eventSnippet: doc.actor.eventSnippet,
-      eventAttachments: doc.actor.eventAttachments,
-      distanceFromEvent: doc.actor.distanceFromEvent,
-      eventLocation: doc.actor.eventLocation,
-    },
-    target: doc.target,
-    timestamp: doc.timestamp,
-  }));
+  // Map to your UI type (note eventAttachments now matches)
+  const feedItems: FeedItemUser[] = feed
+    .filter((doc) => ALLOWED_TYPES.includes(doc.type))
+    .map((doc) => ({
+      id: String(doc._id!),
+      type: doc.type,
+      actor: {
+        id: doc.actor.id,
+        firstName: doc.actor.firstName ?? "",
+        lastName: doc.actor.lastName ?? "",
+        username: doc.actor.username,
+        avatar: doc.actor.avatar ?? "",
+        eventSnippet: doc.actor.eventSnippet,
+        eventAttachments: doc.actor.eventAttachments,
+        distanceFromEvent: doc.actor.distanceFromEvent,
+        eventLocation: doc.actor.eventLocation,
+      },
+      target: doc.target,
+      timestamp: doc.timestamp,
+    }));
 
   return feedItems;
 }

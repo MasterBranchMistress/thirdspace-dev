@@ -107,15 +107,35 @@ export async function PATCH(
       });
     }
 
+    //Share Joined event setting
+    if (typeof updates.shareJoinedEvents === "boolean") {
+      updateFields.shareJoinedEvents = updates.shareJoinedEvents;
+      changes.shareJoinedEvents = updates.shareJoinedEvents;
+    }
+    //Share location setting
+    if (typeof updates.shareLocation === "boolean") {
+      updateFields.shareLocation = updates.shareLocation;
+      changes.shareLocation = updates.shareLocation;
+    }
+
     // ✅ Location
+    let locationName;
     if (
-      typeof updates.location === "string" &&
-      updates.location.trim() !== user.location
+      typeof updates.location.name === "string" &&
+      updates.location.name.trim() !== user.location?.name
     ) {
-      const trimmed = updates.location.trim();
-      updateFields.location = trimmed;
-      changes.location = trimmed;
-      updateFields.locationLastUpdatedAt = new Date();
+      const trimmedLocation = updates.location.name.trim();
+
+      // Ensure location object exists
+      updateFields.location = { name: trimmedLocation };
+      locationName = trimmedLocation;
+      changes.location = { name: trimmedLocation };
+
+      if (user.shareLocation === false)
+        return NextResponse.json(
+          { message: "User has their location privated" },
+          { status: 200 }
+        );
 
       let attachments: string[] = [];
       let photoCredit:
@@ -123,8 +143,7 @@ export async function PATCH(
         | undefined;
 
       try {
-        const result = await getLocationImage(trimmed);
-
+        const result = await getLocationImage(trimmedLocation);
         if (result) {
           attachments = [result];
         }
@@ -143,7 +162,7 @@ export async function PATCH(
           avatar: user.avatar!,
         },
         target: {
-          snippet: trimmed,
+          snippet: locationName,
           attachments,
           photoCredit,
         },

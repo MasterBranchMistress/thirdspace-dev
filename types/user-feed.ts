@@ -7,17 +7,13 @@ import { ObjectId } from "mongodb";
  */
 export type FeedItemType =
   | "joined_event"
+  | "joined_platform"
   | "hosted_event"
-  | "created_event"
-  | "friend_accepted"
   | "profile_updated"
   | "profile_bio_updated"
   | "profile_avatar_updated"
   | "profile_location_updated"
-  | "profile_username_updated"
-  | "profile_tags_updated"
   | "profile_status_updated"
-  | "status_posted"
   | "event_is_popular"
   | "event_is_nearby"
   | "event_coming_up";
@@ -79,7 +75,6 @@ export interface FeedTarget {
   host?: string;
   hostName?: string;
   location?: {
-    address?: string;
     name?: string;
     lat?: number;
     lng?: number;

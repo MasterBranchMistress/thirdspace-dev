@@ -78,7 +78,17 @@ export async function POST(req: NextRequest) {
       lastMinuteCancels: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
-      location: "",
+      location: {
+        name: "",
+        lat: 0,
+        lng: 0,
+        geo: {
+          type: "Point",
+          coordinates: [0, 0],
+        },
+      },
+      shareLocation: true,
+      shareJoinedEvents: true,
       lang: "en",
       tags: tags ?? [],
       usernameLastChangedAt: now,

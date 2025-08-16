@@ -74,12 +74,6 @@ export default function FeedCardFooter({
           ref={ref}
           className="flex flex-col gap-1 w-full justify-center align-middle"
         >
-          {/* <Lottie
-            animationData={MapPin}
-            loop
-            autoplay
-            style={{ height: "20px", width: "20px" }}
-          /> */}
           <p className="font-bold tracking-tight text-small mx-1 pb-2">
             {target?.location?.name ??
               target?.location?.address ??
@@ -104,7 +98,7 @@ export default function FeedCardFooter({
         />
       )}
 
-      <div className="flex justify-center gap-10 w-full">
+      <div className="flex justify-evenly gap-10 w-[90%]">
         <FeedStats />
       </div>
     </div>

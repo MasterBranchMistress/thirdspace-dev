@@ -115,7 +115,7 @@ export default function NavBar() {
                   color="primary"
                   name={user.firstName}
                   size="sm"
-                  src={user.avatar || "https://i.pravatar.cc/150?u=placeholder"}
+                  src={user.avatar}
                 />
               </DropdownTrigger>
             </Badge>

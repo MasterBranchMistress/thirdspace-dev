@@ -28,13 +28,15 @@ export async function GET(
 
     // get friend ids
     const friendsIds = user.friends || [];
-    if (friendsIds.length === 0) {
-      return NextResponse.json({
-        message: "✅ No friends yet",
-        events: [],
-        pagination: { page: 1, limit: 0, total: 0, totalPages: 0 },
-      });
-    }
+
+    //NOTE: I was just using this to debug empty state. Don't delete this or ill find you.
+    // if (friendsIds.length === 0) {
+    //   return NextResponse.json({
+    //     message: "✅ No friends yet",
+    //     events: [],
+    //     pagination: { page: 1, limit: 0, total: 0, totalPages: 0 },
+    //   });
+    // }
 
     // pagination
     const { searchParams } = new URL(req.url);
@@ -52,20 +54,23 @@ export async function GET(
     }
 
     // ✅ Fetch friends + recent events
-    const [friends, events] = await Promise.all([
-      usersCollection.find({ _id: { $in: friendsIds } }).toArray(),
-      eventsCollection
-        .find({
-          $or: [
-            { host: { $in: friendsIds } },
-            { attendees: { $in: friendsIds } },
-          ],
-          status: "active",
-          date: { $gte: new Date(Date.now() - 1000 * 60 * 60 * 24) },
-        })
-        .sort({ date: -1 })
-        .toArray(),
-    ]);
+    const [friends, events] =
+      friendsIds.length > 0
+        ? await Promise.all([
+            usersCollection.find({ _id: { $in: friendsIds } }).toArray(),
+            eventsCollection
+              .find({
+                $or: [
+                  { host: { $in: friendsIds } },
+                  { attendees: { $in: friendsIds } },
+                ],
+                status: "active",
+                date: { $gte: new Date(Date.now() - 1000 * 60 * 60 * 24) },
+              })
+              .sort({ date: -1 })
+              .toArray(),
+          ])
+        : [[], []];
 
     const feedQuery: any = { userId: user._id };
     if (sinceDate) {

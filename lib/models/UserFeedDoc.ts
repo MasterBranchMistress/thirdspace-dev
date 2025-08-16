@@ -17,6 +17,7 @@ export interface UserFeedDoc {
     | "profile_username_updated"
     | "profile_tags_updated"
     | "profile_status_updated"
+    | "joined_platform"
   >;
   actor: FeedUserActor;
   target?: FeedTarget;
