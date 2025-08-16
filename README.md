@@ -450,3 +450,55 @@ Returns users within the radius that share at least `minShared` tags.
 ![location-enabled](public/screenshots/location-ask.png)
 ![distance-to-event-shown](public/screenshots/location-ask-one.png)
 ![map-showcase](public/screenshots/location-ask-map.png)
+
+# 🕐 Sprint Worklog (52h) - End of sprint 1 - SCRUM 35
+
+## Feed System Enhancements – 21h
+
+- Implemented `generateUserFeed` with friend + self actor support (6h)
+- Added distance calculations and geocoding fallback for events (3h)
+- Normalized event attachments, snippets, and locations (2h)
+- Added profile update feed types (`avatar`, `location`, `status`) (4h)
+- Debugged unexpected logging of `username`, `bio`, `tags` updates and filtered them out via `PUBLIC_FEED_TYPES` allowlist (4h)
+- Verified deduplication logic and confirmed persistence for admin/audit cases (2h)
+
+## Frontend Feed UI – 10h
+
+- Built out `FeedItemCard` display logic with actor/event type checks (3h)
+- Fixed avatar fallback to Gravatar and ensured event vs user actors display correctly (2h)
+- Implemented empty state handling and debug scaffolding (1h)
+- Added quirky “Say Hi” button in place of snippet for new joins (2h)
+- Brainstormed and designed “Spark” feature for karma/upvotes (2h)
+
+## Profile & Settings – 8h
+
+- Extended `ProfileSettingsModal` with bio, tags, and language updates (3h)
+- Added character limit enforcement and live counter for bio (2h)
+- Fixed text color / theming issues in `Textarea` (1h)
+- Verified profile updates only log intended feed items (2h)
+
+## Backend / API – 7h
+
+- Implemented `GET /api/feed/:id` endpoint with pagination, since filter, and friends/events lookup (4h)
+- Combined generated + DB feed items with proper sorting (2h)
+- Added filters to hide non-public updates in API response (1h)
+
+## Infra / Dev Workflow – 6h
+
+- Debugged smart refresh logic and deduplication on user feed (2h)
+- Setup fire Lottie animation + placeholder for spark/karma counter (1h)
+- Scoped upcoming admin/audit requirements (tags, bio, username updates to remain stored) (1h)
+- Added commit message + documentation polish (2h)
+
+## Design & Planning – 5h
+
+- Discussed naming options for quirky actions (“Zap” → “Spark”) (1h)
+- Scoped feed growth/anti-bloat strategy (1h)
+- Planned Sprint 3 backlog items (admin console, karma system, audit feed visibility) (1h)
+- Brainstormed views + comments integration into feed (2h)
+
+---
+
+✅ **Total: 52 hours**
+
+![spark-one](public/screenshots/spark.png) ![spark-two](public/screenshots/spark-two.png) ![spark-three](public/screenshots/spark-three.png) ![spark-four](public/screenshots/spark-six.png) ![spark-five](public/screenshots/spark-seven.png) ![spark-six](public/screenshots/spark-one.png) ![spark-seven](public/screenshots/spark-four.png) ![spark-eight](public/screenshots/spark-five.png)
