@@ -26,8 +26,6 @@ import { About } from "./about";
 import { useToast } from "@/app/providers/ToastProvider";
 import { useRouter } from "next/navigation";
 import confetti from "canvas-confetti";
-import Lottie from "lottie-react";
-import loadingElephant from "@/public/lottie/loadingelephant.json";
 
 type UserLocation = {
   name: string;
@@ -228,6 +226,7 @@ export default function ProfileSettingsModal({
         origin: { y: 0.6 },
       });
       router.refresh();
+      window.location.reload();
     } catch (e: any) {
       notify("Something went wrong.", `${e.message}`);
       setError(e.message || "Save failed");
@@ -408,17 +407,6 @@ export default function ProfileSettingsModal({
                         ))}
                       </Select>
                     </div>
-                    <div className="flex gap-3 mt-6 justify-center">
-                      <Button
-                        size="sm"
-                        color="primary"
-                        variant="shadow"
-                        isLoading={saving}
-                        onPress={save}
-                      >
-                        Save Changes
-                      </Button>
-                    </div>
                   </AccordionItem>
                 </Accordion>
                 <Privacy
@@ -469,7 +457,7 @@ export default function ProfileSettingsModal({
                 <About />
               </div>
             )}
-            {/* {!loading && (
+            {!loading && (
               <div className="flex gap-3 mt-6 justify-center">
                 <Button
                   size="sm"
@@ -489,7 +477,7 @@ export default function ProfileSettingsModal({
                   Close
                 </Button>
               </div>
-            )} */}
+            )}
           </div>
         )}
       </ModalContent>

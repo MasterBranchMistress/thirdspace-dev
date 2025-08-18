@@ -2,8 +2,15 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { Accordion, AccordionItem, Button, Input, Chip } from "@heroui/react";
-import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import {
+  ChevronLeftIcon,
+  EyeIcon,
+  EyeSlashIcon,
+} from "@heroicons/react/24/outline";
 import CustomSwitch from "../UI/toggleSwitch";
+import Lottie from "lottie-react";
+import success from "@/public/lottie/success.json";
+import error from "@/public/lottie/error.json";
 
 type SessionItem = {
   id: string;
@@ -36,6 +43,9 @@ export function Security({
   const [savingPwd, setSavingPwd] = useState(false);
   const [pwdError, setPwdError] = useState<string | null>(null);
   const [pwdOk, setPwdOk] = useState<string | null>(null);
+  const [newPwVisible, setNewPwVisible] = useState(false);
+  const [pwConfirmVisible, setPwConfirmVisible] = useState(false);
+  const [currentPwVisible, setCurrentPwVisible] = useState(false);
 
   const pwdValid = useMemo(() => {
     const hasLen = newPwd.length >= 8;
@@ -56,9 +66,7 @@ export function Security({
     setPwdOk(null);
 
     if (!pwdValid.ok) {
-      setPwdError(
-        "Password must be 8+ chars with at least one uppercase letter and one number, and both fields must match."
-      );
+      setPwdError("Oops, something went wrong here.");
       return;
     }
     if (!oldPwd) {
@@ -69,7 +77,7 @@ export function Security({
     try {
       setSavingPwd(true);
       await onChangePassword(oldPwd, newPwd);
-      setPwdOk("Password updated ✅");
+      setPwdOk("Password changed successfully!");
       setOldPwd("");
       setNewPwd("");
       setConfirmPwd("");
@@ -117,68 +125,132 @@ export function Security({
             </div>
             <Input
               size="sm"
-              type="password"
+              type={currentPwVisible ? "text" : "password"}
               label="Current Password"
               variant="underlined"
               color="secondary"
               className="text-white"
               value={oldPwd}
               onValueChange={setOldPwd}
+              endContent={
+                <button
+                  type="button"
+                  onClick={() => setCurrentPwVisible((v) => !v)}
+                  aria-pressed={currentPwVisible}
+                  aria-label={
+                    currentPwVisible ? "Hide password" : "Show password"
+                  }
+                >
+                  {currentPwVisible ? (
+                    <EyeSlashIcon color="secondary" width={20} />
+                  ) : (
+                    <EyeIcon color="secondary" width={20} />
+                  )}
+                </button>
+              }
             />
             <Input
               size="sm"
-              type="password"
+              type={newPwVisible ? "text" : "password"}
               label="New Password"
               variant="underlined"
               color="secondary"
               className="text-white"
               value={newPwd}
               onValueChange={setNewPwd}
+              endContent={
+                <button
+                  type="button"
+                  onClick={() => setNewPwVisible((v) => !v)}
+                  aria-pressed={newPwVisible}
+                  aria-label={newPwVisible ? "Hide password" : "Show password"}
+                >
+                  {newPwVisible ? (
+                    <EyeSlashIcon color="secondary" width={20} />
+                  ) : (
+                    <EyeIcon color="secondary" width={20} />
+                  )}
+                </button>
+              }
             />
             <Input
               size="sm"
-              type="password"
+              type={pwConfirmVisible ? "text" : "password"}
               label="Confirm New Password"
               variant="underlined"
               color="secondary"
-              className="text-white"
+              className="text-white mb-4"
               value={confirmPwd}
               onValueChange={setConfirmPwd}
+              endContent={
+                <button
+                  type="button"
+                  onClick={() => setPwConfirmVisible((v) => !v)}
+                  aria-pressed={pwConfirmVisible}
+                  aria-label={
+                    pwConfirmVisible ? "Hide password" : "Show password"
+                  }
+                >
+                  {pwConfirmVisible ? (
+                    <EyeSlashIcon color="secondary" width={20} />
+                  ) : (
+                    <EyeIcon color="secondary" width={20} />
+                  )}
+                </button>
+              }
             />
 
             <div className="flex flex-wrap gap-2">
               <Chip
                 size="sm"
                 variant="bordered"
-                color={pwdValid.hasLen ? "success" : "secondary"}
+                color={pwdValid.hasLen ? "secondary" : "danger"}
               >
                 8+ chars
               </Chip>
               <Chip
                 size="sm"
                 variant="bordered"
-                color={pwdValid.hasUpper ? "success" : "secondary"}
+                color={pwdValid.hasUpper ? "secondary" : "danger"}
               >
                 Uppercase
               </Chip>
               <Chip
                 size="sm"
                 variant="bordered"
-                color={pwdValid.hasNum ? "success" : "secondary"}
+                color={pwdValid.hasNum ? "secondary" : "danger"}
               >
                 Number
               </Chip>
               <Chip
                 size="sm"
                 variant="bordered"
-                color={pwdValid.matches ? "success" : "secondary"}
+                color={pwdValid.matches ? "secondary" : "danger"}
               >
                 Matches
               </Chip>
             </div>
 
-            {pwdError && <div className="text-danger text-xs">{pwdError}</div>}
-            {pwdOk && <div className="text-success text-xs">{pwdOk}</div>}
+            {pwdError && (
+              <div className="flex flex-row gap-1 items-center justify-start mb-4">
+                <Lottie
+                  animationData={error}
+                  loop={false}
+                  style={{ width: "2rem" }}
+                />
+                <div className="text-secondary text-xs mt-1">{pwdError}</div>
+              </div>
+            )}
+            {pwdOk && (
+              <div className="flex flex-row gap-1 items-center justify-start">
+                <Lottie
+                  animationData={success}
+                  loop={false}
+                  style={{ width: "2rem" }}
+                />
+                <div className="text-secondary text-xs">{pwdOk}</div>
+              </div>
+            )}
 
             <div className="flex justify-end">
               <Button
@@ -187,6 +259,7 @@ export function Security({
                 variant="shadow"
                 isLoading={savingPwd}
                 onPress={handlePasswordSave}
+                disabled={!pwdValid}
               >
                 Update Password
               </Button>

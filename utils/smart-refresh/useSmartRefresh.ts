@@ -34,7 +34,13 @@ export function useSmartFeedRefresh({
           return;
         }
 
-        const since = encodeURIComponent(lastTimestampRef.current || "");
+        const rawTs = lastTimestampRef.current;
+
+        const since =
+          rawTs instanceof Date
+            ? encodeURIComponent(rawTs.toISOString())
+            : encodeURIComponent(rawTs ?? new Date().toISOString());
+
         const res = await fetch(`${fetchUrl}?since=${since}`);
         const data = await res.json();
 
