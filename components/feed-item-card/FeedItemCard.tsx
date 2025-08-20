@@ -13,7 +13,7 @@ import {
   Button,
   Dropdown,
 } from "@heroui/react";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import FeedCardFooter from "./FeedCardFooter";
 import { FeedEventActor, FeedItem, FeedUserActor } from "@/types/user-feed";
 import {
@@ -25,16 +25,30 @@ import {
 import AttachmentSwiper from "../swiper/swiper";
 import { useBrowserLocation } from "@/utils/geolocation/get-user-location/getUserLocation";
 import { getDistFromMiles } from "@/utils/geolocation/get-distance-from-event/getDistFromEvent";
+import { getAvatarUrl } from "@/utils/amazon-s3-media/getPresignedUrl";
+import { getGravatarUrl } from "@/utils/gravatar";
 
 interface FeedItemCardProps {
   item: FeedItem;
 }
 
 export default function FeedItemCard({ item }: FeedItemCardProps) {
+  const [avatarUrl, setAvatarUrl] = useState<string>();
   const { type, target, actor, timestamp } = item;
+  const isUserActor = (
+    a: FeedUserActor | FeedEventActor | null | undefined
+  ): a is FeedUserActor => {
+    return !!a && typeof (a as any).id === "string";
+  };
+  useEffect(() => {
+    if (isUserActor(actor)) {
+      setAvatarUrl(actor.avatar ?? getGravatarUrl(actor?.email ?? ""));
+    } else {
+      setAvatarUrl(actor.avatar ?? "/misc/party.jpg");
+    }
+  }, [actor]);
 
   const userLocation = useBrowserLocation();
-
   const eventDistance = useMemo(() => {
     if (
       userLocation.status === "success" &&
@@ -50,12 +64,6 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
     }
     return null;
   }, [userLocation, target?.location]);
-
-  const isUserActor = (
-    a: FeedUserActor | FeedEventActor | null | undefined
-  ): a is FeedUserActor => {
-    return !!a && typeof (a as any).id === "string";
-  };
 
   const buttonText = isUserActor(actor) ? "Follow" : null;
 
@@ -96,9 +104,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
               radius="full"
               size="md"
               src={
-                isUserActor(actor)
-                  ? actor?.avatar
-                  : actor?.avatar || "/misc/party.jpg"
+                isUserActor(actor) ? avatarUrl : avatarUrl || "/misc/party.jpg"
               }
             />
           </div>
@@ -207,7 +213,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             </Button>
           )}
 
-          {type === "profile_status_updated" && (
+          {type === "profile_status_updated" && isUserActor(actor) && (
             <div className="font-light tracking-tight max-w-[100%] text-center">
               <p className="mx-auto text-sm mb-2">{target?.snippet}</p>
               {target?.attachments && target.attachments.length > 0 && (

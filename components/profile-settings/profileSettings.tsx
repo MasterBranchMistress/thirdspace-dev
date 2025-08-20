@@ -26,6 +26,7 @@ import { About } from "./about";
 import { useToast } from "@/app/providers/ToastProvider";
 import { useRouter } from "next/navigation";
 import confetti from "canvas-confetti";
+import AvatarUploader from "../attachment-uploader/avatarUploader";
 
 type UserLocation = {
   name: string;
@@ -43,7 +44,11 @@ type UserPayload = {
   lastName?: string;
   bio?: string;
   tags?: string[];
-  avatar?: string;
+  avatar?: {
+    key: string;
+    fileName: string;
+    fileType: string;
+  };
   location?: UserLocation;
   lang?: string;
   shareLocation?: boolean;
@@ -54,8 +59,8 @@ type UserPayload = {
 
 const LANGS = [
   { code: "en", name: "English" },
-  // { code: "es", name: "Español" },
-  // { code: "fr", name: "Français" },
+  { code: "es", name: "Español" },
+  { code: "fr", name: "Français" },
 ];
 
 function daysSince(dateISO?: string) {
@@ -80,13 +85,15 @@ export default function ProfileSettingsModal({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [ok, setOk] = useState<string | null>(null);
   const [blockedUsers, setBlockedUsers] = useState<
     { id: string; name: string; avatar: string }[]
   >([]);
-
   const [form, setForm] = useState<UserPayload | null>(null);
+  const [initialForm, setInitialForm] = useState<UserPayload | null>(null);
   const [tagInput, setTagInput] = useState("");
+  const remainingBio = Math.max(0, 150 - (form?.bio?.length ?? 0));
 
   const canChangeUsername = useMemo(
     () => daysSince(form?.usernameLastChangedAt) >= USERNAME_COOLDOWN_DAYS,
@@ -119,8 +126,8 @@ export default function ProfileSettingsModal({
         });
 
         const loc = await geoRes.json();
-        // console.log(loc);
-        setForm({
+
+        const formPayload: UserPayload = {
           id: userId,
           username: data.user.username,
           usernameLastChangedAt: data.usernameLastChangedAt,
@@ -128,7 +135,11 @@ export default function ProfileSettingsModal({
           lastName: data.user.lastName,
           bio: data.user.bio ?? "",
           tags: Array.isArray(data.user.tags) ? data.user.tags : [],
-          avatar: data.user.avatar ?? "",
+          avatar: {
+            key: data.user.avatar.key,
+            fileName: data.user.avatar.fileName,
+            fileType: data.user.avatar.fileType,
+          },
           location: {
             name: data.user.location?.name ?? loc.place_name ?? "",
             lat: data.user.location?.lat ?? null,
@@ -138,7 +149,10 @@ export default function ProfileSettingsModal({
           shareLocation: data.user.shareLocation,
           shareJoinedEvents: data.user.shareJoinedEvents,
           lang: data.user.lang ?? "en",
-        });
+        };
+
+        setForm(formPayload);
+        setInitialForm(formPayload);
       } catch (e: any) {
         setError(e.message);
       } finally {
@@ -164,8 +178,6 @@ export default function ProfileSettingsModal({
       }),
     });
   };
-
-  const remainingBio = Math.max(0, 150 - (form?.bio?.length ?? 0));
 
   const pushTag = () => {
     const t = tagInput.trim().toLowerCase();
@@ -201,13 +213,42 @@ export default function ProfileSettingsModal({
       tags: (form.tags ?? []).slice(0, 5).map((t) => t.toLowerCase()),
       username: (form.username ?? "").trim(),
       lang: form.lang ?? "en",
-      location: { name: form.location?.name.trim() ?? null },
+      location: { name: form.location?.name.trim() ?? "" },
       shareLocation: form.shareLocation ?? false,
     };
 
     try {
       setSaving(true);
-      // console.log(`Form Sent: ${next.location.name?.trim()}`);
+
+      //Check for avatar and save
+      if (selectedFile) {
+        const avatarRes = await fetch(
+          `/api/users/${userId}/avatar-handling/upload-avatar`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              avatar: {
+                fileName: selectedFile.name,
+                fileType: selectedFile.type,
+              },
+            }),
+          }
+        );
+
+        if (!avatarRes.ok) {
+          notify("Failed to upload file 😭", "Something went wrong here.");
+          return;
+        }
+        const { signedUrl } = await avatarRes.json();
+
+        await fetch(signedUrl, {
+          method: "PUT",
+          body: selectedFile,
+          headers: { "Content-Type": selectedFile.type },
+        });
+      }
+
       const res = await fetch(`/api/users/${userId}/edit-profile`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -218,6 +259,7 @@ export default function ProfileSettingsModal({
         notify("Failed to load profile!", `Couldn't load profile details.`);
         throw new Error(data?.error || "Failed to save");
       }
+      setInitialForm(next);
       onOpenChange(false);
       notify(`Success! 🥳`, `Profile saved successfully `);
       confetti({
@@ -225,8 +267,9 @@ export default function ProfileSettingsModal({
         spread: 80,
         origin: { y: 0.6 },
       });
-      router.refresh();
-      window.location.reload();
+      setTimeout(() => {
+        router.refresh();
+      }, 2000);
     } catch (e: any) {
       notify("Something went wrong.", `${e.message}`);
       setError(e.message || "Save failed");
@@ -234,6 +277,12 @@ export default function ProfileSettingsModal({
       setSaving(false);
     }
   };
+
+  const isDirty = useMemo(() => {
+    if (!form || !initialForm) return false;
+    if (selectedFile) return true;
+    return JSON.stringify(form) !== JSON.stringify(initialForm);
+  }, [form, initialForm, selectedFile]);
 
   return (
     <Modal
@@ -369,23 +418,10 @@ export default function ProfileSettingsModal({
                         ))}
                       </div>
                     </div>
-
-                    <Input
-                      label="Avatar URL"
-                      size="sm"
-                      color="secondary"
-                      variant="underlined"
-                      className="text-white mt-8 border-concrete"
-                      value={form.avatar ?? ""}
-                      onValueChange={(v) =>
-                        setForm((f) => (f ? { ...f, avatar: v } : f))
-                      }
-                    />
-                    <div className="flex justify-center mt-4 items-center">
-                      <Avatar
-                        className="text-center w-[100px] h-[100px] mt-2"
-                        src={form.avatar}
-                      ></Avatar>
+                    <div className="mt-8">
+                      <>
+                        <AvatarUploader onFileSelected={setSelectedFile} />
+                      </>
                     </div>
                     <div className="grid grid-cols-1 my-6 md:grid-cols-3 gap-3">
                       <Select
@@ -465,6 +501,7 @@ export default function ProfileSettingsModal({
                   variant="shadow"
                   isLoading={saving}
                   onPress={save}
+                  isDisabled={!isDirty}
                 >
                   Save Changes
                 </Button>

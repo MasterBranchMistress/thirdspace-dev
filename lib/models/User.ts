@@ -23,6 +23,17 @@ interface Notification {
   timestamp: Date;
 }
 
+export interface Avatar {
+  key: string;
+  fileName: string;
+  fileType: string;
+  size?: number;
+  width?: number;
+  height?: number;
+  url?: string;
+  publicUrl?: string;
+}
+
 export interface UserDoc {
   _id?: ObjectId;
   firstName: string;
@@ -32,6 +43,7 @@ export interface UserDoc {
   email: string;
   passwordHash: string;
   avatar?: string;
+  avatarMetaData?: Avatar;
   interests?: string[];
   bio?: string;
   favoriteLocations?: string[];

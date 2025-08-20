@@ -2,8 +2,6 @@ import React from "react";
 import { FeedStats } from "./FeedStats";
 import { Image } from "@heroui/react";
 import { ObjectId } from "mongodb";
-import MapPin from "@/public/lottie/map-pin.json";
-import Lottie from "lottie-react";
 import dynamic from "next/dynamic";
 import { useInView } from "react-intersection-observer";
 
@@ -91,7 +89,7 @@ export default function FeedCardFooter({
 
       {type === "profile_avatar_updated" && (
         <Image
-          src={actor?.avatar}
+          src={target?.snippet}
           height={400}
           alt="new-profile-pic"
           className="z-30 rounded-xl object-cover mb-4"

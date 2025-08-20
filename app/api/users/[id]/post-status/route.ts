@@ -64,7 +64,7 @@ export async function POST(
       firstName: user.firstName,
       lastName: user.lastName,
       username: user.username,
-      avatar: user.avatar!,
+      avatar: user.avatar,
     };
 
     // 1. Insert feed item for the user themselves

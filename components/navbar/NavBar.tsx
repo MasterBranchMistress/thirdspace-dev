@@ -10,11 +10,8 @@ import {
   Avatar,
   Badge,
   Image,
-  Tooltip,
-  Switch,
 } from "@heroui/react";
 
-import bell from "@/public/lottie/bell.json";
 import EnableDarkMode from "../theme-switch/EnableDarkModeSwitcher";
 
 import { useSession, signOut } from "next-auth/react";
@@ -23,10 +20,9 @@ import {
   PhoneArrowDownLeftIcon,
   BugAntIcon,
   FaceFrownIcon,
+  CheckIcon,
 } from "@heroicons/react/24/outline";
-import Lottie from "lottie-react";
-import animationData from "@/public/lottie/boost.json";
-import { ThemeSwitch } from "../theme-switch";
+import { useEffect, useState } from "react";
 
 export const SearchIcon = ({
   size = 24,
@@ -67,6 +63,11 @@ export const SearchIcon = ({
 export default function NavBar() {
   const { data: session, status } = useSession();
   const user = session?.user;
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    setAvatarUrl(user?.avatar ?? "");
+  }, [user]);
 
   return (
     <Navbar
@@ -79,7 +80,7 @@ export default function NavBar() {
         <Image
           src="/third-space-logos/thirdspace-logo-4.png"
           alt="ThirdSpace Logo"
-          width={200}
+          width={400}
         />
       </div>
 
@@ -91,21 +92,12 @@ export default function NavBar() {
         {user && (
           <Dropdown placement="bottom-end">
             <Badge
-              color="primary"
-              content={
-                <Lottie
-                  animationData={bell}
-                  loop
-                  autoplay
-                  style={{
-                    height: "40px",
-                    width: "40px",
-                    background: "transparent",
-                  }}
-                />
-              }
+              size="sm"
+              isOneChar
+              color="success"
+              content={<CheckIcon className="p-0.5" />}
               placement="top-right"
-              className="bg-transparent border-none"
+              className="mt-1"
             >
               <DropdownTrigger>
                 <Avatar
@@ -114,8 +106,8 @@ export default function NavBar() {
                   className="transition-transform hover:cursor-pointer"
                   color="primary"
                   name={user.firstName}
-                  size="sm"
-                  src={user.avatar}
+                  size="md"
+                  src={user.avatar ?? undefined}
                 />
               </DropdownTrigger>
             </Badge>

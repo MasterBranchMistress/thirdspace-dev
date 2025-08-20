@@ -168,11 +168,11 @@ export default function Home() {
               }}
             />
             <div className="flex flex-wrap justify-center gap-3 mb-8">
-              <button className="bg-primary text-concrete font-light rounded-md shadow-md px-4 py-2">
+              <button className="text-xs bg-primary text-concrete font-light rounded-md shadow-md px-4 py-2">
                 Explore Events
               </button>
-              <button className="bg-transparent text-primary border border-primary font-light rounded-md px-4 py-2">
-                Add an Event
+              <button className="text-xs bg-transparent text-primary border border-primary font-light rounded-md px-4 py-2">
+                Make Friends!
               </button>
             </div>
           </div>

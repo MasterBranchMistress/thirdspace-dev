@@ -1,5 +1,6 @@
 import { Availability } from "@/lib/models/User";
 import { ObjectId } from "mongodb";
+import { Avatar } from "@/lib/models/User";
 
 /**
  * All possible feed item types supported.
@@ -27,6 +28,7 @@ export interface FeedUserActor {
   firstName?: string;
   lastName?: string;
   username?: string;
+  email?: string;
   avatar?: string;
   timestamp?: string;
   eventSnippet?: string;
@@ -47,17 +49,19 @@ export interface Attachment {
  * Actor representing an event in the feed.
  */
 export interface FeedEventActor {
+  id?: string | ObjectId;
+  email?: string;
   hostFirstName?: string;
   hostUser?: string;
   host?: string;
   eventId?: ObjectId;
-  avatar?: string;
   eventName: string;
   location?: {
     name?: string;
     lat?: number;
     lng?: number;
   };
+  avatar?: string;
   totalAttendance?: number;
   startingDate?: string;
 }

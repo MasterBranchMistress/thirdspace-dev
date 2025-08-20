@@ -1,9 +1,17 @@
+// lib/feed/generateEventFeed.ts
 import { EventDoc } from "@/lib/models/Event";
 import { UserDoc } from "@/lib/models/User";
 import { FeedItemEvent } from "@/types/user-feed";
 import clientPromise from "@/lib/mongodb";
 import { COLLECTIONS, DBS } from "@/lib/constants";
 import { EventFeedDoc } from "@/lib/models/EventFeedDoc";
+import { getGravatarUrl } from "../gravatar";
+
+/** Always resolve a string avatar URL */
+function resolveAvatar(user?: UserDoc | null): string {
+  if (!user) return "/misc/party.jpg"; // fallback
+  return user.avatar ?? getGravatarUrl(user.email);
+}
 
 export async function generateEventFeed(
   user: UserDoc,
@@ -17,7 +25,7 @@ export async function generateEventFeed(
 
   const now = new Date();
 
-  // Utility to insert or update if missing/incomplete
+  // Upsert helper
   async function logFeedItem(item: Omit<EventFeedDoc, "_id">) {
     await feedCollection.updateOne(
       {
@@ -44,17 +52,19 @@ export async function generateEventFeed(
     const base: Omit<EventFeedDoc, "_id"> = {
       userId: user._id!,
       actor: {
+        id: hostUser?._id?.toString(),
+        email: hostUser?.email,
         eventId: event._id,
         eventName: event.title || "Untitled Event",
         host: hostUser?.firstName,
         startingDate: event.date.toISOString(),
-        avatar: hostUser?.avatar,
+        avatar: resolveAvatar(hostUser),
       },
       target: {
         eventId: event._id!,
         title: event.title,
         host: hostUser?.firstName,
-        avatar: hostUser?.avatar,
+        avatar: resolveAvatar(hostUser),
         totalAttendance: event.attendees?.length || 0,
         location: {
           name: event.location?.name,
@@ -68,7 +78,7 @@ export async function generateEventFeed(
         attachments: event.attachments,
       },
       timestamp: new Date(),
-      type: "event_coming_up", // temporary default, overwritten below
+      type: "event_coming_up",
     };
 
     if (isPopular) {
@@ -104,10 +114,8 @@ export async function generateEventFeed(
     actor: {
       eventId: doc.actor.eventId,
       eventName: doc.actor.eventName,
-      location: doc.actor.location,
-      totalAttendance: doc.actor.totalAttendance,
       startingDate: doc.actor.startingDate,
-      avatar: doc.actor.avatar,
+      avatar: typeof doc.actor.avatar === "string" ? doc.actor.avatar : "",
     },
     target: {
       eventId: doc.target?.eventId || undefined,
@@ -121,16 +129,12 @@ export async function generateEventFeed(
       description: doc.target?.description || "",
       budget: doc.target?.budget || undefined,
       tags: doc.target?.tags || [],
-      notes: doc.target?.notes || "",
-      currency: doc.target?.currency || undefined,
-      cost: doc.target?.cost ?? undefined,
-
       startingDate:
         doc.target?.startingDate?.toString() ??
         doc.actor?.startingDate ??
         undefined,
-
       attachments: doc.target?.attachments ?? [],
+      avatar: typeof doc.target?.avatar === "string" ? doc.target.avatar : "",
     },
     timestamp: doc.timestamp,
   }));

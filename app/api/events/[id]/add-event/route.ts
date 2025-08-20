@@ -139,39 +139,50 @@ export async function POST(
     };
 
     const result = await eventCollection.insertOne(baseEvent);
+    const friends = await userCollection
+      .find({ _id: { $in: user?.friends ?? [] } })
+      .toArray();
 
-    const feedEvent: EventFeedDoc = {
-      userId: new ObjectId(user?._id),
+    if (!user) {
+      return new NextResponse("User does not exist!");
+    }
+
+    const baseFeedEvent: EventFeedDoc = {
+      userId: new ObjectId(user._id),
       type: "hosted_event",
       actor: {
-        hostFirstName: user?.firstName,
-        hostUser: user?.username,
-        avatar: user?.avatar,
+        hostFirstName: user.firstName!,
+        hostUser: user.username!,
+        avatar: user.avatar,
         eventId: result.insertedId,
         eventName: data.title,
       },
       target: {
-        userId: user?._id,
-        host: user?.firstName,
+        userId: user._id,
+        host: user.firstName!,
         title: data.title,
         snippet: data.description,
         attachments: parsedAttachments,
         startingDate: data.date,
         location: {
-          address: place,
           name: data.location.name,
-          lat: lat,
-          lng: lng,
-          geo: {
-            type: "Point",
-            coordinates: [lng, lat], // IMPORTANT: lng first, then lat
-          },
+          lat,
+          lng,
+          geo: { type: "Point", coordinates: [lng, lat] },
         },
       },
       timestamp: now,
     };
 
-    const pushToFeed = await feedCollection.insertOne(feedEvent);
+    const feedEvents: EventFeedDoc[] = [
+      baseFeedEvent,
+      ...friends.map((f) => ({
+        ...baseFeedEvent,
+        userId: new ObjectId(f._id),
+      })),
+    ];
+
+    const pushToFeed = await feedCollection.insertMany(feedEvents);
 
     if (data.recurring) {
       const occurrences: EventDoc[] = [];
@@ -235,7 +246,7 @@ export async function POST(
       {
         message: "✅ Event(s) created",
         eventId: result.insertedId,
-        feed: pushToFeed.insertedId,
+        feed: pushToFeed.insertedIds,
       },
       { status: 201 }
     );

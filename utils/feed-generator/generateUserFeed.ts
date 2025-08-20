@@ -8,6 +8,11 @@ import { UserFeedDoc } from "@/lib/models/UserFeedDoc";
 import { getDistFromMiles } from "../geolocation/get-distance-from-event/getDistFromEvent";
 import { geocodeAddress } from "../geolocation/geocode-address/geocodeAddress";
 
+// 🔑 avatar resolver (publicUrl first, fallback to gravatar)
+function resolveAvatar(user: UserDoc): string {
+  return user.avatar ?? getGravatarUrl(user.email);
+}
+
 export async function generateUserFeed(
   user: UserDoc,
   friends: UserDoc[],
@@ -16,6 +21,7 @@ export async function generateUserFeed(
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
   const feedCollection = db.collection<UserFeedDoc>(COLLECTIONS._USER_FEED);
+  const fiveMinutesAgo = new Date(Date.now() - 1000 * 60 * 5);
 
   async function logFeedItem(item: Omit<UserFeedDoc, "_id">) {
     const exists = await feedCollection.findOne({
@@ -38,6 +44,7 @@ export async function generateUserFeed(
   const viewerLng = user.location?.lng;
   const viewerHasCoords =
     typeof viewerLat === "number" && typeof viewerLng === "number";
+
   const ALLOWED_TYPES = [
     "joined_platform",
     "hosted_event",
@@ -53,28 +60,24 @@ export async function generateUserFeed(
       : 40;
 
   //New users just joined to get feed going
-  logFeedItem({
+  await logFeedItem({
     userId: user._id!,
     type: "joined_platform",
     actor: {
-      id: user._id?.toString(),
+      id: user._id!.toString(),
       firstName: user.firstName,
       lastName: user.lastName,
       username: user.username,
-      avatar: user.avatar,
+      avatar: resolveAvatar(user),
     },
-    target: {
-      snippet: `${user.firstName} just joined ThirdSpace! 🚀`,
-    },
+    target: { snippet: `${user.firstName} just joined ThirdSpace! 🚀` },
     timestamp: new Date().toISOString(),
   });
-  // ✅ Include the viewer as an actor so their own updates show up even with 0 friends.
+
   const actors: UserDoc[] = [user, ...friends];
 
   for (const actorUser of actors) {
     for (const event of events) {
-      // Only events hosted by this actor
-      // if (String(event.host) !== String(actorUser._id)) continue;
       const now = new Date();
       const twoWeeks = new Date(now.getTime() + 1000 * 60 * 60 * 24 * 14);
       const isUpcoming = event.date >= now && event.date <= twoWeeks;
@@ -92,7 +95,7 @@ export async function generateUserFeed(
         evLng = geo.lng;
       }
 
-      // Distance: if viewer coords unknown, don't gate by distance
+      // Distance
       let distMiles: number | null = null;
       if (viewerHasCoords) {
         const d = getDistFromMiles(viewerLat, viewerLng, evLat!, evLng!);
@@ -105,26 +108,23 @@ export async function generateUserFeed(
 
       if (!passesDistance) continue;
 
-      // Actor payload normalized
       const actor = {
         id: actorUser._id!.toString(),
+        email: actorUser.email,
         firstName: actorUser.firstName,
         lastName: actorUser.lastName,
         username: actorUser.username,
-        avatar: actorUser.avatar || getGravatarUrl(actorUser.email),
+        avatar: resolveAvatar(actorUser),
         eventSnippet: event.description,
         eventAttachments: event.attachments,
-        distanceFromEvent: distMiles, // can be null
+        distanceFromEvent: distMiles ?? 0,
         eventLocation: event.location?.name,
       };
 
       await logFeedItem({
-        userId: user._id!, // the viewer's feed
+        userId: user._id!,
         type: "hosted_event",
-        actor: {
-          ...actor,
-          distanceFromEvent: distMiles ?? undefined,
-        },
+        actor,
         target: {
           eventId: event._id,
           title: event.title,
@@ -144,8 +144,8 @@ export async function generateUserFeed(
       });
     }
 
-    // Profile updates from each actor (viewer included so self-updates show)
-    if (actorUser.avatar && actorUser.avatarLastUpdatedAt) {
+    // Profile updates
+    if (actorUser.avatar) {
       await logFeedItem({
         userId: user._id!,
         type: "profile_avatar_updated",
@@ -154,7 +154,7 @@ export async function generateUserFeed(
           firstName: actorUser.firstName,
           lastName: actorUser.lastName,
           username: actorUser.username,
-          avatar: actorUser.avatar || getGravatarUrl(actorUser.email),
+          avatar: actorUser.avatar,
         },
         target: { userId: actorUser._id!, snippet: actorUser.avatar },
         timestamp: nowIso,
@@ -170,7 +170,7 @@ export async function generateUserFeed(
           firstName: actorUser.firstName,
           lastName: actorUser.lastName,
           username: actorUser.username,
-          avatar: actorUser.avatar || getGravatarUrl(actorUser.email),
+          avatar: resolveAvatar(actorUser),
         },
         target: { userId: actorUser._id!, snippet: actorUser.location.name },
         timestamp: nowIso,
@@ -186,9 +186,13 @@ export async function generateUserFeed(
           firstName: actorUser.firstName,
           lastName: actorUser.lastName,
           username: actorUser.username,
-          avatar: actorUser.avatar || getGravatarUrl(actorUser.email),
+          avatar: resolveAvatar(actorUser),
         },
-        target: { userId: actorUser._id!, snippet: actorUser.status },
+        target: {
+          userId: actorUser._id!,
+          snippet: actorUser.status,
+          avatar: actorUser.avatar,
+        },
         timestamp: nowIso,
       });
     }
@@ -200,7 +204,6 @@ export async function generateUserFeed(
     .limit(50)
     .toArray();
 
-  // Map to your UI type (note eventAttachments now matches)
   const feedItems: FeedItemUser[] = feed
     .filter((doc) => ALLOWED_TYPES.includes(doc.type))
     .map((doc) => ({
@@ -211,7 +214,7 @@ export async function generateUserFeed(
         firstName: doc.actor.firstName ?? "",
         lastName: doc.actor.lastName ?? "",
         username: doc.actor.username,
-        avatar: doc.actor.avatar ?? "",
+        avatar: doc.actor.avatar,
         eventSnippet: doc.actor.eventSnippet,
         eventAttachments: doc.actor.eventAttachments,
         distanceFromEvent: doc.actor.distanceFromEvent,

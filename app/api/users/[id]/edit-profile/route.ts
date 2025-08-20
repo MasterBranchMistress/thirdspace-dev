@@ -6,6 +6,7 @@ import { UserDoc } from "@/lib/models/User";
 import { UserFeedDoc } from "@/lib/models/UserFeedDoc";
 import { isAuthorized } from "@/utils/auth";
 import { getLocationImage } from "@/utils/get-location-images/getLocationImages";
+import { syncUserUsername } from "@/utils/sync-user-username/syncUsername";
 
 export async function PATCH(
   req: NextRequest,
@@ -41,19 +42,7 @@ export async function PATCH(
       updateFields.username = trimmed;
       changes.username = trimmed;
       updateFields.usernameLastChangedAt = new Date();
-      feedItemsToInsert.push({
-        userId: null!, // will fill for each friend later
-        type: "profile_username_updated",
-        actor: {
-          id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          username: trimmed,
-          avatar: user.avatar!,
-        },
-        target: { snippet: trimmed },
-        timestamp,
-      });
+      await syncUserUsername(String(user._id), trimmed);
     }
 
     // ✅ Bio
@@ -187,19 +176,6 @@ export async function PATCH(
       updateFields.tags = cleanedTags;
       changes.tags = cleanedTags;
       updateFields.tagsLastupdatedAt = new Date();
-      feedItemsToInsert.push({
-        userId: null!,
-        type: "profile_tags_updated",
-        actor: {
-          id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          username: user.username,
-          avatar: user.avatar!,
-        },
-        target: { snippet: cleanedTags.join(", ") },
-        timestamp,
-      });
     }
 
     // ✅ Status
