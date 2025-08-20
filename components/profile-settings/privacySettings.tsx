@@ -115,6 +115,7 @@ export function Privacy({
                         size="sm"
                         variant="shadow"
                         onPress={() => unblock(u.id)}
+                        className="!px-2 !py-1 !h-6.5 !text-[10px] rounded-md"
                       >
                         Unblock
                       </Button>

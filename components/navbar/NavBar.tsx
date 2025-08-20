@@ -20,7 +20,7 @@ import {
   PhoneArrowDownLeftIcon,
   BugAntIcon,
   FaceFrownIcon,
-  CheckIcon,
+  CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 
@@ -95,9 +95,9 @@ export default function NavBar() {
               size="sm"
               isOneChar
               color="success"
-              content={<CheckIcon className="p-0.5" />}
+              content={<CheckCircleIcon />}
               placement="top-right"
-              className="mt-1"
+              className="mt-0.5 border-none text-concrete"
             >
               <DropdownTrigger>
                 <Avatar

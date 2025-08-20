@@ -9,13 +9,15 @@ import search from "@/public/lottie/search.json";
 import events from "@/public/lottie/map-pin.json";
 import dms from "@/public/lottie/comments.json";
 import settings from "@/public/lottie/settings.json";
-import { Tooltip } from "@heroui/react";
+import { Badge, Tooltip } from "@heroui/react";
 import ProfileSettingsModal from "../profile-settings/profileSettings";
+import NotificationsModal from "../notification-page/notificationPage";
 
 export default function Footer() {
   const router = useRouter();
   const [hidden, setHidden] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const lastY = useRef(0);
   const ticking = useRef(false);
 
@@ -83,10 +85,10 @@ export default function Footer() {
             </button>
           </Tooltip>
 
-          <Tooltip content="Open Chat">
+          <Tooltip content="Notifications">
             <button
               className="hover:text-purple-600"
-              onClick={() => router.push("/messages")}
+              onClick={() => setIsNotificationsOpen(true)}
             >
               <Lottie animationData={dms} loop autoplay style={iconStyle} />
             </button>
@@ -110,6 +112,10 @@ export default function Footer() {
       <ProfileSettingsModal
         isOpen={isSettingsOpen}
         onOpenChange={setIsSettingsOpen}
+      />
+      <NotificationsModal
+        isOpen={isNotificationsOpen}
+        onOpenChange={setIsNotificationsOpen}
       />
     </div>
   );

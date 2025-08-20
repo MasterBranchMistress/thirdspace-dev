@@ -53,8 +53,16 @@ const config = {
         secondary: {
           DEFAULT: "#ffffff",
         },
+        success: {
+          DEFAULT: "#34d399",
+          foreground: "#ffffff",
+        },
         warning: {
-          DEFAULT: "#4962BF",
+          DEFAULT: "#fbbf24",
+          foreground: "#ffffff",
+        },
+        danger: {
+          DEFAULT: "#f8717",
           foreground: "#ffffff",
         },
         indigo: {
