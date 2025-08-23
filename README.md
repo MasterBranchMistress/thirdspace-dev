@@ -502,3 +502,35 @@ Returns users within the radius that share at least `minShared` tags.
 ✅ **Total: 52 hours**
 
 ![spark-one](public/screenshots/spark.png) ![spark-two](public/screenshots/spark-two.png) ![spark-three](public/screenshots/spark-three.png) ![spark-four](public/screenshots/spark-six.png) ![spark-five](public/screenshots/spark-seven.png) ![spark-six](public/screenshots/spark-one.png) ![spark-seven](public/screenshots/spark-four.png) ![spark-eight](public/screenshots/spark-five.png)
+
+## 📬 Notifications
+
+The app now includes a **notifications system** with global context and UI integration.
+
+### Features
+
+- **Global NotificationsContext**
+  - Provides access to `notifications`, `notificationCount`, `accept`, `reject`, `clearAll`, and `refresh`.
+  - Polls `/api/notifications` every 60s to keep data fresh.
+- **Notifications Modal**
+  - Displays all notifications with **filters** (read/unread/type) and **pagination**.
+  - Uses **Lottie empty states** for a clean experience when no items are present.
+  - Friend requests are displayed with an **accordion-style UI** (expand for Accept/Reject).
+  - Bulk actions supported: **mark all read** and **clear all**.
+- **Footer Badge**
+  - Notification count badge connected to context.
+  - Custom small badge styling for a compact display.
+
+### Endpoints
+
+- `GET /api/users/:id/get-notifications` – fetch notifications (with filters/pagination).
+- `PATCH /api/users/:id/friend-request/accept` – accept a friend request.
+- `PATCH /api/users/:id/friend-request/reject` – reject a friend request.
+- `DELETE /api/users/:id/delete-notification` – remove a single notification.
+- `DELETE /api/users/:id/read-notification/clear-all` – clear all notifications.
+
+### Implementation Notes
+
+- **Optimistic updates** are used for accept/reject actions (UI updates instantly, rolls back on failure).
+- `id` field normalized from MongoDB `_id` for frontend consistency.
+- Privacy/permissions are enforced in backend routes where relevant.
