@@ -1,7 +1,7 @@
 import clientPromise from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
-import { COLLECTIONS, DBS } from "@/lib/constants";
+import { COLLECTIONS, DBS, EVENT_STATUSES } from "@/lib/constants";
 import { UserDoc } from "@/lib/models/User";
 import { EventDoc } from "@/lib/models/Event";
 import { generateEventFeed } from "@/utils/feed-generator/generateEventFeed";
@@ -42,6 +42,7 @@ export async function GET(
     const { searchParams } = new URL(req.url);
     const page = Math.max(Number(searchParams.get("page")) || 1, 1);
     const limit = Math.max(Number(searchParams.get("limit")) || 10, 1);
+    const viewerId = new ObjectId(id);
     const skip = (page - 1) * limit;
     const sinceParam = searchParams.get("since");
     let sinceDate: Date | null = null;
@@ -53,24 +54,22 @@ export async function GET(
       }
     }
 
-    // ✅ Fetch friends + recent events
-    const [friends, events] =
-      friendsIds.length > 0
-        ? await Promise.all([
-            usersCollection.find({ _id: { $in: friendsIds } }).toArray(),
-            eventsCollection
-              .find({
-                $or: [
-                  { host: { $in: friendsIds } },
-                  { attendees: { $in: friendsIds } },
-                ],
-                status: "active",
-                date: { $gte: new Date(Date.now() - 1000 * 60 * 60 * 24) },
-              })
-              .sort({ date: -1 })
-              .toArray(),
-          ])
-        : [[], []];
+    // Fetch friends + recent events
+    const [friends, events] = await Promise.all([
+      usersCollection.find({ _id: { $in: friendsIds } }).toArray(),
+
+      //only events the viewer hosts or attends
+      eventsCollection
+        .find({
+          status: EVENT_STATUSES._ACTIVE,
+          $or: [
+            { host: viewerId },
+            { attendees: viewerId }, // multikey match
+          ],
+        })
+        .sort({ date: -1 })
+        .toArray(),
+    ]);
 
     const feedQuery: any = { userId: user._id };
     if (sinceDate) {

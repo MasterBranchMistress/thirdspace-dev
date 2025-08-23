@@ -12,6 +12,7 @@ import settings from "@/public/lottie/settings.json";
 import { Badge, Tooltip } from "@heroui/react";
 import ProfileSettingsModal from "../profile-settings/profileSettings";
 import NotificationsModal from "../notification-page/notificationPage";
+import { useNotifications } from "@/app/context/NotificationContext";
 
 export default function Footer() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function Footer() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const lastY = useRef(0);
   const ticking = useRef(false);
+  const { notificationCount } = useNotifications();
 
   // appear on scroll up, hide on scroll down
   useEffect(() => {
@@ -86,12 +88,20 @@ export default function Footer() {
           </Tooltip>
 
           <Tooltip content="Notifications">
-            <button
-              className="hover:text-purple-600"
-              onClick={() => setIsNotificationsOpen(true)}
+            <Badge
+              content={""}
+              hidden={!notificationCount}
+              color="success"
+              className="border-none mt-1 mr-1 h-1 animate-pulse"
+              size="sm"
             >
-              <Lottie animationData={dms} loop autoplay style={iconStyle} />
-            </button>
+              <button
+                className="hover:text-purple-600"
+                onClick={() => setIsNotificationsOpen(true)}
+              >
+                <Lottie animationData={dms} loop autoplay style={iconStyle} />
+              </button>
+            </Badge>
           </Tooltip>
 
           <Tooltip content="Edit Profile">

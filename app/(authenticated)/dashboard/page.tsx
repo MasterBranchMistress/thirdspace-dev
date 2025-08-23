@@ -22,7 +22,6 @@ export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { status: locStatus, coords } = useBrowserLocation();
-  const [enabled, setEnabled] = useState(false);
 
   const { items, loading, error, hasMore, loadMore, prependItems } = useFeed();
 

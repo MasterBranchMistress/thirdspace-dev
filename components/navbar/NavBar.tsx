@@ -13,7 +13,6 @@ import {
 } from "@heroui/react";
 
 import EnableDarkMode from "../theme-switch/EnableDarkModeSwitcher";
-
 import { useSession, signOut } from "next-auth/react";
 import {
   ArrowLeftStartOnRectangleIcon,
@@ -23,6 +22,7 @@ import {
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
+import { useNotifications } from "@/app/context/NotificationContext";
 
 export const SearchIcon = ({
   size = 24,
@@ -64,6 +64,7 @@ export default function NavBar() {
   const { data: session, status } = useSession();
   const user = session?.user;
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const { notificationCount } = useNotifications();
 
   useEffect(() => {
     setAvatarUrl(user?.avatar ?? "");
@@ -91,26 +92,17 @@ export default function NavBar() {
       >
         {user && (
           <Dropdown placement="bottom-end">
-            <Badge
-              size="sm"
-              isOneChar
-              color="success"
-              content={<CheckCircleIcon />}
-              placement="top-right"
-              className="mt-0.5 border-none text-concrete"
-            >
-              <DropdownTrigger>
-                <Avatar
-                  isBordered
-                  as="button"
-                  className="transition-transform hover:cursor-pointer"
-                  color="primary"
-                  name={user.firstName}
-                  size="md"
-                  src={user.avatar ?? undefined}
-                />
-              </DropdownTrigger>
-            </Badge>
+            <DropdownTrigger>
+              <Avatar
+                isBordered
+                as="button"
+                className="transition-transform hover:cursor-pointer"
+                color="primary"
+                name={user.firstName}
+                size="md"
+                src={user.avatar ?? undefined}
+              />
+            </DropdownTrigger>
 
             <DropdownMenu
               itemClasses={{ base: "bg-primary text-white" }}

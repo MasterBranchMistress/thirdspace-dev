@@ -35,7 +35,15 @@ export async function PATCH(
     if (senderIsInPendingRequests) {
       await userCollection.updateOne(
         { _id: new ObjectId(id) },
-        { $pull: { pendingFriendRequests: new ObjectId(String(fromId)) } }
+        {
+          $pull: {
+            pendingFriendRequests: new ObjectId(String(fromId)),
+            notifications: {
+              actorId: sender._id,
+              type: "received_friend_request",
+            },
+          },
+        }
       );
     }
 
@@ -57,6 +65,8 @@ export async function PATCH(
             $each: [
               {
                 _id: new ObjectId(),
+                actorId: fromId,
+                avatar: user.avatar,
                 message: `${user.firstName} ${user.lastName} accepted your friend request.`,
                 eventId: new ObjectId(),
                 type: "accepted_friend_request",

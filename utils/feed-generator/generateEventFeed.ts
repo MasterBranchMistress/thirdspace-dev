@@ -40,11 +40,11 @@ export async function generateEventFeed(
   }
 
   for (const event of events) {
-    const isUpcoming =
-      event.date.getTime() - now.getTime() < 1000 * 60 * 60 * 48; // within 48h
-    const isPopular = (event.attendees?.length || 0) > 3;
+    const msUntil = event.date.getTime() - now.getTime();
+    const isUpcoming = msUntil > 0 && msUntil < 1000 * 60 * 60 * 48; // next 48h only
+    const isPopular = (event.attendees?.length || 0) > 1;
 
-    // Lookup host user from friends or DB
+    // Lookup host user
     const hostUser =
       friends.find((f) => f._id?.equals(event.host)) ||
       (await userCollection.findOne({ _id: event.host }));
@@ -66,11 +66,7 @@ export async function generateEventFeed(
         host: hostUser?.firstName,
         avatar: resolveAvatar(hostUser),
         totalAttendance: event.attendees?.length || 0,
-        location: {
-          name: event.location?.name,
-          lat: event.location?.lat,
-          lng: event.location?.lng,
-        },
+        location: event.location,
         description: event.description,
         budget: event.budgetInfo,
         tags: event.tags || [],

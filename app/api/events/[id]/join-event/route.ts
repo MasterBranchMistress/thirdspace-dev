@@ -69,6 +69,7 @@ export async function PATCH(
 
       if (joiningUser && event.public) {
         // if event is public, allow it through
+        console.log(`Is event public? ${event.public}`);
         await userCollection.updateOne(
           { _id: new ObjectId(event.host) },
           {
@@ -77,6 +78,8 @@ export async function PATCH(
                 $each: [
                   {
                     _id: new ObjectId(),
+                    actorId: joiningUser._id,
+                    avatar: joiningUser.avatar,
                     message: `${joiningUser.firstName} ${joiningUser.lastName} (a blocked user) has joined your event "${event.title}".`,
                     eventId: event._id,
                     type: "blocked_user_joined_event",

@@ -76,6 +76,7 @@ export async function PATCH(
             $push: {
               notifications: {
                 _id: new ObjectId(),
+                actorId: user._id,
                 message: `${user.firstName} ${user.lastName} has accepted your friend request`,
                 type: "accepted_friend_request",
                 timestamp: new Date(),

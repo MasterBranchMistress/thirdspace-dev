@@ -51,6 +51,8 @@ export async function PATCH(
               $each: [
                 {
                   _id: new ObjectId(),
+                  actorId: sender._id,
+                  avatar: sender.avatar,
                   message: `${sender.firstName} ${sender.lastName} sent you a friend request.`,
                   eventId: new ObjectId(),
                   type: "received_friend_request",

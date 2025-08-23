@@ -32,10 +32,36 @@ export async function PATCH(
       (c) => c.toString() === fromId
     );
 
+    if (!senderIsInPendingRequests) {
+      await userCollection.updateOne(
+        { _id: new ObjectId(id) },
+        {
+          $pull: {
+            notifications: {
+              actorId: sender._id,
+              type: "received_friend_request",
+            },
+          },
+        }
+      );
+      return NextResponse.json(
+        { error: "No pending request from this user" },
+        { status: 409 }
+      );
+    }
+
     if (senderIsInPendingRequests) {
       await userCollection.updateOne(
         { _id: new ObjectId(id) },
-        { $pull: { pendingFriendRequests: new ObjectId(String(fromId)) } }
+        {
+          $pull: {
+            pendingFriendRequests: new ObjectId(String(fromId)),
+            notifications: {
+              actorId: sender._id,
+              type: "received_friend_request",
+            },
+          },
+        }
       );
     }
 

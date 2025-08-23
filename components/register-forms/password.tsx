@@ -43,8 +43,8 @@ export default function PasswordStep({
 
   const strengthShadow = useMemo(() => {
     const shadows: Record<PasswordStrength, string> = {
-      Weak: "text-danger text-shadow-lg",
-      Okay: "text-shadow-lg",
+      Weak: "text-shadow-lg",
+      Okay: "text-warning text-shadow-lg",
       Strong: "text-success text-shadow-lg",
     };
 

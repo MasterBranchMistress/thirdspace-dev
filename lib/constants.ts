@@ -42,13 +42,10 @@ export const AUTH_PROVIDERS = {
 };
 
 export const TEST_IDS = {
-  _HOST_ID: new ObjectId("6897e4df3faf593cc25870bb"),
+  _HOST_ID: new ObjectId("68a4c873c77c9f916056fd95"),
   _OTHER_IDS: [
-    new ObjectId("6897e5b73faf593cc25870bd"),
-    new ObjectId("689ac7a40e02bc8bc9dc07fd"),
-    new ObjectId("689acb8f0e02bc8bc9dc0a3e"),
-    new ObjectId("689acb940e02bc8bc9dc0a3f"),
-    new ObjectId("689acb950e02bc8bc9dc0a40"),
+    new ObjectId("68a4cefdf0d16c85e722a6e7"),
+    new ObjectId("68a64061789bcc236a7c4b52"),
   ],
 };
 

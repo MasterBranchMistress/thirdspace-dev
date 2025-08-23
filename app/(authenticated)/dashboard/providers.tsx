@@ -9,6 +9,7 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { ToastProvider } from "@/app/providers/ToastProvider";
 import { SessionProvider } from "next-auth/react";
 import { FeedProvider } from "@/app/context/UserFeedContext";
+import { NotificationsProvider } from "@/app/context/NotificationContext";
 
 export interface ProvidersProps {
   children: React.ReactNode;
@@ -31,7 +32,9 @@ export function Providers({ children, themeProps }: ProvidersProps) {
       <ToastProvider>
         <FeedProvider>
           <HeroUIProvider navigate={router.push}>
-            <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>
+            <NextThemesProvider {...themeProps}>
+              <NotificationsProvider>{children}</NotificationsProvider>
+            </NextThemesProvider>
           </HeroUIProvider>
         </FeedProvider>
       </ToastProvider>

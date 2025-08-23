@@ -6,9 +6,9 @@ import { UserDoc } from "@/lib/models/User";
 
 export async function GET(
   _req: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = context.params;
+  const { id } = await context.params;
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
   const usersCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
