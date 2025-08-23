@@ -534,3 +534,5 @@ The app now includes a **notifications system** with global context and UI integ
 - **Optimistic updates** are used for accept/reject actions (UI updates instantly, rolls back on failure).
 - `id` field normalized from MongoDB `_id` for frontend consistency.
 - Privacy/permissions are enforced in backend routes where relevant.
+
+![alt text](public/screenshots/notif-page-five.png) ![alt text](public/screenshots/notif-page-four.png) ![alt text](public/screenshots/notif-page-one.png) ![alt text](public/screenshots/notif-page-seven.png) ![alt text](public/screenshots/notif-page-six.png) ![alt text](public/screenshots/notif-page-three.png) ![alt text](public/screenshots/notif-page-two.png)
