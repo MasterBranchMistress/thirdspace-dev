@@ -536,3 +536,18 @@ The app now includes a **notifications system** with global context and UI integ
 - Privacy/permissions are enforced in backend routes where relevant.
 
 ![alt text](public/screenshots/notif-page-five.png) ![alt text](public/screenshots/notif-page-four.png) ![alt text](public/screenshots/notif-page-one.png) ![alt text](public/screenshots/notif-page-seven.png) ![alt text](public/screenshots/notif-page-six.png) ![alt text](public/screenshots/notif-page-three.png) ![alt text](public/screenshots/notif-page-two.png)
+
+## SCRUM-86 - ## Privacy & Visibility (New)
+
+- Added `visibility` field + granular privacy config (`location`, `hostedEvents`, `joinedEvents`, `statusUpdate`).
+- Implemented **Profile Settings Modal** with a `VisibilitySettings` select component (glass-style UI).
+- Integrated visibility rules into:
+  - **Profile API** — block/allow profile fetch based on privacy.
+  - **Status API** — status updates only pushed to feeds if allowed by privacy.
+  - **Event API** — hosted events pushed to friends/followers feeds only if user’s visibility allows.
+  - **Feed Generators** — guards prepared using `canViewerSee(user, viewer, field)` for consistent enforcement.
+- Users can now:
+  - Set profile visibility to: `Public`, `Followers`, `Friends`, or `Off`.
+  - Control whether their **location, hosted events, joined events, and status updates** appear in others’ feeds.
+
+![profile-views](public/screenshots/profile-view-1.png) ![profile-views](public/screenshots/profile-view-2.png) ![profile-views](public/screenshots/profile-view-3.png) ![profile-views](public/screenshots/profile-view-4.png) ![profile-views](public/screenshots/profile-view-5.png) ![profile-views](public/screenshots/profile-view-6.png) ![profile-views](public/screenshots/profile-view-7.png) ![profile-views](public/screenshots/profile-view-8.png) ![profile-views](public/screenshots/profile-view-9.png) ![profile-views](public/screenshots/profile-view-10.png)
