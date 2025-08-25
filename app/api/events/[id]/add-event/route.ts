@@ -23,22 +23,20 @@ export async function POST(
   try {
     const { data, attachments = [] } = await req.json();
 
-    // console.log(`Data: ${data}`);
-
     const user = id
       ? await userCollection.findOne({ _id: new ObjectId(id) })
       : null;
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
 
-    //DEBUG: logging user
-    console.log(`User: ${user?.firstName}`);
-
+    // --- Validation ---
     if (!data?.title || !data?.date || !data?.description || !data?.location) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
-
     if (!Array.isArray(attachments)) {
       return NextResponse.json(
         { error: "Attachments must be an array" },
@@ -46,47 +44,25 @@ export async function POST(
       );
     }
 
+    // --- Parse attachments ---
     const parsedAttachments = attachments.map((url: string) => ({
       url,
       type: detectMediaType(url) || undefined,
     }));
 
+    // --- Location ---
     const locIn = data.location ?? {};
     let lat = typeof locIn.lat === "number" ? locIn.lat : undefined;
     let lng = typeof locIn.lng === "number" ? locIn.lng : undefined;
-    let place = "";
 
     if (lat == null || lng == null) {
       const addr = locIn.address ?? locIn.name ?? "";
       const geo = await geocodeAddress(addr);
-
       if (geo) {
         lat = geo.lat;
         lng = geo.lng;
       }
-
-      if (lat && lng) {
-        const revRes = await fetch(
-          `${process.env.BASE_URL}/api/reverse-geocode`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              lat: lat,
-              lng: lng,
-            }),
-          }
-        );
-
-        if (revRes) {
-          const { place_name } = await revRes.json();
-          data.location.address = place_name;
-          console.log(place);
-        }
-      }
     }
-
-    // If still no coords, you can reject or allow, your call:
     if (lat == null || lng == null) {
       return NextResponse.json(
         { error: "Could not geocode location" },
@@ -94,6 +70,7 @@ export async function POST(
       );
     }
 
+    // --- Insert Event ---
     const now = new Date();
     const baseEvent: EventDoc = {
       title: data.title,
@@ -107,12 +84,9 @@ export async function POST(
         name: data.location?.name,
         lat,
         lng,
-        geo: {
-          type: "Point",
-          coordinates: [lng, lat],
-        },
+        geo: { type: "Point", coordinates: [lng, lat] },
       },
-      host: new ObjectId(user?._id),
+      host: new ObjectId(user._id),
       attendees: [],
       tags: data.tags || [],
       messages: [],
@@ -138,15 +112,9 @@ export async function POST(
       orbiters: [],
     };
 
-    const result = await eventCollection.insertOne(baseEvent);
-    const friends = await userCollection
-      .find({ _id: { $in: user?.friends ?? [] } })
-      .toArray();
+    const eventResult = await eventCollection.insertOne(baseEvent);
 
-    if (!user) {
-      return new NextResponse("User does not exist!");
-    }
-
+    // --- Always insert self feed item ---
     const baseFeedEvent: EventFeedDoc = {
       userId: new ObjectId(user._id),
       type: "hosted_event",
@@ -154,7 +122,7 @@ export async function POST(
         hostFirstName: user.firstName!,
         hostUser: user.username!,
         avatar: user.avatar,
-        eventId: result.insertedId,
+        eventId: eventResult.insertedId,
         eventName: data.title,
       },
       target: {
@@ -174,16 +142,24 @@ export async function POST(
       timestamp: now,
     };
 
-    const feedEvents: EventFeedDoc[] = [
-      baseFeedEvent,
-      ...friends.map((f) => ({
-        ...baseFeedEvent,
-        userId: new ObjectId(f._id),
-      })),
-    ];
+    await feedCollection.insertOne(baseFeedEvent);
 
-    const pushToFeed = await feedCollection.insertMany(feedEvents);
+    // TODO: use canViewerSee somewhere down the line here
+    if (user.visibility === "friends" || user.visibility === "followers") {
+      const friends = await userCollection
+        .find({ _id: { $in: user?.friends ?? [] } })
+        .toArray();
 
+      if (friends.length) {
+        const friendFeedEvents: EventFeedDoc[] = friends.map((f) => ({
+          ...baseFeedEvent,
+          userId: new ObjectId(f._id),
+        }));
+        await feedCollection.insertMany(friendFeedEvents);
+      }
+    }
+
+    // --- Handle recurrence (scaffold only) ---
     if (data.recurring) {
       const occurrences: EventDoc[] = [];
       const currentDate = new Date(data.date);
@@ -205,7 +181,6 @@ export async function POST(
           startTime: data.startTime,
           attachments: parsedAttachments,
           location: {
-            address: place,
             name: data.location?.name,
             lat: lat,
             lng: lng,
@@ -224,7 +199,7 @@ export async function POST(
           recurrenceEndDate: data.recurrenceEndDate
             ? new Date(data.recurrenceEndDate)
             : undefined,
-          recurringParentEventId: result.insertedId,
+          recurringParentEventId: eventResult.insertedId,
           budgetInfo: data.budgetInfo
             ? {
                 estimatedCost: data.budgetInfo.estimatedCost ?? 0,
@@ -243,11 +218,7 @@ export async function POST(
     }
 
     return NextResponse.json(
-      {
-        message: "✅ Event(s) created",
-        eventId: result.insertedId,
-        feed: pushToFeed.insertedIds,
-      },
+      { message: "✅ Event created", eventId: eventResult.insertedId },
       { status: 201 }
     );
   } catch (error: any) {

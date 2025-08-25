@@ -43,7 +43,7 @@ export default function PasswordStep({
 
   const strengthShadow = useMemo(() => {
     const shadows: Record<PasswordStrength, string> = {
-      Weak: "text-shadow-lg",
+      Weak: "text-danger text-shadow-lg",
       Okay: "text-warning text-shadow-lg",
       Strong: "text-success text-shadow-lg",
     };
@@ -132,8 +132,10 @@ export default function PasswordStep({
                   </div>
                 }
                 classNames={{
-                  inputWrapper:
+                  inputWrapper: [
                     "bg-transparent hover:bg-transparent focus:bg-transparent border-b-2 border-white focus-within:border-white ring-0 shadow-none transition duration-300 rounded-none",
+                    "data-[focus=true]:bg-transparent",
+                  ].join(" "),
                   input: "text-white placeholder-white focus:outline-none",
                 }}
                 style={{
@@ -174,8 +176,10 @@ export default function PasswordStep({
                   </button>
                 }
                 classNames={{
-                  inputWrapper:
+                  inputWrapper: [
                     "bg-transparent hover:bg-transparent focus:bg-transparent border-b-2 border-white focus-within:border-white ring-0 shadow-none transition duration-300 rounded-none",
+                    "data-[focus=true]:bg-transparent",
+                  ].join(" "),
                   input: "text-white placeholder-white focus:outline-none",
                 }}
                 style={{

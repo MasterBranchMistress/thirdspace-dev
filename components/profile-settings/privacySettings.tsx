@@ -7,24 +7,25 @@ import { useToast } from "@/app/providers/ToastProvider";
 import { useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import ConfirmDialog from "../confirm-delete/confirmDialog";
+import VisibilitySettings from "./setVisibility";
 
 type PrivacyProps = {
   shareLocation: boolean;
-  setShareLocation: (val: boolean) => void;
   blockedUsers: { id: string; name: string; avatar: string }[];
   unblock: (id: string) => void; // takes a user ID
   shareJoinedEvents: boolean;
-  setShareJoinedEvents: (value: boolean) => void;
+  shareHostedEvents: boolean;
+  visibility: string;
   onChange: (updates: Record<string, any>) => void;
 };
 
 export function Privacy({
   shareLocation,
-  setShareLocation,
   blockedUsers,
   unblock,
   shareJoinedEvents,
-  setShareJoinedEvents,
+  shareHostedEvents,
+  visibility,
   onChange,
 }: PrivacyProps) {
   const { notify } = useToast();
@@ -39,9 +40,8 @@ export function Privacy({
       notify("Delete failed", msg);
       throw new Error(msg);
     }
-
-    notify("Account deleted 😭", "We’re sorry to see you go.");
     await signOut({ callbackUrl: "/login" });
+    notify("Account deleted 😭", "We’re sorry to see you go.");
   };
 
   return (
@@ -59,12 +59,16 @@ export function Privacy({
         indicator={<ChevronLeftIcon width={20} className="text-white w-full" />}
       >
         <div className="space-y-4 p-2">
+          <VisibilitySettings
+            value={visibility}
+            onChange={(val) => onChange({ visibility: val })}
+          />
           <div className="flex justify-between items-center mb-6">
             <span className="text-sm">Show my location</span>
             <CustomSwitch
               size="sm"
               checked={shareLocation}
-              onChange={setShareLocation}
+              onChange={(checked) => onChange({ shareLocation: checked })}
             />
           </div>
 
@@ -74,7 +78,15 @@ export function Privacy({
             <CustomSwitch
               size="sm"
               checked={shareJoinedEvents}
-              onChange={setShareJoinedEvents}
+              onChange={(checked) => onChange({ shareJoinedEvents: checked })}
+            />
+          </div>
+          <div className="flex justify-between items-center mb-6">
+            <span className="text-sm">Show hosted events</span>
+            <CustomSwitch
+              size="sm"
+              checked={shareHostedEvents}
+              onChange={(checked) => onChange({ shareHostedEvents: checked })}
             />
           </div>
           <Accordion

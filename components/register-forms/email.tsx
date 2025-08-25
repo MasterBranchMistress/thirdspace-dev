@@ -89,8 +89,10 @@ export default function EmailStep({ email, setEmail, onNext }: EmailStepProps) {
                   value={email}
                   onValueChange={setEmail}
                   classNames={{
-                    inputWrapper:
+                    inputWrapper: [
                       "bg-transparent hover:bg-transparent focus:bg-transparent border-b-2 border-white focus-within:border-white ring-0 shadow-none transition duration-300 rounded-none",
+                      "data-[focus=true]:bg-transparent",
+                    ].join(" "),
                     input: "text-white placeholder-white focus:outline-none",
                   }}
                   style={{

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { COLLECTIONS, DBS } from "@/lib/constants";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
 
 /**
  * GET /api/users/:id
@@ -20,8 +22,21 @@ export async function GET(
     const user = await db
       .collection(COLLECTIONS._USERS)
       .findOne({ _id: new ObjectId(id) });
+
     if (!user) {
       return NextResponse.json({ error: "🙅 No users found" }, { status: 404 });
+    }
+
+    // get viewer session
+    const session = await getServerSession(authOptions);
+    const viewerId = session?.user?.id;
+
+    // block if visibility === off and viewer is not self
+    if (
+      user.visibility === "off" &&
+      viewerId?.toString() !== user._id.toString()
+    ) {
+      return NextResponse.json({ error: "🙅 Profile hidden" }, { status: 403 });
     }
     return NextResponse.json(
       { message: "Found User: ", user },
@@ -82,7 +97,6 @@ export async function PATCH(
       .updateOne({ _id: new ObjectId(id) }, { $set: updates });
 
     if (!result) {
-      // 👈 correct property
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 

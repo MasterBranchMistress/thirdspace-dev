@@ -108,6 +108,7 @@ export async function generateEventFeed(
     id: doc._id!.toString(),
     type: doc.type as FeedItemEvent["type"],
     actor: {
+      id: doc.actor.id,
       eventId: doc.actor.eventId,
       eventName: doc.actor.eventName,
       startingDate: doc.actor.startingDate,

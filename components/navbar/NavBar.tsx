@@ -8,147 +8,257 @@ import {
   Dropdown,
   DropdownMenu,
   Avatar,
-  Badge,
   Image,
+  DropdownSection,
+  User,
+  Button,
+  Badge,
 } from "@heroui/react";
 
 import EnableDarkMode from "../theme-switch/EnableDarkModeSwitcher";
 import { useSession, signOut } from "next-auth/react";
 import {
-  ArrowLeftStartOnRectangleIcon,
-  PhoneArrowDownLeftIcon,
   BugAntIcon,
-  FaceFrownIcon,
-  CheckCircleIcon,
+  CogIcon,
+  GlobeAltIcon,
+  CalendarDaysIcon,
+  ArrowRightStartOnRectangleIcon,
+  BuildingStorefrontIcon,
+  UserIcon,
 } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import { useNotifications } from "@/app/context/NotificationContext";
-
-export const SearchIcon = ({
-  size = 24,
-  strokeWidth = 1.5,
-  width = 15,
-  height = 15,
-  ...props
-}) => {
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      focusable="false"
-      height={height || size}
-      role="presentation"
-      viewBox="0 0 24 24"
-      width={width || size}
-      {...props}
-    >
-      <path
-        d="M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25329 16.7467 2 11.5 2C6.25329 2 2 6.25329 2 11.5C2 16.7467 6.25329 21 11.5 21Z"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={strokeWidth}
-      />
-      <path
-        d="M22 22L20 20"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={strokeWidth}
-      />
-    </svg>
-  );
-};
+import { useRouter } from "next/navigation";
+import ProfileSettingsModal from "../profile-settings/profileSettings";
+import NotificationsModal from "../notification-page/notificationPage";
+import kickstarterLogo from "@/public/icons/kickstarter.png";
 
 export default function NavBar() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const user = session?.user;
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const { notificationCount } = useNotifications();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   useEffect(() => {
     setAvatarUrl(user?.avatar ?? "");
   }, [user]);
 
   return (
-    <Navbar
-      isBordered={false}
-      position="static"
-      className="bg-concrete justify-center align-middle animate-appearance-in"
-    >
-      {status !== "loading" && <EnableDarkMode />}
-      <div className="absolute left-1/2 transform -translate-x-1/2">
-        <Image
-          src="/third-space-logos/thirdspace-logo-4.png"
-          alt="ThirdSpace Logo"
-          width={400}
-        />
-      </div>
-
-      <NavbarContent
-        as="div"
-        className="items-center animate-appearance-in"
-        justify="center"
+    <>
+      <Navbar
+        isBordered={false}
+        position="sticky"
+        className="bg-white/10 animate-appearance-in"
       >
-        {user && (
-          <Dropdown placement="bottom-end">
-            <DropdownTrigger>
-              <Avatar
-                isBordered
-                as="button"
-                className="transition-transform hover:cursor-pointer"
-                color="primary"
-                name={user.firstName}
-                size="md"
-                src={user.avatar ?? undefined}
-              />
-            </DropdownTrigger>
+        <NavbarContent justify="start" className="gap-3 sm:gap-4">
+          <Image
+            src="/icons/kickstarter.png"
+            alt="kickstarter_logo"
+            width={14}
+            radius="none"
+          />
+          <Image
+            src="/icons/patreon.png"
+            alt="patreon_logo"
+            width={14}
+            radius="none"
+          />
+          <Image
+            src="/icons/gofundme.png"
+            alt="gofundme_logo"
+            width={18}
+            radius="none"
+          />
+        </NavbarContent>
+        <NavbarContent justify="center">
+          <div onClick={() => router.push(`/dashboard`)}>
+            {" "}
+            <Image
+              src="/third-space-logos/thirdspace-logo-4.png"
+              alt="ThirdSpace Logo"
+              className="max-w-[150px] sm:max-w-[150px] lg:max-w-[200px] h-auto ml-[5%]"
+            />
+          </div>
+        </NavbarContent>
 
-            <DropdownMenu
-              itemClasses={{ base: "bg-primary text-white" }}
-              aria-label="Profile Actions"
-              variant="shadow"
-              className="tracking-wide"
+        <NavbarContent
+          as="div"
+          className="items-center animate-appearance-in"
+          justify="end"
+        >
+          {user && (
+            <Dropdown
+              showArrow
+              backdrop="blur"
+              classNames={{
+                base: "before:bg-default-200",
+                content:
+                  "p-0 border-small border-white/20 bg-white/10 dark:bg-black/20 backdrop-blur-xl shadow-lg rounded-xl",
+              }}
+              radius="sm"
             >
-              <DropdownItem key="profile" className="h-10 gap-2">
-                <p className="font-extralight tracking-tight text-center">
-                  <span className="mr-2">
-                    {" "}
-                    How can we help, {user.firstName}?
-                  </span>{" "}
-                  👀
-                </p>
-              </DropdownItem>
-              <DropdownItem
-                key="feedback"
-                endContent={<BugAntIcon width={20} />}
+              <DropdownTrigger>
+                <div>
+                  <Badge
+                    content={""}
+                    size="sm"
+                    className="border-none animate-pulse mt-1 mr-1"
+                    color="success"
+                    hidden={!notificationCount}
+                    placement="top-right"
+                  >
+                    <Avatar
+                      src={avatarUrl ?? ""}
+                      color="primary"
+                      isBordered
+                      size="md"
+                      className="sm:size-md mr-1.5"
+                    />
+                  </Badge>
+                </div>
+              </DropdownTrigger>
+              <DropdownMenu
+                aria-label="Custom item styles"
+                className="p-3"
+                disabledKeys={["profile"]}
+                itemClasses={{
+                  base: ["rounded-md", "text-default-500", "transition-colors"],
+                }}
               >
-                Report a Bug
-              </DropdownItem>
-              <DropdownItem
-                key="support"
-                endContent={<PhoneArrowDownLeftIcon width={20} />}
-              >
-                Contact Support
-              </DropdownItem>
-              <DropdownItem
-                key="abuse"
-                endContent={<FaceFrownIcon width={20} />}
-              >
-                Report Abuse
-              </DropdownItem>
-              <DropdownItem
-                key="logout"
-                color="danger"
-                onClick={() => signOut({ callbackUrl: "/login" })}
-                endContent={<ArrowLeftStartOnRectangleIcon width={20} />}
-              >
-                Log Out
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
-        )}
-      </NavbarContent>
-    </Navbar>
+                <DropdownSection showDivider aria-label="Profile & Actions">
+                  <DropdownItem
+                    key="profile"
+                    isReadOnly
+                    className="h-14 gap-2 opacity-100"
+                  >
+                    <User
+                      avatarProps={{
+                        size: "sm",
+                        src: user.avatar,
+                      }}
+                      classNames={{
+                        name: "text-concrete",
+                        description: "text-white/50",
+                      }}
+                      description={user.email}
+                      name={`${user.firstName} ${user.lastName}`}
+                    />
+                  </DropdownItem>
+                  <DropdownItem
+                    key="dashboard"
+                    className="text-concrete"
+                    endContent={<GlobeAltIcon className="text-xs w-5" />}
+                    onPress={() => router.push(`/dashboard`)}
+                  >
+                    Dashboard
+                  </DropdownItem>
+                  <DropdownItem
+                    key="settings"
+                    className="text-concrete"
+                    endContent={<CogIcon className="text-xs w-5" />}
+                    onPress={() => setIsSettingsOpen(true)}
+                  >
+                    Edit Profile
+                  </DropdownItem>
+                  <DropdownItem
+                    key="view profile"
+                    className="text-concrete"
+                    endContent={<UserIcon className="text-xs w-5" />}
+                    onPress={() => router.push(`dashboard/profile/${user.id}`)}
+                  >
+                    View Profile
+                  </DropdownItem>
+                  <DropdownItem
+                    key="my_events"
+                    className="text-concrete"
+                    endContent={<CalendarDaysIcon className="text-xs w-5" />}
+                  >
+                    My Events
+                  </DropdownItem>
+                  <DropdownItem
+                    key="notifications"
+                    className="text-concrete"
+                    endContent={
+                      notificationCount ? (
+                        <div className="bg-danger text-xs rounded-full py-0.5 w-5 text-center">
+                          {notificationCount < 100 ? notificationCount : "99+"}
+                        </div>
+                      ) : null
+                    }
+                    onPress={() => setIsNotificationsOpen(true)}
+                  >
+                    Notifications
+                  </DropdownItem>
+                </DropdownSection>
+
+                <DropdownSection showDivider aria-label="Preferences">
+                  <DropdownItem
+                    key="quick_search"
+                    shortcut="⌘ + K"
+                    className="text-concrete"
+                    classNames={{
+                      shortcut:
+                        "outline-none border-1 border-concrete text-concrete",
+                    }}
+                  >
+                    Quick search
+                  </DropdownItem>
+                  <DropdownItem
+                    key="theme"
+                    isReadOnly
+                    className="cursor-default text-concrete"
+                    endContent={<EnableDarkMode />}
+                  >
+                    Theme
+                  </DropdownItem>
+                </DropdownSection>
+
+                <DropdownSection aria-label="Help & Feedback">
+                  <DropdownItem
+                    key="apply_for_host"
+                    isReadOnly
+                    className="cursor-default text-concrete"
+                    endContent={
+                      <BuildingStorefrontIcon className="text-xs w-5" />
+                    }
+                  >
+                    Become a Partner
+                  </DropdownItem>
+                  <DropdownItem
+                    key="help_and_feedback"
+                    className="text-concrete"
+                    endContent={<BugAntIcon className="text-xs w-5" />}
+                  >
+                    Help & Feedback
+                  </DropdownItem>
+                  <DropdownItem
+                    key="logout"
+                    className="text-danger"
+                    endContent={
+                      <ArrowRightStartOnRectangleIcon className="text-xs w-5" />
+                    }
+                    onClick={() => signOut({ callbackUrl: "/login" })} // optional redirect
+                  >
+                    Log Out
+                  </DropdownItem>
+                </DropdownSection>
+              </DropdownMenu>
+            </Dropdown>
+          )}
+        </NavbarContent>
+      </Navbar>
+      {/* ✅ Modals mounted at root */}
+      <ProfileSettingsModal
+        isOpen={isSettingsOpen}
+        onOpenChange={setIsSettingsOpen}
+      />
+      <NotificationsModal
+        isOpen={isNotificationsOpen}
+        onOpenChange={setIsNotificationsOpen}
+      />
+    </>
   );
 }

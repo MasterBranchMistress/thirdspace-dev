@@ -3,9 +3,14 @@ import { ObjectId } from "mongodb";
 import { EVENT_STATUSES, REF } from "../constants";
 import { FeedItemType } from "@/types/user-feed";
 
-type Attachment = { url: string; type?: "image" | "video" | undefined };
+type Attachment = {
+  url: string;
+  type?: "image" | "video" | undefined;
+  thumbNail?: string;
+};
 
 export interface EventDoc {
+  coverImage?: string;
   _id?: ObjectId;
   type?: FeedItemType;
   title: string;

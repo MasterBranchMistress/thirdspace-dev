@@ -36,6 +36,16 @@ export interface Avatar {
   publicUrl?: string;
 }
 
+type VisibilityLevel = "off" | "friends" | "followers" | "public";
+
+export type PrivacyConfig = {
+  visibility: VisibilityLevel;
+  location: VisibilityLevel;
+  hostedEvents: VisibilityLevel;
+  joinedEvents: VisibilityLevel;
+  statusUpdate: VisibilityLevel;
+};
+
 export interface UserDoc {
   _id?: ObjectId;
   firstName: string;
@@ -78,8 +88,11 @@ export interface UserDoc {
     lng?: number;
     geo?: { type: "Point"; coordinates: [number, number] };
   };
+  privacy: PrivacyConfig;
   shareLocation?: boolean;
   shareJoinedEvents?: boolean;
+  shareHostedEvents?: boolean;
+  visibility?: string;
   lang?: string;
   status: string;
   followers?: ObjectId[];
@@ -152,7 +165,7 @@ const UserSchema = new Schema(
     acceptedFriendDate: { type: Date },
     email: { type: String, required: true },
     passwordHash: { type: String, required: true },
-    avatar: { type: String, required: false }, //TODO: figure out bug with IMAGE Type
+    avatar: { type: String, required: false },
     interests: [{ type: String }],
     bio: { type: String },
     favoriteLocations: [{ type: String }],

@@ -104,8 +104,10 @@ export default function NameStep({
                 value={firstName}
                 onValueChange={setFirstName}
                 classNames={{
-                  inputWrapper:
+                  inputWrapper: [
                     "bg-transparent hover:bg-transparent focus:bg-transparent border-b-2 border-white focus-within:border-white ring-0 shadow-none transition duration-300 rounded-none",
+                    "data-[focus=true]:bg-transparent",
+                  ].join(" "),
                   input: "text-white placeholder-white focus:outline-none",
                 }}
                 style={{
@@ -119,8 +121,10 @@ export default function NameStep({
                 value={lastName}
                 onValueChange={setLastName}
                 classNames={{
-                  inputWrapper:
+                  inputWrapper: [
                     "bg-transparent hover:bg-transparent focus:bg-transparent border-b-2 border-white focus-within:border-white ring-0 shadow-none transition duration-300 rounded-none",
+                    "data-[focus=true]:bg-transparent",
+                  ].join(" "),
                   input: "text-white placeholder-white focus:outline-none",
                 }}
                 style={{

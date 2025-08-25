@@ -76,7 +76,6 @@ export default function LoginPage() {
       )}
 
       <div className="fixed top-0 left-0 w-full h-full bg-black/30 z-0" />
-      {/* 🔒 Login Form */}
       <div className="w-full max-w-md space-y-3 z-10 flex flex-col items-center">
         <div className="relative mt-8">
           <Image
@@ -92,8 +91,10 @@ export default function LoginPage() {
             type="email"
             onValueChange={setEmail}
             classNames={{
-              inputWrapper:
-                "bg-white/10 border border-white/20 backdrop-blur-md",
+              inputWrapper: [
+                "bg-white/10 border border-white/20 backdrop-blur-md transition-all",
+                "data-[focus=true]:bg-transparent",
+              ].join(" "),
               input: "text-white placeholder-white",
             }}
           />
@@ -117,8 +118,10 @@ export default function LoginPage() {
               </button>
             }
             classNames={{
-              inputWrapper:
-                "bg-white/10 border border-white/20 backdrop-blur-md",
+              inputWrapper: [
+                "bg-white/10 border border-white/20 backdrop-blur-md transition-all",
+                "data-[focus=true]:bg-transparent",
+              ].join(" "),
               input: "text-white placeholder-white",
             }}
           />

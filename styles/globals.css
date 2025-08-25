@@ -5,10 +5,6 @@
    🎨 Theme Custom Overrides
 ------------------------------ */
 
-.bg-content1 {
-  background-color: #5c6cc4;
-}
-
 /* -----------------------------
    ✨ Global Form Transitions
    (soft hover/focus across app)
@@ -27,29 +23,22 @@ button,
 }
 
 /* -----------------------------
-   💅 Soft Hover & Focus States
+   Soft Hover & Focus States
    for HeroUI / Grouped Components
 ------------------------------ */
 
 /* Remove jarring background on focus (HeroUI uses group[data-focus]) */
 :where(.group)[data-focus="true"] * {
-  background-color: transparent; /* or transparent if preferred */
+  background-color: none; /* or transparent if preferred */
 }
 
 /* Remove ring offset highlight on keyboard focus */
 :where(.group)[data-focus-visible="true"] * {
   --tw-ring-offset-color: transparent;
-  background-color: transparent; /* optional: soft background */
-}
-
-/* Optional: soften hover for grouped items */
-:where(.group)[data-hover="true"] * {
-  background-color: transparent;
 }
 
 :where(.group)[aria-focus-visible="true"] * {
   --tw-ring-offset-color: transparent;
-  background-color: transparent; /* optional: soft background */
 }
 
 :where(.group)[aria-expanded="false"] * {
@@ -70,10 +59,6 @@ button:focus {
   outline: none !important;
   border: none !important;
   box-shadow: none !important;
-}
-
-:where(.group)[aria-focus="true"] * {
-  background-color: transparent;
 }
 
 /* -----------------------------
@@ -102,7 +87,6 @@ button[data-focus-visible="true"] {
 
 /* Optional: replace with soft background on tab focus */
 button[data-focus-visible="true"] {
-  background-color: transparent; /* or use theme color */
   outline: none !important;
   box-shadow: none !important;
 }
@@ -110,7 +94,6 @@ button[data-focus-visible="true"] {
 button[aria-label="Show password"]:focus-visible {
   outline: none;
   box-shadow: none;
-  background-color: transparent;
 }
 
 a[data-focus="true"],
@@ -129,7 +112,6 @@ a[data-focus-visible="true"] {
   /* color: transparent !important; */
   outline: none !important;
   box-shadow: none !important;
-  background-color: transparent;
   outline: none !important;
   box-shadow: none !important;
 }

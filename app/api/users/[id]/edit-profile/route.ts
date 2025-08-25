@@ -96,10 +96,25 @@ export async function PATCH(
       });
     }
 
+    //visibility settings
+    const allowed = ["public", "friends", "followers", "off"] as const;
+    if (
+      typeof updates.visibility === "string" &&
+      allowed.includes(updates.visibility)
+    ) {
+      updateFields.visibility = updates.visibility;
+      changes.visibility = updates.visibility;
+    }
+
     //Share Joined event setting
     if (typeof updates.shareJoinedEvents === "boolean") {
       updateFields.shareJoinedEvents = updates.shareJoinedEvents;
       changes.shareJoinedEvents = updates.shareJoinedEvents;
+    }
+    //Share hosted events setting
+    if (typeof updates.shareHostedEvents === "boolean") {
+      updateFields.shareHostedEvents = updates.shareHostedEvents;
+      changes.shareHostedEvents = updates.shareHostedEvents;
     }
     //Share location setting
     if (typeof updates.shareLocation === "boolean") {

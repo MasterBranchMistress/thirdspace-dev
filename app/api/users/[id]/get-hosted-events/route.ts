@@ -4,6 +4,8 @@ import { UserDoc } from "@/lib/models/User";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
+import { authOptions } from "@/lib/authOptions";
+import { getServerSession } from "next-auth";
 
 export async function GET(
   req: NextRequest,
@@ -20,28 +22,38 @@ export async function GET(
       return NextResponse.json({ error: "Missing host id" }, { status: 400 });
     }
 
-    const { searchParams } = new URL(req.url);
-    const viewerId = searchParams.get("viewerId"); //TODO: FOR TESTING PURPOSES, USE AUTH TOKEN WHEN YOU IMPLEMENT IT
+    //Get viewer from session, not query
+    const session = await getServerSession(authOptions);
+    const viewerId = session?.user?.id ?? null;
 
-    // ✅ pagination
+    //pagination
+    const { searchParams } = new URL(req.url);
     const page = Math.max(Number(searchParams.get("page")) || 1, 1);
     const limit = Math.max(Number(searchParams.get("limit")) || 10, 1);
     const skip = (page - 1) * limit;
 
-    // ✅ build filter
+    //build filter
     const filter: Record<string, unknown> = { host: new ObjectId(id) };
 
     if (viewerId && viewerId !== id) {
-      const hostUser = await userCollection.findOne({
-        _id: new ObjectId(id),
-      });
+      const hostUser = await userCollection.findOne({ _id: new ObjectId(id) });
       if (!hostUser) {
         return NextResponse.json({ error: "Host not found" }, { status: 404 });
+      }
+
+      const hostPrivacyLevel = hostUser.visibility;
+      const hostEventsIsPrivate = hostUser.shareHostedEvents === false;
+      if (hostEventsIsPrivate || hostPrivacyLevel === "off") {
+        return NextResponse.json(
+          { error: "Host has their hosted events set to private" },
+          { status: 200 }
+        );
       }
 
       const isFriend = hostUser.friends?.some(
         (friendId) => friendId.toString() === viewerId
       );
+
       if (!isFriend) filter.public = true;
     } else if (!viewerId) {
       filter.public = true;

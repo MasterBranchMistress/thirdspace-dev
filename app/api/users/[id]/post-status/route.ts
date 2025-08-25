@@ -36,8 +36,6 @@ export async function POST(
       type: detectMediaType(url) || "unknown",
     }));
 
-    //TODO: check session for authorization
-
     const client = await clientPromise;
     const db = client.db(DBS._THIRDSPACE);
     const statusCollection = db.collection<UserStatusDoc>(
@@ -56,6 +54,7 @@ export async function POST(
 
     const result = await statusCollection.insertOne(newStatus);
     const user = await userCollection.findOne({ _id: new ObjectId(id) });
+    const userPrivacyLevel = user?.visibility;
 
     if (!user) return;
 
@@ -80,17 +79,19 @@ export async function POST(
     });
 
     // 2. Insert feed items for each friend
-    for (const friendId of user.friends || []) {
-      await feedCollection.insertOne({
-        userId: friendId, // feed owner is the friend
-        type: "profile_status_updated",
-        actor: actorPayload,
-        target: {
-          snippet: content.trim(),
-          attachments,
-        },
-        timestamp: new Date().toISOString(),
-      });
+    if (userPrivacyLevel === "friends" || userPrivacyLevel === "followers") {
+      for (const friendId of user.friends || []) {
+        await feedCollection.insertOne({
+          userId: friendId,
+          type: "profile_status_updated",
+          actor: actorPayload,
+          target: {
+            snippet: content.trim(),
+            attachments,
+          },
+          timestamp: new Date().toISOString(),
+        });
+      }
     }
 
     return NextResponse.json({

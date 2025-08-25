@@ -58,14 +58,10 @@ export async function GET(
     const [friends, events] = await Promise.all([
       usersCollection.find({ _id: { $in: friendsIds } }).toArray(),
 
-      //only events the viewer hosts or attends
       eventsCollection
         .find({
           status: EVENT_STATUSES._ACTIVE,
-          $or: [
-            { host: viewerId },
-            { attendees: viewerId }, // multikey match
-          ],
+          $or: [{ host: viewerId }, { attendees: viewerId }],
         })
         .sort({ date: -1 })
         .toArray(),

@@ -27,6 +27,7 @@ import { useToast } from "@/app/providers/ToastProvider";
 import { useRouter } from "next/navigation";
 import confetti from "canvas-confetti";
 import AvatarUploader from "../attachment-uploader/avatarUploader";
+import VisibilitySettings from "./setVisibility";
 
 type UserLocation = {
   name: string;
@@ -53,6 +54,8 @@ type UserPayload = {
   lang?: string;
   shareLocation?: boolean;
   shareJoinedEvents?: boolean;
+  visibility?: string;
+  shareHostedEvents?: boolean;
   blockedUsers?: { id: string; name: string; avatar: string }[];
   twoFactorEnabled?: boolean;
 };
@@ -100,10 +103,6 @@ export default function ProfileSettingsModal({
     [form?.usernameLastChangedAt]
   );
 
-  // useEffect(() => {
-  //   notify("Test Toast", "If you see this, provider works!");
-  // }, []);
-  // Load profile when modal opens (and we have a user)
   useEffect(() => {
     if (!isOpen || !userId) return;
     (async () => {
@@ -148,6 +147,8 @@ export default function ProfileSettingsModal({
           },
           shareLocation: data.user.shareLocation,
           shareJoinedEvents: data.user.shareJoinedEvents,
+          visibility: data.user.visibility,
+          shareHostedEvents: data.user.shareHostedEvents,
           lang: data.user.lang ?? "en",
         };
 
@@ -447,19 +448,11 @@ export default function ProfileSettingsModal({
                 </Accordion>
                 <Privacy
                   unblock={handleUnblock}
-                  shareLocation={form?.shareLocation ?? false}
-                  setShareLocation={(shouldShare) =>
-                    setForm((prev) =>
-                      prev ? { ...prev, shareLocation: shouldShare } : prev
-                    )
-                  }
                   blockedUsers={blockedUsers}
+                  shareLocation={form?.shareLocation ?? false}
                   shareJoinedEvents={form?.shareJoinedEvents ?? false}
-                  setShareJoinedEvents={(val) =>
-                    setForm((prev) =>
-                      prev ? { ...prev, shareJoinedEvents: val } : prev
-                    )
-                  }
+                  shareHostedEvents={form?.shareHostedEvents ?? false}
+                  visibility={form?.visibility ?? "public"}
                   onChange={(updates) =>
                     setForm((prev) => (prev ? { ...prev, ...updates } : prev))
                   }

@@ -8,7 +8,6 @@ import { UserFeedDoc } from "@/lib/models/UserFeedDoc";
 import { getDistFromMiles } from "../geolocation/get-distance-from-event/getDistFromEvent";
 import { geocodeAddress } from "../geolocation/geocode-address/geocodeAddress";
 
-// 🔑 avatar resolver (publicUrl first, fallback to gravatar)
 function resolveAvatar(user: UserDoc): string {
   return user.avatar ?? getGravatarUrl(user.email);
 }
@@ -21,7 +20,6 @@ export async function generateUserFeed(
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
   const feedCollection = db.collection<UserFeedDoc>(COLLECTIONS._USER_FEED);
-  const fiveMinutesAgo = new Date(Date.now() - 1000 * 60 * 5);
 
   async function logFeedItem(item: Omit<UserFeedDoc, "_id">) {
     const exists = await feedCollection.findOne({
@@ -59,7 +57,6 @@ export async function generateUserFeed(
       ? Number((user as any).settings.nearbyRadiusMiles)
       : 40;
 
-  //New users just joined to get feed going
   await logFeedItem({
     userId: user._id!,
     type: "joined_platform",
@@ -82,6 +79,7 @@ export async function generateUserFeed(
       const twoWeeks = new Date(now.getTime() + 1000 * 60 * 60 * 24 * 14);
       const isUpcoming = event.date >= now && event.date <= twoWeeks;
       if (!isUpcoming) continue;
+      if (event.host?.toString() !== actorUser._id?.toString()) continue;
 
       // Event coords (fallback to geocode)
       let evLat = event.location?.lat;
@@ -161,7 +159,12 @@ export async function generateUserFeed(
       });
     }
 
-    if (actorUser.location && actorUser.locationLastUpdatedAt) {
+    if (
+      actorUser.location &&
+      actorUser.locationLastUpdatedAt &&
+      // canViewerSee(actorUser as any, user, "location") &&
+      actorUser.shareLocation === true
+    ) {
       await logFeedItem({
         userId: user._id!,
         type: "profile_location_updated",

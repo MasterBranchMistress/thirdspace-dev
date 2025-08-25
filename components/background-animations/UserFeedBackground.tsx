@@ -84,6 +84,9 @@ export const FeedBackground = () => {
             max: 5,
           },
         },
+        zIndex: {
+          value: 0,
+        },
       },
     }),
     []

@@ -61,10 +61,6 @@ const config = {
           DEFAULT: "#fbbf24",
           foreground: "#ffffff",
         },
-        danger: {
-          DEFAULT: "#f8717",
-          foreground: "#ffffff",
-        },
         indigo: {
           DEFAULT: "#5c6cc4",
           soft: "#4c64bc",

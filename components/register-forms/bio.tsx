@@ -92,8 +92,10 @@ export default function BioStep({ bio, setBio, handleSubmit }: BioStepProps) {
                 value={bio}
                 onValueChange={setBio}
                 classNames={{
-                  inputWrapper:
+                  inputWrapper: [
                     "bg-transparent hover:bg-transparent focus:bg-transparent border-b-2 border-white focus-within:border-white ring-0 shadow-none transition duration-300 rounded-none",
+                    "data-[focus=true]:bg-transparent",
+                  ].join(" "),
                   input: "text-white placeholder-white focus:outline-none",
                 }}
                 style={{
@@ -105,11 +107,13 @@ export default function BioStep({ bio, setBio, handleSubmit }: BioStepProps) {
                 <Checkbox
                   onChange={handleTanC}
                   isSelected={agreed}
-                  radius="md"
+                  radius="full"
+                  size="md"
+                  isRequired
                   className="bg-transparent text-white"
                 ></Checkbox>
 
-                <span className="text-white text-sm z-20">
+                <span className="text-white ml-[-5%] text-sm z-20">
                   I agree to the{" "}
                   <a
                     href="/terms"

@@ -1,6 +1,9 @@
 import bcrypt from "bcryptjs";
 import { faker } from "@faker-js/faker";
 import { ObjectId } from "mongodb";
+import { authOptions } from "@/lib/authOptions";
+import { getServerSession } from "next-auth";
+import { NextRequest } from "next/server";
 
 /**
  * Hashes a plaintext password using bcrypt.
@@ -36,15 +39,7 @@ function capitalize(word: string) {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
-//TODO: implement this when you get session tokens from nextAuth
-// export async function isAuthorized(req: NextRequest, targetId: string) {
-//   const session = await getServerSession(authOptions);
-//   return session?.user?.id === targetId;
-// }
-
-export function isAuthorized(
-  callerId: string | ObjectId,
-  userId: string | ObjectId
-): boolean {
-  return callerId.toString() === userId.toString();
+export async function isAuthorized(req: NextRequest, targetId: string) {
+  const session = await getServerSession(authOptions);
+  return session?.user?.id === targetId;
 }

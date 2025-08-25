@@ -13,6 +13,7 @@ import {
   Button,
   Dropdown,
 } from "@heroui/react";
+
 import React, { useEffect, useMemo, useState } from "react";
 import FeedCardFooter from "./FeedCardFooter";
 import { FeedEventActor, FeedItem, FeedUserActor } from "@/types/user-feed";
@@ -25,8 +26,8 @@ import {
 import AttachmentSwiper from "../swiper/swiper";
 import { useBrowserLocation } from "@/utils/geolocation/get-user-location/getUserLocation";
 import { getDistFromMiles } from "@/utils/geolocation/get-distance-from-event/getDistFromEvent";
-import { getAvatarUrl } from "@/utils/amazon-s3-media/getPresignedUrl";
 import { getGravatarUrl } from "@/utils/gravatar";
+import { useRouter } from "next/navigation";
 
 interface FeedItemCardProps {
   item: FeedItem;
@@ -66,6 +67,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
   }, [userLocation, target?.location]);
 
   const buttonText = isUserActor(actor) ? "Follow" : null;
+  const router = useRouter();
 
   const message =
     type === "event_is_popular"
@@ -97,7 +99,14 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
       <CardHeader className="flex justify-between items-center">
         {/* Left side: avatar + user/event info */}
         <div className="flex gap-5">
-          <div className="hover:cursor-pointer">
+          <button
+            onClick={() =>
+              router.push(
+                `/dashboard/profile/${isUserActor(actor) ? actor.id : target?.userId}`
+              )
+            }
+            className="hover:cursor-pointer"
+          >
             <Avatar
               isBordered
               color="primary"
@@ -107,7 +116,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                 isUserActor(actor) ? avatarUrl : avatarUrl || "/misc/party.jpg"
               }
             />
-          </div>
+          </button>
           {!isUserActor(actor) ? (
             <div className="flex flex-col gap-0.5 items-start justify-center w-full min-w-0">
               <h6

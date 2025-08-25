@@ -60,7 +60,8 @@ export default function NotificationsModal({
   const shouldShowAvatar = (type: string) => {
     if (
       type === "accepted_friend_request" ||
-      type === "blocked_user_joined_event"
+      type === "blocked_user_joined_event" ||
+      type === "received_friend_request"
     ) {
       return true;
     }
@@ -71,8 +72,7 @@ export default function NotificationsModal({
       type === "canceled" ||
       type === "removed" ||
       type === "updated" ||
-      type === "user_left_event" ||
-      type === "received_friend_request"
+      type === "user_left_event"
     ) {
       return true;
     }
@@ -181,7 +181,7 @@ export default function NotificationsModal({
                         {notifications.map((n, index) => (
                           <div
                             key={`${n.eventId}-${index}`}
-                            className="flex flex-row items-center gap-2 mb-4 justify-between w-full"
+                            className="flex items-center gap-2 mb-4 w-full"
                           >
                             {shouldShowAvatar(n.type) && (
                               <Avatar
@@ -189,26 +189,24 @@ export default function NotificationsModal({
                                 alt="user-avatar"
                                 size="md"
                                 radius="full"
-                                className="border-white border-1"
+                                className="border-white border-1 flex-shrink-0"
                               />
                             )}
+                            <p className="flex-1 text-xs tracking-tighter font-extralight text-center text-white">
+                              {n.message}
+                            </p>
                             {shouldShowEventIcon(n.type) && (
-                              <button className="bg-primary shadow-2xs rounded-md p-1 px-1.5 text-xs font-extralight">
+                              <button className="bg-primary shadow-2xs rounded-md px-2 py-1 text-xs font-extralight flex-shrink-0">
                                 View
                               </button>
                             )}
-                            <p
-                              className={`text-xs tracking-tighter font-extralight text-center ${shouldShowAvatar(n.type) ? `w-[70%]` : `w-[100%]`}`}
-                            >
-                              {n.message}
-                            </p>
+
                             {regularDismissableNotifType(n.type) && (
                               <button
-                                onClick={() => {
-                                  console.log(n._id);
-                                  clearNotification(n._id.toString());
-                                }}
-                                className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
+                                onClick={() =>
+                                  clearNotification(n._id.toString())
+                                }
+                                className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20 flex-shrink-0"
                               >
                                 <XCircleIcon
                                   width={23}
@@ -216,37 +214,18 @@ export default function NotificationsModal({
                                 />
                               </button>
                             )}
-                            {n.type === "updated" && (
-                              <div className="flex flex-row gap-1.5 ml-3">
-                                <button
-                                  onClick={() => {
-                                    clearNotification(n._id.toString());
-                                  }}
-                                  className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
-                                >
-                                  <XCircleIcon
-                                    width={23}
-                                    className="text-white"
-                                  />
-                                </button>
-                              </div>
-                            )}
+
+                            {/* Special Friend Request Actions */}
                             {n.type === "received_friend_request" && (
-                              <div className="text-white flex flew-row gap-1">
-                                <button
-                                  onClick={() => {
-                                    accept(n.actorId);
-                                  }}
-                                >
+                              <div className="flex flex-row gap-1 flex-shrink-0">
+                                <button onClick={() => accept(n.actorId)}>
                                   <CheckCircleIcon
                                     width={23}
                                     className="text-concrete bg-primary rounded-full"
                                   />
                                 </button>
                                 <button
-                                  onClick={() => {
-                                    reject(n.actorId);
-                                  }}
+                                  onClick={() => reject(n.actorId)}
                                   className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
                                 >
                                   <XCircleIcon
@@ -258,6 +237,7 @@ export default function NotificationsModal({
                             )}
                           </div>
                         ))}
+
                         <div className="flex gap-3 justify-center my-2">
                           <Button
                             size="sm"
@@ -336,7 +316,7 @@ export default function NotificationsModal({
                             </h2>
                           </div>
                         )}
-                        {/* TODO: map messages here */}
+                        {/* TODO: map group messages here */}
                       </div>
                     </div>
                   </AccordionItem>
