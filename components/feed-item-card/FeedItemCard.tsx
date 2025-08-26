@@ -72,24 +72,22 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
   const message =
     type === "event_is_popular"
       ? `"${target?.title}" is trending 🔥`
-      : type === "event_coming_up" && !isUserActor(actor)
+      : type === "event_coming_up"
         ? `"${target?.title}" is coming up ⏰`
-        : type === "hosted_event" && isUserActor(actor)
-          ? ``
-          : type === "hosted_event" && !isUserActor(actor)
-            ? ``
-            : type === "profile_avatar_updated" && isUserActor(actor)
-              ? `${actor.firstName} updated their look 😎`
-              : type === "joined_platform" && isUserActor(actor)
-                ? `${actor.firstName} just joined ThirdSpace! 🚀`
-                : type === "profile_location_updated" && isUserActor(actor)
-                  ? `${actor.firstName} moved somewhere new 📍`
-                  : type === "profile_bio_updated" && isUserActor(actor)
-                    ? `${actor.firstName} updated their bio 🖊️`
-                    : type === "profile_status_updated" && isUserActor(actor)
-                      ? ``
-                      : isUserActor(actor) &&
-                        `${actor.firstName} is doing something cool 🤔`;
+        : type === "profile_avatar_updated" && isUserActor(actor)
+          ? `${actor.firstName} updated their look 😎`
+          : type === "hosted_event"
+            ? ""
+            : type === "joined_platform" && isUserActor(actor)
+              ? `${actor.firstName} just joined ThirdSpace! 🚀`
+              : type === "profile_location_updated" && isUserActor(actor)
+                ? `${actor.firstName} moved somewhere new 📍`
+                : type === "profile_bio_updated" && isUserActor(actor)
+                  ? `${actor.firstName} updated their bio 🖊️`
+                  : type === "profile_status_updated" && isUserActor(actor)
+                    ? ``
+                    : isUserActor(actor) &&
+                      `${actor.firstName} is doing something cool 🤔`;
 
   return (
     <Card
@@ -253,13 +251,13 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           {type === "hosted_event" && isUserActor(actor) && (
             <div className="mt-2 tracking-tight max-w-[100%] font-normal text-sm">
               <div className="flex flex-col items-center justify-center text-center">
-                <div className="font-bold pb-1 text-sm text-center">
+                <div className="font-bold text-sm text-center">
                   <span className="font-light">
                     {actor.firstName} is hosting
                   </span>
                   {"  "}"{target?.title}"
                 </div>
-                <div className="tracking-tight font-light italic text-sm mt-3">
+                <div className="tracking-tight italic text-sm mt-3">
                   {target?.snippet}
                 </div>
               </div>
@@ -283,13 +281,18 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           {type === "event_is_popular" && (
             <div className="font-light max-w-[100%] mt-3 tracking-tight">
               {target?.description}
+              {target?.attachments && target.attachments.length > 0 && (
+                <div className="h-full overflow-hidden">
+                  <AttachmentSwiper attachments={target.attachments} />
+                </div>
+              )}
             </div>
           )}
           {type === "event_coming_up" && (
-            <div className="my-3 font-light max-w-[100%] tracking-tight text-center">
-              <div className="mx-auto text-sm mb-2">{target?.description}</div>
+            <div className="font-light max-w-[100%] mt-3 tracking-tight">
+              {target?.description}
               {target?.attachments && target.attachments.length > 0 && (
-                <div className="h-full overflow-hidden flex justify-center">
+                <div className="h-full overflow-hidden">
                   <AttachmentSwiper attachments={target.attachments} />
                 </div>
               )}

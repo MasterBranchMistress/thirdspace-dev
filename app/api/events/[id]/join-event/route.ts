@@ -4,6 +4,10 @@ import { ObjectId } from "mongodb";
 import { COLLECTIONS, DBS, EVENT_STATUSES } from "@/lib/constants";
 import { EventDoc } from "@/lib/models/Event";
 import { UserDoc } from "@/lib/models/User";
+import { isUserBlocked } from "@/utils/user-privacy/isUserBlocked";
+import { isUserBannedFromEvent } from "@/utils/user-privacy/isUserBannedFromEvent";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
 
 export async function PATCH(
   req: NextRequest,
@@ -14,6 +18,8 @@ export async function PATCH(
   const db = client.db(DBS._THIRDSPACE);
   const eventCollection = db.collection<EventDoc>(COLLECTIONS._EVENTS);
   const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
+  const session = await getServerSession(authOptions);
+  const viewerId = session?.user.id;
 
   try {
     const { userId } = await req.json();
@@ -22,7 +28,7 @@ export async function PATCH(
     }
 
     const user = await db
-      .collection(COLLECTIONS._USERS)
+      .collection<UserDoc>(COLLECTIONS._USERS)
       .findOne({ _id: new ObjectId(String(userId)) });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -30,9 +36,27 @@ export async function PATCH(
 
     // optional: check that event exists and is not canceled
     const event = await eventCollection.findOne({ _id: new ObjectId(id) });
+    if (!event) {
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
+    const hostUser = await userCollection.findOne({
+      _id: new ObjectId(event?.host),
+    });
+    if (!hostUser) {
+      return NextResponse.json({ error: "Host not found" });
+    }
+    const joiningUser = await userCollection.findOne({
+      _id: new ObjectId(user._id),
+    });
+    if (!joiningUser) {
+      return NextResponse.json(
+        { error: "Joining user not found" },
+        { status: 404 }
+      );
+    }
 
     //check if user is banned
-    if (event?.banned?.some((b) => b.toString() === userId)) {
+    if (isUserBannedFromEvent(event, joiningUser)) {
       return NextResponse.json(
         { error: "You are banned from this event." },
         { status: 403 }
@@ -54,22 +78,33 @@ export async function PATCH(
       );
     }
 
-    const hostUser = await userCollection.findOne({
-      _id: new ObjectId(event.host),
-    });
-    if (!hostUser) {
-      return NextResponse.json({ error: "Host not found" });
+    const isSelf = joiningUser?._id.toString() === hostUser?._id.toString();
+
+    if (joiningUser && !isSelf && !isUserBlocked(hostUser, joiningUser)) {
+      await userCollection.updateOne(
+        { _id: new Object(event.host) },
+        {
+          $push: {
+            notifications: {
+              $each: [
+                {
+                  _id: new ObjectId(),
+                  actorId: joiningUser._id,
+                  avatar: joiningUser.avatar,
+                  message: `${joiningUser.firstName} ${joiningUser.lastName} has joined your event "${event.title}".`,
+                  eventId: event._id,
+                  type: "user_joined_event",
+                  timestamp: new Date(),
+                },
+              ],
+            },
+          },
+        }
+      );
     }
 
-    // If host has blocked this joining user
-    if (hostUser?.blocked?.some((b) => b.toString() === userId)) {
-      const joiningUser = await userCollection.findOne({
-        _id: new ObjectId(String(userId)),
-      });
-
+    if (isUserBlocked(hostUser, joiningUser)) {
       if (joiningUser && event.public) {
-        // if event is public, allow it through
-        console.log(`Is event public? ${event.public}`);
         await userCollection.updateOne(
           { _id: new ObjectId(event.host) },
           {
@@ -91,7 +126,6 @@ export async function PATCH(
           }
         );
       } else {
-        //private event, add to ban list and return
         await eventCollection.updateOne(
           { _id: event._id },
           { $addToSet: { banned: new ObjectId(String(userId)) } }

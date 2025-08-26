@@ -7,6 +7,7 @@ import { COLLECTIONS, DBS } from "@/lib/constants";
 import { UserFeedDoc } from "@/lib/models/UserFeedDoc";
 import { getDistFromMiles } from "../geolocation/get-distance-from-event/getDistFromEvent";
 import { geocodeAddress } from "../geolocation/geocode-address/geocodeAddress";
+import { canViewerSee } from "../user-privacy/canViewerSee";
 
 function resolveAvatar(user: UserDoc): string {
   return user.avatar ?? getGravatarUrl(user.email);
@@ -20,6 +21,7 @@ export async function generateUserFeed(
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
   const feedCollection = db.collection<UserFeedDoc>(COLLECTIONS._USER_FEED);
+  const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
 
   async function logFeedItem(item: Omit<UserFeedDoc, "_id">) {
     const exists = await feedCollection.findOne({
@@ -78,6 +80,8 @@ export async function generateUserFeed(
       const now = new Date();
       const twoWeeks = new Date(now.getTime() + 1000 * 60 * 60 * 24 * 14);
       const isUpcoming = event.date >= now && event.date <= twoWeeks;
+      const host = await userCollection.findOne({ _id: event.host });
+
       if (!isUpcoming) continue;
       if (event.host?.toString() !== actorUser._id?.toString()) continue;
 
@@ -119,31 +123,35 @@ export async function generateUserFeed(
         eventLocation: event.location?.name,
       };
 
-      await logFeedItem({
-        userId: user._id!,
-        type: "hosted_event",
-        actor,
-        target: {
-          eventId: event._id,
-          title: event.title,
-          snippet: event.description ?? "",
-          startingDate: event.date.toISOString(),
-          location: event.location
-            ? {
-                name: event.location.name,
-                lat: event.location.lat ?? evLat!,
-                lng: event.location.lng ?? evLng!,
-              }
-            : undefined,
-          distanceMiles: distMiles ?? undefined,
-          attachments: event.attachments,
-        },
-        timestamp: nowIso,
-      });
+      if (host) {
+        if (canViewerSee(host, user)) {
+          await logFeedItem({
+            userId: user._id!,
+            type: "hosted_event",
+            actor,
+            target: {
+              eventId: event._id,
+              title: event.title,
+              snippet: event.description ?? "",
+              startingDate: event.date.toISOString(),
+              location: event.location
+                ? {
+                    name: event.location.name,
+                    lat: event.location.lat ?? evLat!,
+                    lng: event.location.lng ?? evLng!,
+                  }
+                : undefined,
+              distanceMiles: distMiles ?? undefined,
+              attachments: event.attachments,
+            },
+            timestamp: nowIso,
+          });
+        }
+      }
     }
 
     // Profile updates
-    if (actorUser.avatar) {
+    if (actorUser.avatar && canViewerSee(actorUser, user)) {
       await logFeedItem({
         userId: user._id!,
         type: "profile_avatar_updated",
@@ -161,8 +169,7 @@ export async function generateUserFeed(
 
     if (
       actorUser.location &&
-      actorUser.locationLastUpdatedAt &&
-      // canViewerSee(actorUser as any, user, "location") &&
+      canViewerSee(actorUser, user) &&
       actorUser.shareLocation === true
     ) {
       await logFeedItem({
@@ -180,7 +187,11 @@ export async function generateUserFeed(
       });
     }
 
-    if (actorUser.status && actorUser.statusLastUpdatedAt) {
+    if (
+      actorUser.status &&
+      actorUser.statusLastUpdatedAt &&
+      canViewerSee(actorUser, user)
+    ) {
       await logFeedItem({
         userId: user._id!,
         type: "profile_status_updated",

@@ -102,13 +102,6 @@ export async function POST(req: NextRequest) {
       joinedEventDate: now,
       acceptedFriendDate: now,
       addedEventDate: now,
-      privacy: {
-        visibility: "public",
-        location: "public",
-        hostedEvents: "public",
-        joinedEvents: "public",
-        statusUpdate: "public",
-      },
       status: "",
       followers: [],
       following: [],

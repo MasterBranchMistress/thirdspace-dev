@@ -18,7 +18,18 @@ import Lottie from "lottie-react";
 import emptynotifs from "@/public/lottie/emptynotifs.json";
 import emptygroupnotifs from "@/public/lottie/emptygroupnotifs.json";
 import emptymessagenotifs from "@/public/lottie/emptymessagenotifs.json";
-import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
+import {
+  ChatBubbleOvalLeftEllipsisIcon,
+  CheckCircleIcon,
+  CheckIcon,
+  EllipsisHorizontalCircleIcon,
+  EllipsisHorizontalIcon,
+  FireIcon,
+  HandThumbDownIcon,
+  HandThumbUpIcon,
+  XCircleIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 import { useNotifications } from "@/app/context/NotificationContext";
 
 type NotificationsModalProps = {
@@ -50,8 +61,7 @@ export default function NotificationsModal({
       type === "accepted_friend_request" ||
       type === "canceled" ||
       type === "removed" ||
-      type === "user_left_event" ||
-      type === "blocked_user_joined_event"
+      type === "user_left_event"
     ) {
       return true;
     }
@@ -61,6 +71,7 @@ export default function NotificationsModal({
     if (
       type === "accepted_friend_request" ||
       type === "blocked_user_joined_event" ||
+      type === "user_joined_event" ||
       type === "received_friend_request"
     ) {
       return true;
@@ -208,9 +219,9 @@ export default function NotificationsModal({
                                 }
                                 className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20 flex-shrink-0"
                               >
-                                <XCircleIcon
+                                <XMarkIcon
                                   width={23}
-                                  className="text-white"
+                                  className="text-white p-0.5 border-1 border-white bg-white/5 backdrop-blur-md rounded-full"
                                 />
                               </button>
                             )}
@@ -219,18 +230,75 @@ export default function NotificationsModal({
                             {n.type === "received_friend_request" && (
                               <div className="flex flex-row gap-1 flex-shrink-0">
                                 <button onClick={() => accept(n.actorId)}>
-                                  <CheckCircleIcon
+                                  <HandThumbUpIcon
                                     width={23}
-                                    className="text-concrete bg-primary rounded-full"
+                                    className="text-white p-0.5 border-1 border-white bg-primary backdrop-blur-md rounded-full"
                                   />
                                 </button>
                                 <button
                                   onClick={() => reject(n.actorId)}
                                   className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
                                 >
-                                  <XCircleIcon
+                                  <HandThumbDownIcon
                                     width={23}
-                                    className="text-white"
+                                    className="text-white p-0.5 border-1 border-white bg-danger backdrop-blur-md rounded-full"
+                                  />
+                                </button>
+                              </div>
+                            )}
+                            {n.type === "user_joined_event" && (
+                              <div className="flex flex-row gap-1 flex-shrink-0">
+                                <button
+                                  onClick={
+                                    () =>
+                                      console.log(`spark sent to ${n.actorId}`)
+                                    //TODO: change once spark mechs are built
+                                  }
+                                  className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
+                                >
+                                  <FireIcon
+                                    width={23}
+                                    className="text-concrete p-0.5 border-1 border-white bg-primary rounded-full"
+                                  />
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    clearNotification(n._id.toString())
+                                  }
+                                  className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
+                                >
+                                  <XMarkIcon
+                                    width={23}
+                                    className="text-white p-0.5 border-1 border-white bg-white/5 backdrop-blur-md rounded-full"
+                                  />
+                                </button>
+                              </div>
+                            )}
+                            {n.type === "blocked_user_joined_event" && (
+                              <div className="flex flex-row gap-1 flex-shrink-0">
+                                <button
+                                  onClick={() =>
+                                    clearNotification(n._id.toString())
+                                  }
+                                  className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
+                                >
+                                  <HandThumbUpIcon
+                                    width={23}
+                                    className="text-concrete p-0.5 border-1 border-white bg-primary rounded-full"
+                                  />
+                                </button>
+                                <button
+                                  onClick={
+                                    /* ban user from event */ () =>
+                                      console.log(
+                                        `Banning ${n.actorId} from ${n.eventId}`
+                                      )
+                                  }
+                                  className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
+                                >
+                                  <HandThumbDownIcon
+                                    width={23}
+                                    className="text-concrete p-0.5 border-1 border-white bg-danger rounded-full"
                                   />
                                 </button>
                               </div>

@@ -21,7 +21,8 @@ interface Notification {
     | "received_friend_request"
     | "accepted_friend_request"
     | "blocked_user_joined_event"
-    | "user_left_event";
+    | "user_left_event"
+    | "user_joined_event";
   timestamp: Date;
 }
 
@@ -37,14 +38,6 @@ export interface Avatar {
 }
 
 type VisibilityLevel = "off" | "friends" | "followers" | "public";
-
-export type PrivacyConfig = {
-  visibility: VisibilityLevel;
-  location: VisibilityLevel;
-  hostedEvents: VisibilityLevel;
-  joinedEvents: VisibilityLevel;
-  statusUpdate: VisibilityLevel;
-};
 
 export interface UserDoc {
   _id?: ObjectId;
@@ -88,11 +81,10 @@ export interface UserDoc {
     lng?: number;
     geo?: { type: "Point"; coordinates: [number, number] };
   };
-  privacy: PrivacyConfig;
   shareLocation?: boolean;
   shareJoinedEvents?: boolean;
   shareHostedEvents?: boolean;
-  visibility?: string;
+  visibility?: VisibilityLevel;
   lang?: string;
   status: string;
   followers?: ObjectId[];

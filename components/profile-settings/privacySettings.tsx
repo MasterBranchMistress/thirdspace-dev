@@ -8,6 +8,7 @@ import { useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import ConfirmDialog from "../confirm-delete/confirmDialog";
 import VisibilitySettings from "./setVisibility";
+import { useRouter } from "next/navigation";
 
 type PrivacyProps = {
   shareLocation: boolean;
@@ -32,6 +33,7 @@ export function Privacy({
   const { data: session } = useSession();
   const userId = session?.user?.id;
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const router = useRouter();
 
   const requestDelete = async () => {
     const res = await fetch(`/api/users/${userId}`, { method: "DELETE" });
@@ -116,18 +118,25 @@ export function Privacy({
                   {blockedUsers.map((u) => (
                     <li
                       key={u.id}
-                      className="flex items-center justify-between gap-3"
+                      className="flex items-center justify-around gap-3"
                     >
-                      <div className="flex items-center gap-2">
-                        <Avatar src={u.avatar} size="md" />
-                        <span>{u.name}</span>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Avatar
+                          src={u.avatar}
+                          size="sm"
+                          className="flex-shrink-0 border-1 border-white hover:cursor-pointer"
+                          onClick={() =>
+                            router.push(`/dashboard/profile/${u.id}`)
+                          }
+                        />
+                        <span className="truncate text-xs">{u.name}</span>
                       </div>
                       <Button
                         color="primary"
                         size="sm"
                         variant="shadow"
                         onPress={() => unblock(u.id)}
-                        className="!px-2 !py-1 !h-6.5 !text-[10px] rounded-md"
+                        className="!px-2 !py-1 !h-6.5 !text-[10px] !max-w-[10%] rounded-md"
                       >
                         Unblock
                       </Button>

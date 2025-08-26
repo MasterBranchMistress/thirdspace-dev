@@ -153,7 +153,7 @@ export default function NavBar() {
                     endContent={<GlobeAltIcon className="text-xs w-5" />}
                     onPress={() => router.push(`/dashboard`)}
                   >
-                    Dashboard
+                    Explore
                   </DropdownItem>
                   <DropdownItem
                     key="settings"

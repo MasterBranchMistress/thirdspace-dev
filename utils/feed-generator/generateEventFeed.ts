@@ -6,6 +6,8 @@ import clientPromise from "@/lib/mongodb";
 import { COLLECTIONS, DBS } from "@/lib/constants";
 import { EventFeedDoc } from "@/lib/models/EventFeedDoc";
 import { getGravatarUrl } from "../gravatar";
+import { canViewerSee } from "../user-privacy/canViewerSee";
+import { NextRequest, NextResponse } from "next/server";
 
 /** Always resolve a string avatar URL */
 function resolveAvatar(user?: UserDoc | null): string {
@@ -44,27 +46,31 @@ export async function generateEventFeed(
     const isUpcoming = msUntil > 0 && msUntil < 1000 * 60 * 60 * 48; // next 48h only
     const isPopular = (event.attendees?.length || 0) > 1;
 
-    // Lookup host user
     const hostUser =
       friends.find((f) => f._id?.equals(event.host)) ||
       (await userCollection.findOne({ _id: event.host }));
+
+    if (!hostUser) {
+      throw new Error(`Event host not found for event ${event._id}`);
+    }
 
     const base: Omit<EventFeedDoc, "_id"> = {
       userId: user._id!,
       actor: {
         id: hostUser?._id?.toString(),
+        firstName: hostUser?.firstName,
+        lastName: hostUser?.lastName,
+        hostUser: hostUser?.username,
         email: hostUser?.email,
         eventId: event._id,
         eventName: event.title || "Untitled Event",
-        host: hostUser?.firstName,
         startingDate: event.date.toISOString(),
+        attachments: event.attachments,
         avatar: resolveAvatar(hostUser),
       },
       target: {
         eventId: event._id!,
         title: event.title,
-        host: hostUser?.firstName,
-        avatar: resolveAvatar(hostUser),
         totalAttendance: event.attendees?.length || 0,
         location: event.location,
         description: event.description,
@@ -77,7 +83,7 @@ export async function generateEventFeed(
       type: "event_coming_up",
     };
 
-    if (isPopular) {
+    if (isPopular && canViewerSee(hostUser, user)) {
       await logFeedItem({
         ...base,
         type: "event_is_popular",
@@ -85,7 +91,7 @@ export async function generateEventFeed(
       });
     }
 
-    if (isUpcoming) {
+    if (isUpcoming && canViewerSee(hostUser, user)) {
       await logFeedItem({
         ...base,
         type: "event_coming_up",
@@ -109,14 +115,17 @@ export async function generateEventFeed(
     type: doc.type as FeedItemEvent["type"],
     actor: {
       id: doc.actor.id,
+      firstName: doc.actor.firstName,
+      lastName: doc.actor.lastName,
+      avatar: typeof doc.actor.avatar === "string" ? doc.actor.avatar : "",
+      username: doc.actor.hostUser,
       eventId: doc.actor.eventId,
       eventName: doc.actor.eventName,
       startingDate: doc.actor.startingDate,
-      avatar: typeof doc.actor.avatar === "string" ? doc.actor.avatar : "",
     },
     target: {
       eventId: doc.target?.eventId || undefined,
-      host: doc.target?.host || undefined,
+      username: doc.target.username,
       title: doc.target?.title || "",
       location: {
         name: doc.target?.location?.name || "",

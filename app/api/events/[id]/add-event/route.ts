@@ -5,9 +5,10 @@ import { UserDoc } from "@/lib/models/User";
 import clientPromise from "@/lib/mongodb";
 import detectMediaType from "@/utils/detect-media-type/detectMediaType";
 import { geocodeAddress } from "@/utils/geolocation/geocode-address/geocodeAddress";
-
+import { getServerSession } from "next-auth";
 import { ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
+import { authOptions } from "@/lib/authOptions";
 
 export async function POST(
   req: NextRequest,
@@ -19,6 +20,7 @@ export async function POST(
   const eventCollection = db.collection<EventDoc>(COLLECTIONS._EVENTS);
   const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
   const feedCollection = db.collection<EventFeedDoc>(COLLECTIONS._USER_FEED);
+  const session = await getServerSession(authOptions);
 
   try {
     const { data, attachments = [] } = await req.json();
@@ -30,7 +32,10 @@ export async function POST(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // --- Validation ---
+    const viewer = await userCollection.findOne({
+      _id: new ObjectId(session?.user.id),
+    });
+
     if (!data?.title || !data?.date || !data?.description || !data?.location) {
       return NextResponse.json(
         { error: "Missing required fields" },
@@ -44,13 +49,11 @@ export async function POST(
       );
     }
 
-    // --- Parse attachments ---
     const parsedAttachments = attachments.map((url: string) => ({
       url,
       type: detectMediaType(url) || undefined,
     }));
 
-    // --- Location ---
     const locIn = data.location ?? {};
     let lat = typeof locIn.lat === "number" ? locIn.lat : undefined;
     let lng = typeof locIn.lng === "number" ? locIn.lng : undefined;
@@ -119,7 +122,8 @@ export async function POST(
       userId: new ObjectId(user._id),
       type: "hosted_event",
       actor: {
-        hostFirstName: user.firstName!,
+        firstName: user.firstName,
+        lastName: user.lastName,
         hostUser: user.username!,
         avatar: user.avatar,
         eventId: eventResult.insertedId,
@@ -144,22 +148,22 @@ export async function POST(
 
     await feedCollection.insertOne(baseFeedEvent);
 
-    // TODO: use canViewerSee somewhere down the line here
-    if (user.visibility === "friends" || user.visibility === "followers") {
+    if (["friends", "followers"].includes(user.visibility!)) {
       const friends = await userCollection
-        .find({ _id: { $in: user?.friends ?? [] } })
+        .find({ _id: { $in: user.friends ?? [] } })
         .toArray();
 
-      if (friends.length) {
+      if (friends.length > 0) {
         const friendFeedEvents: EventFeedDoc[] = friends.map((f) => ({
           ...baseFeedEvent,
           userId: new ObjectId(f._id),
         }));
+
         await feedCollection.insertMany(friendFeedEvents);
       }
     }
 
-    // --- Handle recurrence (scaffold only) ---
+    // --- Handle recurrence
     if (data.recurring) {
       const occurrences: EventDoc[] = [];
       const currentDate = new Date(data.date);

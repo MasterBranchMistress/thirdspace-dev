@@ -6,6 +6,7 @@ import { EventDoc } from "@/lib/models/Event";
 import { UserDoc } from "@/lib/models/User";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
+import { canViewerSee } from "@/utils/user-privacy/canViewerSee";
 
 export async function GET(
   req: NextRequest,
@@ -18,7 +19,9 @@ export async function GET(
   const eventsCollection = db.collection<EventDoc>(COLLECTIONS._EVENTS);
   const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
   const user = await userCollection.findOne(new ObjectId(id));
-  const userPrivacyLevel = user?.visibility;
+  const viewer = await userCollection.findOne({
+    _id: new ObjectId(session?.user.id),
+  });
 
   try {
     // pagination
@@ -27,17 +30,15 @@ export async function GET(
     const limit = Math.max(Number(searchParams.get("limit")) || 10, 1);
     const skip = (page - 1) * limit;
 
-    if (
-      (user?.shareJoinedEvents === false &&
-        user._id.toString() !== session?.user.id.toString()) ||
-      userPrivacyLevel === "off"
-    ) {
-      return NextResponse.json(
-        { message: "User has their joined events set to private" },
-        {
-          status: 200,
-        }
-      );
+    if (user) {
+      if (user?.shareJoinedEvents === false || !canViewerSee(user, viewer)) {
+        return NextResponse.json(
+          { message: "User isnt authorized to view this content" },
+          {
+            status: 200,
+          }
+        );
+      }
     }
 
     // filter for active + upcoming

@@ -51,8 +51,11 @@ export interface Attachment {
 export interface FeedEventActor {
   id?: string | ObjectId;
   email?: string;
-  hostFirstName?: string;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
   hostUser?: string;
+  attachments?: (string | Attachment)[];
   host?: string;
   eventId?: ObjectId;
   eventName: string;
@@ -88,8 +91,6 @@ export interface FeedTarget {
     };
   };
   distanceMiles?: number;
-
-  // ✅ Backward compatible: strings (legacy) OR objects (new)
   attachments?: (string | Attachment)[];
   avatar?: string;
   photoCredit?: {
