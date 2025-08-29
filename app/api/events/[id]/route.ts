@@ -1,47 +1,64 @@
-import clientPromise from "@/lib/mongodb";
-import { NextRequest, NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
 import { COLLECTIONS, DBS } from "@/lib/constants";
+import { EventDoc } from "@/lib/models/Event";
+import { UserDoc } from "@/lib/models/User";
+import clientPromise from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
+import { NextRequest, NextResponse } from "next/server";
 
-// for testing
-// title: { type: String, required: true },
-// description: { type: String, required: true },
-// date: { type: Date, required: true },
-// location: {
-//       name: { type: String },
-//       lat: { type: Number },
-//       lng: { type: Number },
-//     },
-// host: { type: Types.ObjectId, ref: "User", required: true },
-// attendes: [{ type: Types.ObjectId, ref: "User" }],
-// tags: [{ type: String }],
-// messages: [MessageSchema],
-//   },
-//   { timestamps: true }
-
-/* Get Event */
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params; // ✅ must await params in App Router
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
-  const { id } = await context.params;
+  const eventCollection = db.collection<EventDoc>(COLLECTIONS._EVENTS);
+  const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
 
   try {
-    const event = await db
-      .collection(COLLECTIONS._EVENTS)
-      .findOne({ _id: new ObjectId(id) });
-
+    // fetch event by _id
+    const event = await eventCollection.findOne({ _id: new ObjectId(id) });
     if (!event) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
 
-    return NextResponse.json(event, { status: 200 });
-  } catch (error: unknown) {
-    return NextResponse.json(
-      { error: (error as Error).message },
-      { status: 500 }
-    );
+    // populate host
+    const hostUser = await userCollection.findOne({
+      _id: new ObjectId(event.host),
+    });
+
+    // populate attendees
+    let attendeeUsers: UserDoc[] = [];
+    if (event.attendees?.length) {
+      attendeeUsers = await userCollection
+        .find({ _id: { $in: event.attendees.map((a) => new ObjectId(a)) } })
+        .toArray();
+    }
+
+    const responseEvent = {
+      ...event,
+      _id: event._id.toString(),
+      host: hostUser
+        ? {
+            _id: hostUser._id.toString(),
+            firstName: hostUser.firstName,
+            lastName: hostUser.lastName,
+            avatar: hostUser.avatar,
+            username: hostUser.username,
+          }
+        : null,
+      attendees: attendeeUsers.map((a) => ({
+        _id: a._id?.toString(),
+        firstName: a.firstName,
+        lastName: a.lastName,
+        avatar: a.avatar,
+        username: a.username,
+      })),
+    };
+
+    return NextResponse.json(responseEvent, { status: 200 });
+  } catch (error: any) {
+    console.error("[getEvent]", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

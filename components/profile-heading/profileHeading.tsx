@@ -51,7 +51,7 @@ export default function ProfileHeading({
           </div>
           <div>
             <button className="hover:cursor-pointer">
-              <ChatBubbleLeftRightIcon className="h-6 w-6 text-white" />
+              <ChatBubbleLeftRightIcon className="h-6 w-6 shrink-0 text-white" />
             </button>
           </div>
         </div>
@@ -109,7 +109,7 @@ export default function ProfileHeading({
           variant="flat"
           disabled={disabled}
         >
-          <UserPlusIcon width={17} />
+          <UserPlusIcon width={17} className="shrink-0" />
           Friend
         </Button>
         <Button
@@ -120,7 +120,7 @@ export default function ProfileHeading({
           variant="flat"
           disabled={disabled}
         >
-          <RocketLaunchIcon width={17} />
+          <RocketLaunchIcon width={17} className="shrink-0" />
           Follow
         </Button>
         <Button
@@ -131,7 +131,7 @@ export default function ProfileHeading({
           variant="flat"
           disabled={disabled}
         >
-          <FireIcon width={17} /> Spark
+          <FireIcon width={17} className="shrink-0" /> Spark
         </Button>
         <Button
           className="text-tiny text-white tracking-tighter bg-black/20 border-white/20 border-1 "
@@ -141,7 +141,7 @@ export default function ProfileHeading({
           variant="flat"
           disabled={disabled}
         >
-          <HandRaisedIcon width={17} /> Block
+          <HandRaisedIcon width={17} className="shrink-0" /> Block
         </Button>
       </CardFooter>
     </Card>

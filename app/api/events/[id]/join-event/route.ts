@@ -40,7 +40,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
     const hostUser = await userCollection.findOne({
-      _id: new ObjectId(event?.host),
+      _id: new ObjectId(event?.host.id),
     });
     if (!hostUser) {
       return NextResponse.json({ error: "Host not found" });
@@ -106,7 +106,7 @@ export async function PATCH(
     if (isUserBlocked(hostUser, joiningUser)) {
       if (joiningUser && event.public) {
         await userCollection.updateOne(
-          { _id: new ObjectId(event.host) },
+          { _id: new ObjectId(event.host.id) },
           {
             $push: {
               notifications: {

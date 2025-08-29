@@ -17,11 +17,13 @@ import { FeedItem } from "@/types/user-feed";
 import spaceman from "@/public/lottie/space-man.json";
 import backToTop from "@/public/lottie/back-to-top.json";
 import { useBrowserLocation } from "@/utils/geolocation/get-user-location/getUserLocation";
+import { useAvatar } from "@/app/context/AvatarContext";
 
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { status: locStatus, coords } = useBrowserLocation();
+  const { avatar, setAvatar } = useAvatar();
 
   const { items, loading, error, hasMore, loadMore, prependItems } = useFeed();
 
@@ -85,6 +87,12 @@ export default function Home() {
     session?.user?.id,
     session?.user?.location?.name,
   ]);
+
+  useEffect(() => {
+    if (session?.user?.avatar) {
+      setAvatar(session.user.avatar);
+    }
+  }, [session?.user?.avatar, avatar]);
 
   if (status === "loading" || !coords) return <LoadingPage />;
   if (error) return <p>{error}</p>;

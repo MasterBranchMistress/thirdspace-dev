@@ -31,20 +31,23 @@ import { useNotifications } from "@/app/context/NotificationContext";
 import { useRouter } from "next/navigation";
 import ProfileSettingsModal from "../profile-settings/profileSettings";
 import NotificationsModal from "../notification-page/notificationPage";
-import kickstarterLogo from "@/public/icons/kickstarter.png";
+import { dropDownStyle } from "@/utils/get-dropdown-style/getDropDownStyle";
+import { useAvatar } from "@/app/context/AvatarContext";
 
 export default function NavBar() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
   const user = session?.user;
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
   const { notificationCount } = useNotifications();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   useEffect(() => {
-    setAvatarUrl(user?.avatar ?? "");
-  }, [user]);
+    if (session?.user.avatar) {
+      setAvatarUrl(session?.user.avatar);
+    }
+  }, [session?.user.avatar]);
 
   return (
     <>
@@ -59,18 +62,21 @@ export default function NavBar() {
             alt="kickstarter_logo"
             width={14}
             radius="none"
+            className="!min-w-4"
           />
           <Image
             src="/icons/patreon.png"
             alt="patreon_logo"
             width={14}
             radius="none"
+            className="!min-w-4"
           />
           <Image
             src="/icons/gofundme.png"
             alt="gofundme_logo"
             width={18}
             radius="none"
+            className="!min-w-5"
           />
         </NavbarContent>
         <NavbarContent justify="center">
@@ -79,7 +85,7 @@ export default function NavBar() {
             <Image
               src="/third-space-logos/thirdspace-logo-4.png"
               alt="ThirdSpace Logo"
-              className="max-w-[150px] sm:max-w-[150px] lg:max-w-[200px] h-auto ml-[5%]"
+              className="max-w-auto sm:max-w-[190px] lg:max-w-[210px] px-[5%] mx-auto shrink-1"
             />
           </div>
         </NavbarContent>
@@ -93,11 +99,7 @@ export default function NavBar() {
             <Dropdown
               showArrow
               backdrop="blur"
-              classNames={{
-                base: "before:bg-default-200",
-                content:
-                  "p-0 border-small border-white/20 bg-white/10 dark:bg-black/20 backdrop-blur-xl shadow-lg rounded-xl",
-              }}
+              classNames={dropDownStyle}
               radius="sm"
             >
               <DropdownTrigger>
@@ -105,7 +107,7 @@ export default function NavBar() {
                   <Badge
                     content={""}
                     size="sm"
-                    className="border-none animate-pulse mt-1 mr-1"
+                    className="border-none animate-pulse mt-1.5"
                     color="success"
                     hidden={!notificationCount}
                     placement="top-right"
@@ -115,7 +117,7 @@ export default function NavBar() {
                       color="primary"
                       isBordered
                       size="md"
-                      className="sm:size-md mr-1.5"
+                      className="mt-1"
                     />
                   </Badge>
                 </div>
@@ -167,7 +169,7 @@ export default function NavBar() {
                     key="view profile"
                     className="text-concrete"
                     endContent={<UserIcon className="text-xs w-5" />}
-                    onPress={() => router.push(`dashboard/profile/${user.id}`)}
+                    onPress={() => router.push(`/dashboard/profile/${user.id}`)}
                   >
                     View Profile
                   </DropdownItem>

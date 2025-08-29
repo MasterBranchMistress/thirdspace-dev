@@ -27,7 +27,7 @@ export async function GET(
 
     // ✅ return messages (empty array if none)
     return NextResponse.json(
-      { messages: event.messages ?? [] },
+      { comments: event.comments ?? [] },
       { status: 200 }
     );
   } catch (error: unknown) {

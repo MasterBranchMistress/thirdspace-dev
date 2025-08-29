@@ -7,6 +7,7 @@ import { UserFeedDoc } from "@/lib/models/UserFeedDoc";
 import { isAuthorized } from "@/utils/auth";
 import { getLocationImage } from "@/utils/get-location-images/getLocationImages";
 import { syncUserUsername } from "@/utils/sync-user-username/syncUsername";
+import { syncUserAvatar } from "@/utils/sync-user-avatar/syncAvatar";
 
 export async function PATCH(
   req: NextRequest,
@@ -81,6 +82,7 @@ export async function PATCH(
       updateFields.avatar = trimmed;
       changes.avatar = trimmed;
       updateFields.avatarLastUpdatedAt = new Date();
+      syncUserAvatar(String(user._id), trimmed);
       feedItemsToInsert.push({
         userId: null!,
         type: "profile_avatar_updated",
@@ -122,7 +124,7 @@ export async function PATCH(
       changes.shareLocation = updates.shareLocation;
     }
 
-    // ✅ Location
+    //Location
     let locationName;
     if (
       typeof updates.location.name === "string" &&

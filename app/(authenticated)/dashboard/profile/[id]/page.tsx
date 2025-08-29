@@ -15,7 +15,6 @@ import ProfileHeading from "@/components/profile-heading/profileHeading";
 import ideas from "@/public/lottie/ideas.json";
 import EventGridCard from "@/components/event-item-card/eventItemCard";
 import endEvents from "@/public/lottie/end-events.json";
-import { vendored } from "next/dist/server/route-modules/app-page/module.compiled";
 
 type Profile = {
   user: UserDoc;
@@ -185,7 +184,13 @@ export default function ProfilePage() {
         <section>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-0">
             {totalEvents.map((event) => (
-              <EventGridCard key={event._id?.toString()} event={event} />
+              <EventGridCard
+                onClick={() =>
+                  router.push(`/dashboard/event/${event._id?.toString()}`)
+                }
+                key={event._id?.toString()}
+                event={event}
+              />
             ))}
           </div>
           <div className="flex flex-col justify-center items-center py-4">

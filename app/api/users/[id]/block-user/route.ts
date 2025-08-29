@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { UserDoc } from "@/lib/models/User";
 import { ObjectId } from "mongodb";
 import { EventDoc } from "@/lib/models/Event";
+import { removeBlockedUserFeedItems } from "@/utils/feed-generator/removeBlockedUserFeedItems";
 
 export async function PATCH(
   req: NextRequest,
@@ -62,7 +63,7 @@ export async function PATCH(
       );
     }
 
-    // ✅ Remove blocked user from all events where blocker is the host
+    // Remove blocked user from all events where blocker is the host
     await eventCollection.updateMany(
       {
         host: new ObjectId(id),
@@ -72,6 +73,13 @@ export async function PATCH(
         $pull: { attendees: new ObjectId(String(blockUserId)) },
       }
     );
+
+    //Remove feed items of the blocked user from blocker and in vice versa
+    const remove = removeBlockedUserFeedItems(
+      user._id.toString(),
+      blockUserId.toString()
+    );
+    console.log(`Removed Items: ${remove}`);
 
     const updateResult = await userCollection.findOne({
       _id: new ObjectId(id),

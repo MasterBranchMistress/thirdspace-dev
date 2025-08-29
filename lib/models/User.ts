@@ -10,7 +10,7 @@ export interface Availability {
 interface Notification {
   _id: ObjectId;
   message: string;
-  actorId: ObjectId;
+  actorId?: ObjectId;
   eventId?: ObjectId;
   avatar?: string;
   read?: boolean;

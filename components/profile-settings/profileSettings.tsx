@@ -27,7 +27,7 @@ import { useToast } from "@/app/providers/ToastProvider";
 import { useRouter } from "next/navigation";
 import confetti from "canvas-confetti";
 import AvatarUploader from "../attachment-uploader/avatarUploader";
-import VisibilitySettings from "./setVisibility";
+import { useAvatar } from "@/app/context/AvatarContext";
 
 type UserLocation = {
   name: string;
@@ -97,11 +97,11 @@ export default function ProfileSettingsModal({
   const [initialForm, setInitialForm] = useState<UserPayload | null>(null);
   const [tagInput, setTagInput] = useState("");
   const remainingBio = Math.max(0, 150 - (form?.bio?.length ?? 0));
-
   const canChangeUsername = useMemo(
     () => daysSince(form?.usernameLastChangedAt) >= USERNAME_COOLDOWN_DAYS,
     [form?.usernameLastChangedAt]
   );
+  const { setAvatar } = useAvatar();
 
   useEffect(() => {
     if (!isOpen || !userId) return;
@@ -223,6 +223,8 @@ export default function ProfileSettingsModal({
 
       //Check for avatar and save
       if (selectedFile) {
+        const imageUrl = `https://thirdspace-attachments-dev.s3.us-east-2.amazonaws.com/${form.avatar?.key}`;
+        setAvatar(imageUrl);
         const avatarRes = await fetch(
           `/api/users/${userId}/avatar-handling/upload-avatar`,
           {

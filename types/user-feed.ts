@@ -24,10 +24,12 @@ export type FeedItemType =
  * `id` can come from Mongo so we support both ObjectId and string.
  */
 export interface FeedUserActor {
+  eventId?: ObjectId;
   id?: string | ObjectId;
   firstName?: string;
   lastName?: string;
   username?: string;
+  eventStatus?: string;
   email?: string;
   avatar?: string;
   timestamp?: string;
@@ -74,6 +76,7 @@ export interface FeedEventActor {
  */
 export interface FeedTarget {
   eventId?: string | ObjectId;
+  eventStatus?: string;
   userId?: string | ObjectId;
   title?: string;
   type?: FeedItemType;

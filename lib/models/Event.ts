@@ -2,6 +2,7 @@ import { Schema, model, models, Types } from "mongoose";
 import { ObjectId } from "mongodb";
 import { EVENT_STATUSES, REF } from "../constants";
 import { FeedItemType } from "@/types/user-feed";
+import { UserDoc } from "./User";
 
 type Attachment = {
   url: string;
@@ -15,6 +16,7 @@ export interface EventDoc {
   type?: FeedItemType;
   title: string;
   description: string;
+  eventId?: ObjectId;
   date: Date;
   startTime?: string;
   location?: {
@@ -30,10 +32,17 @@ export interface EventDoc {
   host: ObjectId;
   attendees: ObjectId[];
   tags?: string[];
-  messages?: {
-    user: ObjectId;
+  comments?: {
+    userId: ObjectId;
+    commenter: {
+      avatar?: string;
+      username: string;
+      firstName: string;
+      lastName: string;
+    };
     text: string;
     timestamp: Date;
+    replies: string[];
   }[];
   status?: string;
   createdAt?: Date;

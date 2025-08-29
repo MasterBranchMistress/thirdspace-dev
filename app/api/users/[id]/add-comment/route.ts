@@ -3,6 +3,7 @@ import { ObjectId } from "mongodb";
 import clientPromise from "@/lib/mongodb";
 import { COLLECTIONS, DBS, EVENT_STATUSES } from "@/lib/constants";
 import { EventDoc } from "@/lib/models/Event";
+import { UserDoc } from "@/lib/models/User";
 
 export async function POST(
   req: NextRequest,
@@ -12,6 +13,7 @@ export async function POST(
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
   const eventsCollection = db.collection<EventDoc>(COLLECTIONS._EVENTS);
+  const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
 
   try {
     const body = await req.json();
@@ -46,6 +48,14 @@ export async function POST(
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
 
+    //check for user
+    const user = await userCollection.findOne({
+      _id: new ObjectId(String(userId)),
+    });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
     if (event.status === EVENT_STATUSES._CANCELED) {
       return NextResponse.json({ error: "Event is canceled" }, { status: 400 });
     }
@@ -54,24 +64,32 @@ export async function POST(
       return NextResponse.json({ error: "Message too long" }, { status: 400 });
     }
 
-    const newMessage = {
-      user: new ObjectId(String(userId)),
+    const newComment = {
+      _id: new ObjectId(), // unique id for comment
+      userId: new ObjectId(String(userId)), // reference
+      commenter: {
+        avatar: user.avatar,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
       text,
       timestamp: new Date(),
+      replies: [], // recursive future support
+      sparks: 0,
+      likes: 0,
     };
 
     await eventsCollection.updateOne(
       { _id: new ObjectId(id) },
-      { $push: { messages: newMessage } }
+      { $push: { comments: newComment } }
     );
 
     const updatedEvent = await eventsCollection.findOne({
       _id: new ObjectId(id),
     });
-    return NextResponse.json(
-      { messages: updatedEvent?.messages ?? [] },
-      { status: 201 }
-    );
+    // ✅ Return only the new comment
+    return NextResponse.json({ comment: newComment }, { status: 201 });
   } catch (error: unknown) {
     return NextResponse.json(
       { error: (error as Error).message },

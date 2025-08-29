@@ -4,6 +4,8 @@ import { ObjectId } from "mongodb";
 import { COLLECTIONS, DBS } from "@/lib/constants";
 import { EventDoc } from "@/lib/models/Event";
 import { UserDoc } from "@/lib/models/User";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
 
 export async function DELETE(
   req: NextRequest,
@@ -15,12 +17,12 @@ export async function DELETE(
   const eventsCollection = db.collection<EventDoc>(COLLECTIONS._EVENTS);
 
   try {
-    // read hostId from body for now (later: derive from session)
-    const { hostId } = await req.json();
-
-    if (!hostId) {
-      return NextResponse.json({ error: "Missing hostId" }, { status: 400 });
+    // ✅ get session user
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const userId = session.user.id;
 
     // find event
     const event = await eventsCollection.findOne({ _id: new ObjectId(id) });
@@ -28,8 +30,8 @@ export async function DELETE(
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
 
-    // check permission
-    if (event.host.toString() !== hostId) {
+    // check permission (only host can delete)
+    if (event.host.toString() !== userId) {
       return NextResponse.json(
         { error: "Only the host can delete this event" },
         { status: 403 }
@@ -48,7 +50,18 @@ export async function DELETE(
       );
     }
 
-    const usersCollection = await db.collection<UserDoc>(COLLECTIONS._USERS);
+    //Remove evnt from everyones feed
+
+    const userFeedCollection = db.collection(COLLECTIONS._USER_FEED);
+    const eventFeedCollection = db.collection(COLLECTIONS._EVENT_FEED);
+
+    await Promise.all([
+      userFeedCollection.deleteMany({ "target._id": new ObjectId(id) }),
+      eventFeedCollection.deleteMany({ "target._id": new ObjectId(id) }),
+    ]);
+
+    // notify attendees
+    const usersCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
 
     await usersCollection.updateMany(
       { _id: { $in: event.attendees } },
@@ -60,7 +73,7 @@ export async function DELETE(
                 _id: event._id,
                 message: `Event "${event.title}" has been deleted.`,
                 eventId: event._id,
-                type: `removed`,
+                type: "removed",
                 timestamp: new Date(),
               },
             ],
@@ -68,9 +81,6 @@ export async function DELETE(
         },
       }
     );
-
-    // then delete the event
-    await eventsCollection.deleteOne({ _id: new ObjectId(id) });
 
     return NextResponse.json(
       { message: "✅ Event deleted successfully" },

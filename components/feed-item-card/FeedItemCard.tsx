@@ -28,6 +28,7 @@ import { useBrowserLocation } from "@/utils/geolocation/get-user-location/getUse
 import { getDistFromMiles } from "@/utils/geolocation/get-distance-from-event/getDistFromEvent";
 import { getGravatarUrl } from "@/utils/gravatar";
 import { useRouter } from "next/navigation";
+import { dropDownStyle } from "@/utils/get-dropdown-style/getDropDownStyle";
 
 interface FeedItemCardProps {
   item: FeedItem;
@@ -159,7 +160,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
               {buttonText}
             </Button>
           )}
-          <Dropdown>
+          <Dropdown classNames={dropDownStyle} backdrop="blur">
             <DropdownTrigger>
               <EllipsisVerticalIcon className="text-primary" width={27} />
             </DropdownTrigger>
@@ -233,9 +234,21 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           {type === "hosted_event" && !isUserActor(actor) && (
             <div className="mt-2 tracking-tight max-w-[100%] font-normal text-sm">
               <div className="flex flex-col items-center justify-center text-center">
-                <div className="font-bold text-sm text-center">
-                  <span className="font-light">{target?.host} is hosting</span>
-                  {"  "}"{target?.title}"
+                <div className="flex flex-row font-bold text-sm text-center mb-2 items-center">
+                  <span className="font-semibold shadow-lg shadow-primary border-1 border-primary py-1 mr-[-12] px-3 rounded-l-lg">
+                    {target?.host} is hosting
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="shadow"
+                    color="primary"
+                    className="text-secondary font-bold ml-2"
+                    onPress={() =>
+                      router.push(`/dashboard/event/${actor.eventId}`)
+                    }
+                  >
+                    {target?.title}
+                  </Button>
                 </div>
                 <div className="tracking-tight italic text-sm mt-3">
                   {target?.snippet}

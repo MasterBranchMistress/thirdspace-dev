@@ -72,6 +72,7 @@ export default function NotificationsModal({
       type === "accepted_friend_request" ||
       type === "blocked_user_joined_event" ||
       type === "user_joined_event" ||
+      type === "user_left_event" ||
       type === "received_friend_request"
     ) {
       return true;
@@ -79,12 +80,7 @@ export default function NotificationsModal({
     return false;
   };
   const shouldShowEventIcon = (type: string) => {
-    if (
-      type === "canceled" ||
-      type === "removed" ||
-      type === "updated" ||
-      type === "user_left_event"
-    ) {
+    if (type === "canceled" || type === "removed" || type === "updated") {
       return true;
     }
     return false;

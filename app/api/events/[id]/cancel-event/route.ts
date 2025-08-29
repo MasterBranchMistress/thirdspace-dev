@@ -63,6 +63,7 @@ export async function PATCH(
         $push: {
           notifications: {
             _id: event._id,
+            actorId: event.host,
             message: `Event "${event.title}" has been canceled.`,
             eventId: event._id,
             type: "canceled",

@@ -22,6 +22,7 @@ export async function generateUserFeed(
   const db = client.db(DBS._THIRDSPACE);
   const feedCollection = db.collection<UserFeedDoc>(COLLECTIONS._USER_FEED);
   const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
+  const eventCollection = db.collection<EventDoc>(COLLECTIONS._EVENTS);
 
   async function logFeedItem(item: Omit<UserFeedDoc, "_id">) {
     const exists = await feedCollection.findOne({
@@ -85,6 +86,22 @@ export async function generateUserFeed(
       if (!isUpcoming) continue;
       if (event.host?.toString() !== actorUser._id?.toString()) continue;
 
+      const canceledOrCompletedEvents = await eventCollection
+        .find({
+          status: { $in: ["canceled", "completed"] },
+        })
+        .toArray();
+
+      const canceledOrCompletedIds = canceledOrCompletedEvents.map(
+        (e) => e._id
+      );
+
+      const deleted = await feedCollection.deleteMany({
+        "actor.eventId": { $in: canceledOrCompletedIds },
+      });
+
+      console.log(deleted);
+
       // Event coords (fallback to geocode)
       let evLat = event.location?.lat;
       let evLng = event.location?.lng;
@@ -117,6 +134,8 @@ export async function generateUserFeed(
         lastName: actorUser.lastName,
         username: actorUser.username,
         avatar: resolveAvatar(actorUser),
+        eventStatus: event.status,
+        eventId: event._id,
         eventSnippet: event.description,
         eventAttachments: event.attachments,
         distanceFromEvent: distMiles ?? 0,
@@ -229,6 +248,8 @@ export async function generateUserFeed(
         lastName: doc.actor.lastName ?? "",
         username: doc.actor.username,
         avatar: doc.actor.avatar,
+        eventStatus: doc.actor.eventStatus,
+        eventId: doc.actor.eventId,
         eventSnippet: doc.actor.eventSnippet,
         eventAttachments: doc.actor.eventAttachments,
         distanceFromEvent: doc.actor.distanceFromEvent,

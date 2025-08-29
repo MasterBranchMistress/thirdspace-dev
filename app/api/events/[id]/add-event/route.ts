@@ -92,7 +92,7 @@ export async function POST(
       host: new ObjectId(user._id),
       attendees: [],
       tags: data.tags || [],
-      messages: [],
+      comments: [],
       status: EVENT_STATUSES._ACTIVE,
       createdAt: now,
       updatedAt: now,
@@ -118,8 +118,8 @@ export async function POST(
     const eventResult = await eventCollection.insertOne(baseEvent);
 
     // --- Always insert self feed item ---
-    const baseFeedEvent: EventFeedDoc = {
-      userId: new ObjectId(user._id),
+    const baseFeedEvent: Omit<EventFeedDoc, "_id"> = {
+      userId: new ObjectId(String(user._id)),
       type: "hosted_event",
       actor: {
         firstName: user.firstName,
@@ -145,19 +145,21 @@ export async function POST(
       },
       timestamp: now,
     };
-
     await feedCollection.insertOne(baseFeedEvent);
-
     if (["friends", "followers"].includes(user.visibility!)) {
       const friends = await userCollection
         .find({ _id: { $in: user.friends ?? [] } })
         .toArray();
 
       if (friends.length > 0) {
-        const friendFeedEvents: EventFeedDoc[] = friends.map((f) => ({
-          ...baseFeedEvent,
-          userId: new ObjectId(f._id),
-        }));
+        const { _id: ignore, ...baseFeedEventNoId } = baseFeedEvent as any;
+
+        const friendFeedEvents: Omit<EventFeedDoc, "_id">[] = friends.map(
+          (f) => ({
+            ...baseFeedEventNoId,
+            userId: new ObjectId(f._id),
+          })
+        );
 
         await feedCollection.insertMany(friendFeedEvents);
       }
@@ -189,7 +191,7 @@ export async function POST(
             lat: lat,
             lng: lng,
           },
-          host: new ObjectId(String(data.host)),
+          host: new ObjectId(user._id),
           attendees: [],
           tags: data.tags || [],
           messages: [],
