@@ -22,6 +22,36 @@ button,
     box-shadow 0.2s ease;
 }
 
+/*For autofill on location input*/
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0px 1000px transparent !important; /* Forces white background */
+  -webkit-text-fill-color: #fff !important; /* Black text color */
+  transition: background-color 5000s ease-in-out 0s; /* Smooth transition */
+}
+
+/* For calendar styling... thing is rough man. Heroui get it together. */
+.bg-content1 {
+  background-color: transparent;
+  color: #ffffff;
+}
+
+.text-default-500 {
+  color: #ffffff;
+}
+
+.text-default-400 {
+  color: #ffffff;
+}
+
+.shadow-xs {
+  background-color: transparent;
+  color: #ffffff;
+  text-align: center;
+}
+
 /* -----------------------------
    Soft Hover & Focus States
    for HeroUI / Grouped Components

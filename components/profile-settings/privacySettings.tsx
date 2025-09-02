@@ -42,8 +42,8 @@ export function Privacy({
       notify("Delete failed", msg);
       throw new Error(msg);
     }
-    await signOut({ callbackUrl: "/login" });
     notify("Account deleted 😭", "We’re sorry to see you go.");
+    await signOut({ callbackUrl: "/login" });
   };
 
   return (

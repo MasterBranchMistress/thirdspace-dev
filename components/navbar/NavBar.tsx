@@ -174,13 +174,6 @@ export default function NavBar() {
                     View Profile
                   </DropdownItem>
                   <DropdownItem
-                    key="my_events"
-                    className="text-concrete"
-                    endContent={<CalendarDaysIcon className="text-xs w-5" />}
-                  >
-                    My Events
-                  </DropdownItem>
-                  <DropdownItem
                     key="notifications"
                     className="text-concrete"
                     endContent={
@@ -238,7 +231,7 @@ export default function NavBar() {
                   </DropdownItem>
                   <DropdownItem
                     key="logout"
-                    className="text-danger"
+                    className="text-concrete"
                     endContent={
                       <ArrowRightStartOnRectangleIcon className="text-xs w-5" />
                     }

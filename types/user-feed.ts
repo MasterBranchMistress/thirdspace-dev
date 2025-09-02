@@ -25,6 +25,7 @@ export type FeedItemType =
  */
 export interface FeedUserActor {
   eventId?: ObjectId;
+  eventDate?: string;
   id?: string | ObjectId;
   firstName?: string;
   lastName?: string;

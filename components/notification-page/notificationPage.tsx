@@ -19,11 +19,7 @@ import emptynotifs from "@/public/lottie/emptynotifs.json";
 import emptygroupnotifs from "@/public/lottie/emptygroupnotifs.json";
 import emptymessagenotifs from "@/public/lottie/emptymessagenotifs.json";
 import {
-  ChatBubbleOvalLeftEllipsisIcon,
-  CheckCircleIcon,
-  CheckIcon,
-  EllipsisHorizontalCircleIcon,
-  EllipsisHorizontalIcon,
+  EyeIcon,
   FireIcon,
   HandThumbDownIcon,
   HandThumbUpIcon,
@@ -31,6 +27,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { useNotifications } from "@/app/context/NotificationContext";
+import { useRouter } from "next/navigation";
 
 type NotificationsModalProps = {
   isOpen: boolean;
@@ -100,6 +97,8 @@ export default function NotificationsModal({
     clearAll,
     refresh,
   } = useNotifications();
+
+  const router = useRouter();
 
   useEffect(() => {
     console.log(`Notifications: ${notifications}`);
@@ -203,8 +202,18 @@ export default function NotificationsModal({
                               {n.message}
                             </p>
                             {shouldShowEventIcon(n.type) && (
-                              <button className="bg-primary shadow-2xs rounded-md px-2 py-1 text-xs font-extralight flex-shrink-0">
-                                View
+                              <button
+                                onClick={() =>
+                                  router.push(
+                                    `/dashboard/event/${String(n._id)}`
+                                  )
+                                }
+                                className="rounded-full bg-primary backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20 flex-shrink-0"
+                              >
+                                <EyeIcon
+                                  width={23}
+                                  className="text-white p-0.5 border-1 border-white bg-white/5 backdrop-blur-md rounded-full"
+                                />
                               </button>
                             )}
 

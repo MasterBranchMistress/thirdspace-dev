@@ -78,12 +78,20 @@ export async function generateUserFeed(
 
   for (const actorUser of actors) {
     for (const event of events) {
-      const now = new Date();
-      const twoWeeks = new Date(now.getTime() + 1000 * 60 * 60 * 24 * 14);
-      const isUpcoming = event.date >= now && event.date <= twoWeeks;
-      const host = await userCollection.findOne({ _id: event.host });
+      if (event.type === "hosted_event") {
+        const now = new Date();
+        const twoWeeks = new Date(now.getTime() + 1000 * 60 * 60 * 24 * 14);
 
-      if (!isUpcoming) continue;
+        const eventDate = new Date(event.date); // ✅ normalize string → Date
+
+        console.log(eventDate >= now && eventDate <= twoWeeks);
+
+        const isUpcoming = eventDate >= now && eventDate <= twoWeeks;
+
+        if (!isUpcoming) continue;
+      }
+
+      const host = await userCollection.findOne({ _id: event.host });
       if (event.host?.toString() !== actorUser._id?.toString()) continue;
 
       const canceledOrCompletedEvents = await eventCollection
@@ -151,8 +159,8 @@ export async function generateUserFeed(
             target: {
               eventId: event._id,
               title: event.title,
-              snippet: event.description ?? "",
-              startingDate: event.date.toISOString(),
+              snippet: event.description,
+              startingDate: new Date(event.date).toISOString(),
               location: event.location
                 ? {
                     name: event.location.name,

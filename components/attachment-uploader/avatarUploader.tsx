@@ -31,18 +31,18 @@ export default function AvatarUploader({
         {...getRootProps()}
         className={`w-full p-6 border-2 border-dashed rounded-lg 
         flex flex-col items-center justify-center text-center cursor-pointer transition-colors
-        ${isDragActive ? "border-primary bg-purple-50/10" : "border-secondary"}
+        ${isDragActive ? "border-primary bg-purple-50/10" : "border-secondary border-dashed "}
       `}
       >
         <Lottie
           animationData={upload}
-          style={{ width: "8rem", marginTop: "-2rem", marginBottom: "-1rem" }}
+          style={{ width: "12rem", marginTop: "-2rem", marginBottom: "-1rem" }}
         />
         <input {...getInputProps()} />
         {isDragActive ? (
           <p className="text-secondary">Drop your avatar here!</p>
         ) : (
-          <p className="text-secondary">
+          <p className="text-secondary font-extralight tracking-tight">
             Drag & drop an avatar, or click to select
           </p>
         )}
@@ -52,7 +52,7 @@ export default function AvatarUploader({
         <img
           src={preview}
           alt="Preview"
-          className="h-30 w-30 rounded-full object-cover mt-4 border-2 border-concrete"
+          className="h-40 w-40 rounded-full p-1 object-cover mt-4 border-1 backdrop-blur-2xl border-concrete"
         />
       )}
     </div>

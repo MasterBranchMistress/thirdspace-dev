@@ -10,6 +10,14 @@ type Attachment = {
   thumbNail?: string;
 };
 
+type EventDonation = {
+  userId: ObjectId;
+  amount: number;
+  currency: string; // "USD" (default now, extensible later)
+  timestamp: Date;
+  refunded?: boolean; // in case you need to track clawbacks
+};
+
 export interface EventDoc {
   coverImage?: string;
   _id?: ObjectId;
@@ -51,7 +59,7 @@ export interface EventDoc {
   attachments?: Attachment[];
   public?: boolean;
   recurring?: boolean;
-  recurrenceRule?: "daily" | "weekly" | "monthly";
+  recurrenceRule?: "none" | "daily" | "weekly" | "monthly";
   recurrenceEndDate?: Date;
   recurringParentEventId?: ObjectId;
   budgetInfo?: {
@@ -59,6 +67,7 @@ export interface EventDoc {
     currency?: string;
     notes?: string;
   };
+  donations?: EventDonation[];
   timestamp: Date;
   orbiters?: ObjectId[];
 }
@@ -68,6 +77,15 @@ const MessageSchema = new Schema(
     user: { type: Types.ObjectId, ref: REF._USER, required: true },
     text: { type: String, required: true },
     timestamp: { type: Date, default: Date.now() },
+  },
+  { _id: false }
+);
+
+const AttachmentSchema = new Schema(
+  {
+    url: { type: String, required: true },
+    type: { type: String, enum: ["image", "video"], default: "image" },
+    thumbNail: { type: String },
   },
   { _id: false }
 );
@@ -99,17 +117,23 @@ const EventSchema = new Schema(
     tags: [{ type: String }],
     messages: [MessageSchema],
     banned: [{ type: Types.ObjectId, ref: REF._USER }],
-    public: { type: Boolean, ref: REF._EVENT },
-    recurring: { type: Boolean, ref: REF._EVENT },
-    reccurenceRule: { type: String },
+    public: { type: Boolean, default: true },
+    attachments: [AttachmentSchema],
+    recurring: { type: Boolean, default: false },
+    recurrenceRule: {
+      type: String,
+      enum: ["none", "daily", "weekly", "monthly"],
+      default: "none",
+    },
     recurrenceEndDate: { type: Date },
-    recurringParentEventId: { type: ObjectId, ref: REF._EVENT, required: true },
+    recurringParentEventId: { type: ObjectId, ref: REF._EVENT },
+
     budgetInfo: {
       estimatedCost: { type: Number, default: 0 },
       currency: { type: String, default: "USD" },
       notes: { type: String },
     },
-    orbiters: { type: ObjectId, ref: REF._USER },
+    orbiters: [{ type: ObjectId, ref: REF._USER }],
   },
   { timestamps: true }
 );

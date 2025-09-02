@@ -95,7 +95,8 @@ export async function PATCH(
         $push: {
           notifications: {
             _id: new ObjectId(),
-            message: `${user.username} left your event: ${event.title}`,
+            message: `${user.firstName} ${user.lastName} left your event: ${event.title}`,
+            avatar: user.avatar,
             eventId: event._id,
             type: "user_left_event",
             timestamp: new Date(),

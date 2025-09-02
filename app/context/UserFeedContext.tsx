@@ -54,7 +54,16 @@ export function FeedProvider({ children }: { children: ReactNode }) {
       const res = await fetch(
         `/api/users/${session.user.id}/user-feed?page=${pageToFetch}&limit=10`
       );
+
+      if (!res) {
+        `couldn't get results`;
+      }
+
       const data = await res.json();
+
+      if (!data) {
+        return `data could not be retrieved`;
+      }
 
       // ❌ Ignore if a newer request has already started
       if (currentRequestId !== requestIdRef.current) return;
@@ -75,6 +84,7 @@ export function FeedProvider({ children }: { children: ReactNode }) {
       if (currentRequestId === requestIdRef.current) {
         setError("Failed to load feed");
       }
+      console.error(`Error loading: ${err}`);
     } finally {
       if (currentRequestId === requestIdRef.current) {
         setLoading(false);

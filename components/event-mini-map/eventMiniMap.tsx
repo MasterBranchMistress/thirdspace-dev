@@ -25,7 +25,7 @@ export default function EventMiniMap({
 
   return (
     <div
-      className="w-full overflow-hidden rounded-xl border border-divider"
+      className="w-full overflow-hidden rounded-none border border-divider"
       style={{ height }}
     >
       <Map

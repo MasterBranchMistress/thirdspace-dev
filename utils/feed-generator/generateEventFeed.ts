@@ -42,7 +42,7 @@ export async function generateEventFeed(
   }
 
   for (const event of events) {
-    const msUntil = event.date.getTime() - now.getTime();
+    const msUntil = new Date(event.date).getTime() - new Date(now).getTime();
     const isUpcoming = msUntil > 0 && msUntil < 1000 * 60 * 60 * 48; // next 48h only
     const isPopular = (event.attendees?.length || 0) > 1;
 
@@ -64,7 +64,7 @@ export async function generateEventFeed(
         email: hostUser?.email,
         eventId: event._id,
         eventName: event.title || "Untitled Event",
-        startingDate: event.date.toISOString(),
+        startingDate: new Date(event.date).toISOString(),
         attachments: event.attachments,
         avatar: resolveAvatar(hostUser),
       },
@@ -74,9 +74,12 @@ export async function generateEventFeed(
         totalAttendance: event.attendees?.length || 0,
         location: event.location,
         description: event.description,
-        budget: event.budgetInfo,
+        budget: {
+          estimatedCost: event.budgetInfo?.estimatedCost,
+          currency: event.budgetInfo?.currency,
+        },
         tags: event.tags || [],
-        startingDate: event.date.toISOString(),
+        startingDate: new Date(event.date).toISOString(),
         attachments: event.attachments,
       },
       timestamp: new Date(),

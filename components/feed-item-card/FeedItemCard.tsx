@@ -197,7 +197,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
         </div>
       </CardHeader>
 
-      <CardBody className="px-3 py-0 text-small text-center tracking-tight font-light">
+      <CardBody className="px-0 py-0 text-small text-center tracking-tight font-light">
         <p className="font-bold text-center tracking-tighter">{message}</p>
         <div className="flex flex-col justify-center items-center">
           {type === "profile_bio_updated" && target?.snippet && (
@@ -250,7 +250,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                     {target?.title}
                   </Button>
                 </div>
-                <div className="tracking-tight italic text-sm mt-3">
+                <div className="tracking-tight text-sm px-3 mt-3">
                   {target?.snippet}
                 </div>
               </div>
@@ -270,7 +270,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                   </span>
                   {"  "}"{target?.title}"
                 </div>
-                <div className="tracking-tight italic text-sm mt-3">
+                <div className="tracking-tight px-3 text-sm mt-3">
                   {target?.snippet}
                 </div>
               </div>
@@ -293,7 +293,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           )}
           {type === "event_is_popular" && (
             <div className="font-light max-w-[100%] mt-3 tracking-tight">
-              {target?.description}
+              <span className="px-3">{target?.description}</span>
               {target?.attachments && target.attachments.length > 0 && (
                 <div className="h-full overflow-hidden">
                   <AttachmentSwiper attachments={target.attachments} />
@@ -316,7 +316,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           {formatDistanceToNow(timestamp, { addSuffix: true })}
         </span>
       </CardBody>
-      <CardFooter className="flex gap-2 px-2 w-full z-30">
+      <CardFooter className="flex gap-2 px-0 w-full z-30">
         <FeedCardFooter type={type} target={target} actor={actor} />
       </CardFooter>
     </Card>

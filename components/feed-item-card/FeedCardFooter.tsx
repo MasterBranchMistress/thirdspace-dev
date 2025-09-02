@@ -42,7 +42,7 @@ const EventMiniMap = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-40 rounded-md bg-default-100 animate-pulse" />
+      <div className="w-full h-40 rounded-none bg-default-100 animate-pulse" />
     ),
   }
 );
@@ -61,7 +61,7 @@ export default function FeedCardFooter({
   const { ref, inView } = useInView({ triggerOnce: true, rootMargin: "200px" });
 
   return (
-    <div className="flex flex-col items-center gap-1 tracking-tight w-full text-center px-3">
+    <div className="flex flex-col items-center gap-1 tracking-tight w-full text-center px-0">
       {[
         "joined_event",
         "hosted_event",
@@ -92,7 +92,7 @@ export default function FeedCardFooter({
           src={target?.snippet}
           height={400}
           alt="new-profile-pic"
-          className="z-30 rounded-xl object-cover mb-4"
+          className="z-30 rounded-none object-cover mb-4"
         />
       )}
 

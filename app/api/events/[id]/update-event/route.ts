@@ -48,6 +48,23 @@ export async function PATCH(
       );
     }
 
+    // ✅ sanitize updates so empty strings/null don't overwrite valid values
+    for (const key of Object.keys(updates)) {
+      const val = updates[key];
+      if (val === "" || val === null || val === undefined) {
+        delete updates[key];
+      }
+      // special case: dates
+      if (key === "date" && typeof val === "string" && val.trim() !== "") {
+        const parsed = new Date(val);
+        if (isNaN(parsed.getTime())) {
+          delete updates[key]; // invalid date, don't save
+        } else {
+          updates[key] = parsed.toISOString(); // normalize
+        }
+      }
+    }
+
     // ✅ perform update
     const updateResult = await eventsCollection.updateOne(
       { _id: new ObjectId(id) },

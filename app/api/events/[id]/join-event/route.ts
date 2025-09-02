@@ -19,7 +19,6 @@ export async function PATCH(
   const eventCollection = db.collection<EventDoc>(COLLECTIONS._EVENTS);
   const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
   const session = await getServerSession(authOptions);
-  const viewerId = session?.user.id;
 
   try {
     const { userId } = await req.json();
