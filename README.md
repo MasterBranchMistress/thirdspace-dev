@@ -551,3 +551,45 @@ The app now includes a **notifications system** with global context and UI integ
   - Control whether their **location, hosted events, joined events, and status updates** appear in others’ feeds.
 
 ![profile-views](public/screenshots/profile-view-1.png) ![profile-views](public/screenshots/profile-view-2.png) ![profile-views](public/screenshots/profile-view-3.png) ![profile-views](public/screenshots/profile-view-4.png) ![profile-views](public/screenshots/profile-view-5.png) ![profile-views](public/screenshots/profile-view-6.png) ![profile-views](public/screenshots/profile-view-7.png) ![profile-views](public/screenshots/profile-view-8.png) ![profile-views](public/screenshots/profile-view-9.png) ![profile-views](public/screenshots/profile-view-10.png)
+
+### 🚀 Sprint #1 Deliverables – Event Management & View
+
+**Event View Page (`/event/[id]`)**
+
+- New route for displaying full event details (title, description, date/time, location, tags, host, attendees).
+- Users can **join/leave** events with real-time feedback and confetti 🎉.
+- Hosts see **extra actions**:
+  - ✏️ Edit event (opens modal pre-filled with current data)
+  - ❌ Cancel event (updates status + notifies attendees)
+- Integrated **comment system**: hosts and participants can add comments; shown in chronological order.
+- Placeholder for **Orbit button** included (future feature).
+- Responsive layout, mobile-first design.
+
+**Edit Event Modal**
+
+- Hosts can update:
+  - Title, Description, Date/Start Time
+  - Location (Mapbox autocomplete)
+  - Tags (comma-separated input w/ chips)
+  - Attachments (upload/remove)
+  - Budget estimate (slider + currency display)
+- Changes persist via `PATCH /api/events/:id/update-event`.
+- Save shows loading state + toasts, closes modal on success.
+- Cancel event via `PATCH /api/events/:id/cancel-event`.
+
+**Budget & Donation Enhancements**
+
+- Hosts can set an **estimated cost** for events.
+- Event page shows “Orbit Goal” with amount and currency.
+- Donation goal UI scaffolded:
+  - Displays total raised vs. estimated cost.
+  - Progress bar visualization for contributions.
+
+**Backend Integrations**
+
+- Event edit and cancel routes implemented.
+- Updates propagate to feeds + attendee notifications.
+- Date handling normalized to **ISO strings**.
+- Location stored as `{ name, lat, lng, geo }` for clean geocoding and mapping.
+
+![sprint2](public/screenshots/sprint2-0.png) ![sprint2](public/screenshots/sprint2-1.png) ![sprint2](public/screenshots/sprint2-2.png) ![sprint2](public/screenshots/sprint2-3.png) ![sprint2](public/screenshots/sprint2-4.png) ![sprint2](public/screenshots/sprint2-5.png) ![sprint2](public/screenshots/sprint2-6.png) ![sprint2](public/screenshots/sprint2-7.png) ![sprint2](public/screenshots/sprint2-8.png) ![sprint2](public/screenshots/sprint2-9.png) ![sprint2](public/screenshots/sprint2-10.png)
