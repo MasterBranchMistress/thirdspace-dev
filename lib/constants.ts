@@ -10,6 +10,7 @@ export const COLLECTIONS = {
   _USER_FEED: "user_feed",
   _EVENT_FEED: "event_feed",
   _USER_STATUSES: "user_statuses",
+  _COMMENTS: "comments",
 };
 
 // event statuses

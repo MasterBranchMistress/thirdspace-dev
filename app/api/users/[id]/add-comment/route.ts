@@ -4,6 +4,7 @@ import clientPromise from "@/lib/mongodb";
 import { COLLECTIONS, DBS, EVENT_STATUSES } from "@/lib/constants";
 import { EventDoc } from "@/lib/models/Event";
 import { UserDoc } from "@/lib/models/User";
+import { CommentDoc } from "@/lib/models/Comment";
 
 export async function POST(
   req: NextRequest,
@@ -14,6 +15,7 @@ export async function POST(
   const db = client.db(DBS._THIRDSPACE);
   const eventsCollection = db.collection<EventDoc>(COLLECTIONS._EVENTS);
   const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
+  const commentsCollection = db.collection<CommentDoc>(COLLECTIONS._COMMENTS);
 
   try {
     const body = await req.json();
@@ -24,14 +26,6 @@ export async function POST(
 
     if (!userId || !text || text.length === 0) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
-    }
-
-    // ✅ Extra safety: block keys starting with '$' or containing '.'
-    if (/\$|\./.test(userId) || /\$|\./.test(text)) {
-      return NextResponse.json(
-        { error: "Invalid characters in input" },
-        { status: 400 }
-      );
     }
 
     // ✅ Validate userId is a valid ObjectId
@@ -45,7 +39,7 @@ export async function POST(
     // ✅ ensure event exists
     const event = await eventsCollection.findOne({ _id: new ObjectId(id) });
     if (!event) {
-      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+      return NextResponse.json({ message: "Event not found" }, { status: 404 });
     }
 
     //check for user
@@ -53,20 +47,27 @@ export async function POST(
       _id: new ObjectId(String(userId)),
     });
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
     if (event.status === EVENT_STATUSES._CANCELED) {
-      return NextResponse.json({ error: "Event is canceled" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Event is canceled" },
+        { status: 400 }
+      );
     }
 
     if (text.length > 500) {
-      return NextResponse.json({ error: "Message too long" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Message too long" },
+        { status: 400 }
+      );
     }
 
     const newComment = {
-      _id: new ObjectId(), // unique id for comment
-      userId: new ObjectId(String(userId)), // reference
+      _id: new ObjectId(),
+      eventId: new ObjectId(id),
+      userId: new ObjectId(String(userId)),
       commenter: {
         avatar: user.avatar,
         username: user.username,
@@ -75,19 +76,15 @@ export async function POST(
       },
       text,
       timestamp: new Date(),
-      replies: [], // recursive future support
+      parentCommentId: body.parentCommentId
+        ? new ObjectId(String(body.parentCommentId))
+        : undefined,
       sparks: 0,
       likes: 0,
     };
 
-    await eventsCollection.updateOne(
-      { _id: new ObjectId(id) },
-      { $push: { comments: newComment } }
-    );
+    await commentsCollection.insertOne(newComment);
 
-    const updatedEvent = await eventsCollection.findOne({
-      _id: new ObjectId(id),
-    });
     // ✅ Return only the new comment
     return NextResponse.json({ comment: newComment }, { status: 201 });
   } catch (error: unknown) {

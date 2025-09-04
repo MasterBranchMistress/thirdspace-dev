@@ -42,6 +42,7 @@ import ConfirmDialog from "@/components/confirm-delete/confirmDialog";
 import LoadingPage from "@/components/spinner/LoadingPage";
 import notFound from "@/public/lottie/user-not-found.json";
 import tip from "@/public/lottie/tip.json";
+import CommentList from "@/components/comment-handling/CommentList";
 
 type Comment = {
   userId: any;
@@ -235,35 +236,35 @@ export default function EventViewPage() {
     }
   };
 
-  const handleAddComment = async () => {
-    try {
-      if (!newComment.trim() || !userId) return;
+  // const handleAddComment = async () => {
+  //   try {
+  //     if (!newComment.trim() || !userId) return;
 
-      const res = await fetch(`/api/users/${id}/add-comment`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, text: newComment }),
-      });
+  //     const res = await fetch(`/api/users/${id}/add-comment`, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ userId, text: newComment }),
+  //     });
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || "Failed to add comment.");
-      }
+  //     if (!res.ok) {
+  //       const errData = await res.json().catch(() => ({}));
+  //       throw new Error(errData.message || "Failed to add comment.");
+  //     }
 
-      const data = await res.json();
-      if (data.comment) {
-        setComments([data.comment, ...comments]);
-        setNewComment("");
-      }
+  //     const data = await res.json();
+  //     if (data.comment) {
+  //       setComments([data.comment, ...comments]);
+  //       setNewComment("");
+  //     }
 
-      lottieRef.current?.goToAndPlay(0, true);
-    } catch (e: any) {
-      notify("Couldn't add comment 😭", e.message || "Something went wrong.");
-    }
-  };
+  //     lottieRef.current?.goToAndPlay(0, true);
+  //   } catch (e: any) {
+  //     notify("Couldn't add comment 😭", e.message || "Something went wrong.");
+  //   }
+  // };
 
-  //TODO: DEBUG LOCATION
-  console.log("Event.location:", event?.location);
+  // //TODO: DEBUG LOCATION
+  // console.log("Event.location:", event?.location);
 
   return (
     <>
@@ -487,110 +488,10 @@ export default function EventViewPage() {
             </div>
             {/* Comments */}
             <div className="px-3 my-6 relative">
-              {(isJoined || isHost) && (
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault(); // avoid newline
-                        handleAddComment();
-                      }
-                    }}
-                    placeholder="Add a comment..."
-                    variant="underlined"
-                    color="primary"
-                    className="flex-1 bg-transparent z-10 text-primary"
-                    size="sm"
-                  />
-                  <div onClick={handleAddComment} className="cursor-pointer">
-                    <Lottie
-                      lottieRef={lottieRef}
-                      animationData={send}
-                      onComplete={() => {
-                        lottieRef.current?.goToAndStop(0, true);
-                      }}
-                      loop={false}
-                      autoplay={false}
-                      style={{ width: "3rem" }}
-                    />
-                  </div>
+              {(isHost || isJoined) && (
+                <div>
+                  <CommentList eventId={event._id} isHost={isHost} />
                 </div>
-              )}
-
-              {comments.length === 0 ? (
-                <div className="flex flex-col justify-center items-center my-9">
-                  <Lottie
-                    animationData={noComments}
-                    style={{ width: "15rem" }}
-                  />
-                  <h1 className="z-10 text-primary font-extralight tracking-tight">
-                    Be the first to comment!
-                  </h1>
-                </div>
-              ) : (
-                <ul className="my-3">
-                  {comments.map((c, idx) => (
-                    <li
-                      key={idx}
-                      className="flex gap-2 z-10 bg-concrete p-2 rounded-md"
-                    >
-                      {/* Avatar */}
-                      <Avatar
-                        src={c.commenter.avatar}
-                        size="sm"
-                        isBordered
-                        color="primary"
-                        className="mr-1 mt-0.5"
-                        onClick={() =>
-                          router.push(`/dashboard/profile/${String(c.userId)}`)
-                        }
-                      />
-                      <div className="flex flex-col flex-1">
-                        <div className="flex justify-between items-center">
-                          <p className="text-xs text-primary font-bold">
-                            @{c.commenter.username || "Anon"}{" "}
-                            <span className="font-extralight tracking-tight ml-1">
-                              {formatDistanceToNow(c.timestamp, {
-                                addSuffix: true,
-                              })}
-                            </span>
-                          </p>
-                          <EllipsisVerticalIcon
-                            width={18}
-                            className="text-primary cursor-pointer"
-                          />
-                        </div>
-
-                        {/* Comment text */}
-                        <p className="text-xs text-primary">{c.text}</p>
-
-                        {/* Fire/reactions row */}
-                        <div className="mt-1.5 flex items-center gap-3">
-                          <div className="flex flex-row items-center gap-1">
-                            <FireIcon width={16} className="text-primary" />
-                            <span className="text-[12px] text-gray-400 mt-0.5">
-                              {c.sparks}
-                            </span>
-                          </div>
-                          <div className="flex flex-row items-center gap-1">
-                            <HandThumbUpIcon
-                              width={16}
-                              className="text-primary"
-                            />
-                            <span className="text-[12px] text-gray-400 mt-0.5">
-                              {c.likes}
-                            </span>
-                          </div>
-                          <button className="text-primary text-xs">
-                            Reply
-                          </button>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
               )}
             </div>
           </div>
