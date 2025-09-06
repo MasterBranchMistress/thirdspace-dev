@@ -9,19 +9,28 @@ import {
   Button,
 } from "@heroui/react";
 import {
+  BellAlertIcon,
+  BellSlashIcon,
   CogIcon,
   EllipsisVerticalIcon,
   FlagIcon,
   MegaphoneIcon,
+  NoSymbolIcon,
+  PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { CommentDoc } from "@/lib/models/Comment";
 import { dropDownStyle } from "@/utils/get-dropdown-style/getDropDownStyle";
+import { useState } from "react";
 
 type Props = {
   onEdit?: () => void;
   onDelete?: () => void;
   onReport?: () => void;
+  onPressEdit: () => void;
+  onPressCancelEdit: () => void;
+  onPin: () => void;
+  editing: boolean;
   comment: CommentDoc;
   isHost: boolean;
   isCommentOwner: boolean;
@@ -29,10 +38,12 @@ type Props = {
 };
 
 export default function CommentActions({
-  onEdit,
   onDelete,
   onReport,
-  comment,
+  onPressEdit,
+  onPressCancelEdit,
+  onPin,
+  editing,
   isHost,
   isCommentOwner,
   isCommentPinned,
@@ -50,23 +61,36 @@ export default function CommentActions({
         </Button>
       </DropdownTrigger>
       <DropdownMenu aria-label="Comment actions">
-        {isHost ? (
-          <DropdownItem
-            key="pin"
-            className="text-concrete"
-            endContent={<MegaphoneIcon width={21} />}
-          >
-            {isCommentPinned ? "Unpin" : "Pin"}
-          </DropdownItem>
-        ) : null}
         {isCommentOwner ? (
           <DropdownItem
             key="edit"
-            className="text-concrete"
-            onPress={onEdit}
-            endContent={<CogIcon width={21} />}
+            className={editing ? "text-danger" : "text-concrete"}
+            onPress={editing ? onPressCancelEdit : onPressEdit}
+            endContent={
+              editing ? (
+                <NoSymbolIcon width={21} />
+              ) : (
+                <PencilSquareIcon width={21} />
+              )
+            }
           >
-            Edit
+            {editing ? "Cancel" : "Edit"}
+          </DropdownItem>
+        ) : null}
+        {isHost ? (
+          <DropdownItem
+            key="pin"
+            className={isCommentPinned ? "text-danger" : "text-concrete"}
+            onPress={onPin}
+            endContent={
+              isCommentPinned ? (
+                <BellSlashIcon width={21} />
+              ) : (
+                <BellAlertIcon width={21} />
+              )
+            }
+          >
+            {isCommentPinned ? "Unpin" : "Pin"}
           </DropdownItem>
         ) : null}
         {!isCommentOwner ? (
@@ -82,7 +106,7 @@ export default function CommentActions({
         {isHost || isCommentOwner ? (
           <DropdownItem
             key="delete"
-            className="text-danger"
+            className="text-concrete bg-danger"
             onPress={onDelete}
             endContent={<TrashIcon width={21} />}
           >

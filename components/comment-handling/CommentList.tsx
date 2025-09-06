@@ -12,9 +12,13 @@ import noComments from "@/public/lottie/make-comment.json";
 export default function CommentList({
   eventId,
   isHost,
+  hostId,
+  eventHost,
 }: {
   eventId: string;
   isHost: boolean;
+  hostId: string;
+  eventHost: string;
 }) {
   const [comments, setComments] = useState<CommentDoc[]>([]);
   const { data: session } = useSession();
@@ -69,6 +73,8 @@ export default function CommentList({
     }
   }
 
+  console.log("Event: ", eventId);
+
   return (
     <>
       <CommentInput onSubmit={handleAddComment} />
@@ -84,8 +90,15 @@ export default function CommentList({
             onReply={handleReply}
             parentUser={comment.commenter.username}
             isHost={isHost}
+            isHostCommenting={
+              String(comment.userId) === String(hostId) ? true : false
+            }
+            hostId={hostId}
             isCommentOwner={String(comment.userId) === String(userId)}
             userId={userId}
+            eventId={eventId}
+            eventHost={eventHost}
+            isCommentPinned={!comment.pinned}
           />
         ))}
       </div>

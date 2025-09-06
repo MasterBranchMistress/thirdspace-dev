@@ -157,7 +157,7 @@ export default function EventViewPage() {
     if (id && userId) fetchEvent();
   }, [id, userId]);
 
-  console.log("Event: ", event?._id);
+  console.log("Event: ", event?._id, "Is host of event? ", isHost);
 
   // Handlers
   const handleJoin = async () => {
@@ -235,36 +235,6 @@ export default function EventViewPage() {
       notify("Couldn't delete event 😭", (err as Error).message);
     }
   };
-
-  // const handleAddComment = async () => {
-  //   try {
-  //     if (!newComment.trim() || !userId) return;
-
-  //     const res = await fetch(`/api/users/${id}/add-comment`, {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ userId, text: newComment }),
-  //     });
-
-  //     if (!res.ok) {
-  //       const errData = await res.json().catch(() => ({}));
-  //       throw new Error(errData.message || "Failed to add comment.");
-  //     }
-
-  //     const data = await res.json();
-  //     if (data.comment) {
-  //       setComments([data.comment, ...comments]);
-  //       setNewComment("");
-  //     }
-
-  //     lottieRef.current?.goToAndPlay(0, true);
-  //   } catch (e: any) {
-  //     notify("Couldn't add comment 😭", e.message || "Something went wrong.");
-  //   }
-  // };
-
-  // //TODO: DEBUG LOCATION
-  // console.log("Event.location:", event?.location);
 
   return (
     <>
@@ -490,7 +460,12 @@ export default function EventViewPage() {
             <div className="px-3 my-6 relative">
               {(isHost || isJoined) && (
                 <div>
-                  <CommentList eventId={event._id} isHost={isHost} />
+                  <CommentList
+                    eventId={event._id}
+                    isHost={isHost}
+                    hostId={event.host._id}
+                    eventHost={event.host.firstName}
+                  />
                 </div>
               )}
             </div>

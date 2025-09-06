@@ -69,6 +69,7 @@ export async function POST(
       eventId: new ObjectId(id),
       userId: new ObjectId(String(userId)),
       commenter: {
+        userId: String(user._id),
         avatar: user.avatar,
         username: user.username,
         firstName: user.firstName,
