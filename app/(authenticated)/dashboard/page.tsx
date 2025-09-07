@@ -106,7 +106,7 @@ export default function Home() {
         <GreetingHeader />
         {newItems.length > 0 && (
           <div
-            className="animate-appearance-in sticky top-0 z-40 w-full bg-concrete text-primary text-md flex items-center justify-center"
+            className="animate-appearance-in fixed bottom-0 z-40 w-full bg-concrete text-primary text-md flex items-center justify-center"
             onClick={applyNewItems}
           >
             <div className="flex items-center gap-3">

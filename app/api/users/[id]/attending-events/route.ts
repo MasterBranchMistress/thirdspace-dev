@@ -35,24 +35,20 @@ export async function GET(
         return NextResponse.json(
           { message: "User isnt authorized to view this content" },
           {
-            status: 200,
+            status: 403,
           }
         );
       }
     }
 
-    // filter for active + upcoming
-    const now = new Date();
     const filter = {
       attendees: new ObjectId(id),
-      status: "active",
-      date: { $gte: now },
     };
 
     const [events, total] = await Promise.all([
       eventsCollection
         .find(filter)
-        .sort({ date: 1 })
+        .sort({ date: -1 })
         .skip(skip)
         .limit(limit)
         .toArray(),

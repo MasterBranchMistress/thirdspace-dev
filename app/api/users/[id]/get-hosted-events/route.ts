@@ -35,6 +35,13 @@ export async function GET(
     }
 
     const filter: Record<string, unknown> = { host: new ObjectId(id) };
+    console.log(
+      "shareHostedEvents:",
+      hostUser.shareHostedEvents,
+      typeof hostUser.shareHostedEvents
+    );
+    console.log("canViewerSee result:", canViewerSee(hostUser, viewer));
+
     const allowed =
       hostUser.shareHostedEvents !== false && canViewerSee(hostUser, viewer);
 
