@@ -28,7 +28,26 @@ export async function PATCH(
       return NextResponse.json({ error: "Sender not found" });
     }
 
-    const senderIsInPendingRequests = user.pendingFriendRequests?.some(
+    await userCollection.updateOne(
+      {
+        _id: new ObjectId(String(id)),
+      },
+      {
+        $pull: { pendingFriendRequestsIncoming: new ObjectId(String(fromId)) },
+      }
+    );
+    await userCollection.updateOne(
+      {
+        _id: new ObjectId(String(fromId)),
+      },
+      {
+        $pull: {
+          pendingFriendRequestsOutgoing: new ObjectId(String(id)),
+        },
+      }
+    );
+
+    const senderIsInPendingRequests = user.pendingFriendRequestsIncoming?.some(
       (c) => c.toString() === fromId
     );
 

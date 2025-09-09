@@ -196,6 +196,9 @@ export default function NotificationsModal({
                                 size="md"
                                 radius="full"
                                 className="border-white border-1 flex-shrink-0"
+                                onClick={() =>
+                                  router.push(`/dashboard/profile/${n.actorId}`)
+                                }
                               />
                             )}
                             <p className="flex-1 text-xs tracking-tighter font-extralight text-center text-white">

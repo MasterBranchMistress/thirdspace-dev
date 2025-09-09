@@ -2,14 +2,13 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useFeed } from "@/app/context/UserFeedContext";
 import Lottie from "lottie-react";
 import { FeedBackground } from "@/components/background-animations/UserFeedBackground";
 import LoadingPage from "@/components/spinner/LoadingPage";
 import FeedItemCard from "@/components/feed-item-card/FeedItemCard";
 import GreetingHeader from "@/components/feed-item-card/GreetingHeader";
-import { Spinner } from "@heroui/react";
 import EmptyFeedState from "@/components/empty-feed-state/EmptyFeedState";
 import animationData from "@/public/lottie/end-of-feed.json";
 import { useSmartFeedRefresh } from "@/utils/smart-refresh/useSmartRefresh";
@@ -118,7 +117,6 @@ export default function Home() {
                   height: "70px",
                   width: "70px",
                   zIndex: 100,
-                  // marginRight: "-1rem",
                 }}
               />
               <span className="font-light tracking-tight">
@@ -154,7 +152,7 @@ export default function Home() {
             </div>
           );
         })}
-        {loading && <Spinner color="primary" variant="wave" />}
+        {loading && <LoadingPage />}
         {!hasMore && !loading && (
           <div
             className="flex flex-col items-center justify-center gap-2 animate-appearance-in mt-7"

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
-import { isAuthorized } from "@/utils/auth";
+
 import { DBS, COLLECTIONS } from "@/lib/constants";
-import { UserStatusDoc } from "@/lib/models/UserStatusDoc";
-import { UserDoc } from "@/lib/models/User";
+
+import { UserDoc, UserStatusDoc } from "@/lib/models/User";
 import { UserFeedDoc } from "@/lib/models/UserFeedDoc";
 import detectMediaType from "@/utils/detect-media-type/detectMediaType";
+import { snippet } from "@heroui/theme";
 
 export async function POST(
   req: NextRequest,
@@ -46,7 +47,7 @@ export async function POST(
 
     const newStatus: UserStatusDoc = {
       _id: new ObjectId(),
-      userId: id,
+      userId: new ObjectId(id),
       content: content.trim(),
       createdAt: new Date(),
       attachments: parsedAttachments,
@@ -68,12 +69,14 @@ export async function POST(
 
     // 1. Insert feed item for the user themselves
     await feedCollection.insertOne({
-      userId: user._id, // feed owner is the user
+      userId: user._id,
       type: "profile_status_updated",
       actor: actorPayload,
       target: {
-        snippet: content.trim(),
-        attachments,
+        status: {
+          content: content.trim(),
+          attachments: parsedAttachments,
+        },
       },
       timestamp: new Date().toISOString(),
     });
@@ -86,8 +89,10 @@ export async function POST(
           type: "profile_status_updated",
           actor: actorPayload,
           target: {
-            snippet: content.trim(),
-            attachments,
+            status: {
+              content: content.trim(),
+              attachments: parsedAttachments,
+            },
           },
           timestamp: new Date().toISOString(),
         });
@@ -96,6 +101,7 @@ export async function POST(
 
     return NextResponse.json({
       status: "Status Uploaded!",
+      result,
       id: result.acknowledged,
       content,
       attachments,

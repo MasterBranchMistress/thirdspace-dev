@@ -35,19 +35,14 @@ import { dropDownStyle } from "@/utils/get-dropdown-style/getDropDownStyle";
 import { useAvatar } from "@/app/context/AvatarContext";
 
 export default function NavBar() {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const router = useRouter();
   const user = session?.user;
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
   const { notificationCount } = useNotifications();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-
-  useEffect(() => {
-    if (session?.user.avatar) {
-      setAvatarUrl(session?.user.avatar);
-    }
-  }, [session?.user.avatar]);
+  const { avatar, setAvatar } = useAvatar();
 
   return (
     <>
@@ -113,7 +108,11 @@ export default function NavBar() {
                     placement="top-right"
                   >
                     <Avatar
-                      src={avatarUrl ?? ""}
+                      src={
+                        avatar ||
+                        session?.user.avatar ||
+                        "/misc/default-avatar.png"
+                      }
                       color="primary"
                       isBordered
                       size="md"

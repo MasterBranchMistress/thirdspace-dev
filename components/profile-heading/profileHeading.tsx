@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import {
   Card,
   CardFooter,
@@ -11,21 +11,139 @@ import {
 } from "@heroui/react";
 import { UserDoc } from "@/lib/models/User";
 import {
+  ChatBubbleLeftEllipsisIcon,
   ChatBubbleLeftRightIcon,
   FireIcon,
+  GlobeAmericasIcon,
   HandRaisedIcon,
+  NoSymbolIcon,
+  PencilSquareIcon,
   RocketLaunchIcon,
+  UserGroupIcon,
+  UserMinusIcon,
   UserPlusIcon,
 } from "@heroicons/react/24/outline";
+import { sendFriendRequest } from "@/utils/friend-request-handlling/sendFriendRequest";
+import { SessionUser } from "@/types/user-session";
+import { useUserRelationships } from "@/app/context/UserRelationshipsContext";
+import { useNotifications } from "@/app/context/NotificationContext";
+import { useToast } from "@/app/providers/ToastProvider";
 
 export default function ProfileHeading({
   disabled,
+  //The profile we're veiwing
   user,
+  relationship,
+  isSelf,
+  viewer,
 }: {
   disabled?: boolean;
   user: UserDoc;
+  viewer: SessionUser;
+  relationship: string;
+  isSelf: boolean;
 }) {
   const [showOverlay, setShowOverlay] = useState(false);
+  const isPendingIncoming = relationship === "pending_friend_request_incoming";
+  const isPendingOutgoing = relationship === "pending_friend_request_outgoing";
+  const isFriend = relationship === "friend";
+  const isFollowing = relationship === "following";
+  const isBlocked = relationship === "blocked";
+  const { reject, cancel } = useNotifications();
+  const { setRelationship } = useUserRelationships();
+  const { notify } = useToast();
+
+  const [userActionFunction, setUserActionFunction] = useState<
+    () => Promise<void>
+  >(async () => {});
+
+  useEffect(() => {
+    if (isSelf) {
+      setUserActionFunction(() => async () => {
+        //TODO: implement function
+        // open settings modal or navigate
+      });
+    } else if (isFriend) {
+      setUserActionFunction(() => async () => {
+        //TODO: implement function
+        // unfriend endpoint
+        console.log("Unfriend", user._id);
+      });
+    } else if (isPendingOutgoing) {
+      setUserActionFunction(() => async () => {
+        await cancel(viewer.id);
+        setRelationship(String(user._id), "none");
+        setRelationship(String(viewer.id), "none");
+      });
+    } else if (isPendingIncoming) {
+      setUserActionFunction(async () => {
+        //TODO: implement function
+        // open a modal with Accept / Reject options
+        console.log("Respond to request from", user._id);
+      });
+    } else {
+      setUserActionFunction(() => async () => {
+        await sendFriendRequest(viewer, user);
+        setRelationship(viewer.id, "pending_friend_request_incoming");
+        setRelationship(String(user._id), "pending_friend_request_outgoing");
+        notify(
+          "Friend request sent! 🤝",
+          `${user.firstName} has been notified of your request.`
+        );
+      });
+    }
+  }, [
+    relationship,
+    isSelf,
+    isFriend,
+    isPendingOutgoing,
+    isPendingIncoming,
+    viewer,
+    user,
+  ]);
+
+  let userActionLabel = "Add Friend";
+  let userActionIcon = <UserPlusIcon width={17} className="shrink-0" />;
+  let secondaryActionLabel = "Follow";
+  let secondaryActionIcon = (
+    <RocketLaunchIcon width={17} className="shrink-0" />
+  );
+  let manageActionLabel = "Block User";
+  let manageActionIcon = <HandRaisedIcon width={17} className="shrink-0" />;
+
+  if (isSelf) {
+    userActionLabel = "Edit Profile";
+    userActionIcon = <PencilSquareIcon width={17} className="shrink-0" />;
+    secondaryActionLabel = "Explore";
+    secondaryActionIcon = <GlobeAmericasIcon width={17} className="shrink-0" />;
+    manageActionLabel = "Friend List";
+    manageActionIcon = <UserGroupIcon width={17} className="shrink-0" />;
+  } else if (isFriend) {
+    userActionLabel = "Unfriend";
+    userActionIcon = <UserMinusIcon width={17} />;
+    if (isFollowing) {
+      secondaryActionLabel = "Unfollow";
+      secondaryActionIcon = <UserMinusIcon width={17} className="shrink-0" />;
+    }
+  } else if (isPendingOutgoing) {
+    userActionLabel = "Cancel";
+    userActionIcon = <UserMinusIcon width={17} className="shrink-0" />;
+    if (isFollowing) {
+      secondaryActionLabel = "Unfollow";
+      secondaryActionIcon = <UserMinusIcon width={17} className="shrink-0" />;
+    }
+  }
+  if (isPendingIncoming) {
+    userActionLabel = "Respond";
+    userActionIcon = (
+      <ChatBubbleLeftEllipsisIcon width={17} className="shrink-0" />
+    );
+  }
+
+  if (isBlocked) {
+    manageActionLabel = "Blocked";
+    manageActionIcon = <NoSymbolIcon width={17} className="shrink-0" />;
+  }
 
   return (
     <Card
@@ -50,7 +168,9 @@ export default function ProfileHeading({
             </p>
           </div>
           <div>
-            <button className="hover:cursor-pointer">
+            <button
+              className={`hover:cursor-pointer ${isSelf ? "hidden" : ""}`}
+            >
               <ChatBubbleLeftRightIcon className="h-6 w-6 shrink-0 text-white" />
             </button>
           </div>
@@ -97,20 +217,21 @@ export default function ProfileHeading({
 
       {/* Footer buttons */}
       <CardFooter
-        className="justify-between before:bg-white/10 border-white/20 border-1 
-        overflow-hidden py-1 absolute rounded-none bottom-[-8] 
-        shadow-small z-20 mb-2"
+        className={`justify-between backdrop-blur-xl before:bg-white/10 border-t-1 border-white/30
+        overflow-hidden py-1.5 absolute rounded-none bottom-[-8] 
+        shadow-small z-20 mb-2`}
       >
         <Button
-          className="text-tiny text-white tracking-tighter bg-black/20 border-white/20 border-1 "
-          color="default"
+          className={`text-tiny ${isFriend || isPendingOutgoing ? "text-danger" : "text-concrete"} tracking-tighter bg-black/20 border-white/20 border-1`}
+          color="danger"
           radius="lg"
           size="sm"
           variant="flat"
           disabled={disabled}
+          onPress={userActionFunction}
         >
-          <UserPlusIcon width={17} className="shrink-0" />
-          Friend
+          {userActionIcon}
+          {userActionLabel}
         </Button>
         <Button
           className="text-tiny tracking-tighter text-white bg-black/20 border-white/20 border-1 "
@@ -120,8 +241,8 @@ export default function ProfileHeading({
           variant="flat"
           disabled={disabled}
         >
-          <RocketLaunchIcon width={17} className="shrink-0" />
-          Follow
+          {secondaryActionIcon}
+          {secondaryActionLabel}
         </Button>
         <Button
           className="text-tiny text-white tracking-tighter bg-black/20 border-white/20 border-1 "
@@ -134,14 +255,15 @@ export default function ProfileHeading({
           <FireIcon width={17} className="shrink-0" /> Spark
         </Button>
         <Button
-          className="text-tiny text-white tracking-tighter bg-black/20 border-white/20 border-1 "
-          color="default"
+          className={`text-tiny  ${isBlocked ? `text-concrete bg-danger` : `${!isSelf ? `text-danger` : "text-concrete"} bg-black/20 border-white/20`} tracking-tighter border-1`}
+          color="danger"
           radius="lg"
           size="sm"
           variant="flat"
           disabled={disabled}
         >
-          <HandRaisedIcon width={17} className="shrink-0" /> Block
+          {manageActionIcon}
+          {manageActionLabel}
         </Button>
       </CardFooter>
     </Card>

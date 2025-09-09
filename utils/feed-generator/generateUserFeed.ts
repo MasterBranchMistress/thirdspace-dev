@@ -8,6 +8,9 @@ import { UserFeedDoc } from "@/lib/models/UserFeedDoc";
 import { getDistFromMiles } from "../geolocation/get-distance-from-event/getDistFromEvent";
 import { geocodeAddress } from "../geolocation/geocode-address/geocodeAddress";
 import { canViewerSee } from "../user-privacy/canViewerSee";
+import { UserStatusDoc } from "@/lib/models/UserStatusDoc";
+import { ObjectId } from "mongodb";
+import { snippet } from "@heroui/theme";
 
 function resolveAvatar(user: UserDoc): string {
   return user.avatar ?? getGravatarUrl(user.email);
@@ -16,13 +19,17 @@ function resolveAvatar(user: UserDoc): string {
 export async function generateUserFeed(
   user: UserDoc,
   friends: UserDoc[],
-  events: EventDoc[]
+  events: EventDoc[],
+  statuses: UserStatusDoc[]
 ): Promise<FeedItemUser[]> {
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
   const feedCollection = db.collection<UserFeedDoc>(COLLECTIONS._USER_FEED);
   const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
   const eventCollection = db.collection<EventDoc>(COLLECTIONS._EVENTS);
+  const statusCollection = db.collection<UserStatusDoc>(
+    COLLECTIONS._USER_STATUSES
+  );
 
   async function logFeedItem(item: Omit<UserFeedDoc, "_id">) {
     const exists = await feedCollection.findOne({
@@ -77,14 +84,13 @@ export async function generateUserFeed(
   const actors: UserDoc[] = [user, ...friends];
 
   for (const actorUser of actors) {
+    if (!canViewerSee(actorUser, user)) continue;
     for (const event of events) {
       if (event.type === "hosted_event") {
         const now = new Date();
         const twoWeeks = new Date(now.getTime() + 1000 * 60 * 60 * 24 * 14);
 
         const eventDate = new Date(event.date); // ✅ normalize string → Date
-
-        console.log(eventDate >= now && eventDate <= twoWeeks);
 
         const isUpcoming = eventDate >= now && eventDate <= twoWeeks;
 
@@ -107,8 +113,6 @@ export async function generateUserFeed(
       const deleted = await feedCollection.deleteMany({
         "actor.eventId": { $in: canceledOrCompletedIds },
       });
-
-      console.log(deleted);
 
       // Event coords (fallback to geocode)
       let evLat = event.location?.lat;
@@ -151,54 +155,46 @@ export async function generateUserFeed(
       };
 
       if (host) {
-        if (canViewerSee(host, user)) {
-          await logFeedItem({
-            userId: user._id!,
-            type: "hosted_event",
-            actor,
-            target: {
-              eventId: event._id,
-              title: event.title,
-              snippet: event.description,
-              startingDate: new Date(event.date).toISOString(),
-              location: event.location
-                ? {
-                    name: event.location.name,
-                    lat: event.location.lat ?? evLat!,
-                    lng: event.location.lng ?? evLng!,
-                  }
-                : undefined,
-              distanceMiles: distMiles ?? undefined,
-              attachments: event.attachments,
-            },
-            timestamp: nowIso,
-          });
-        }
+        await logFeedItem({
+          userId: user._id!,
+          type: "hosted_event",
+          actor,
+          target: {
+            eventId: event._id,
+            title: event.title,
+            snippet: event.description,
+            startingDate: new Date(event.date).toISOString(),
+            location: event.location
+              ? {
+                  name: event.location.name,
+                  lat: event.location.lat ?? evLat!,
+                  lng: event.location.lng ?? evLng!,
+                }
+              : undefined,
+            distanceMiles: distMiles ?? undefined,
+            attachments: event.attachments,
+          },
+          timestamp: nowIso,
+        });
       }
     }
 
     // Profile updates
-    if (actorUser.avatar && canViewerSee(actorUser, user)) {
-      await logFeedItem({
-        userId: user._id!,
-        type: "profile_avatar_updated",
-        actor: {
-          id: actorUser._id!.toString(),
-          firstName: actorUser.firstName,
-          lastName: actorUser.lastName,
-          username: actorUser.username,
-          avatar: actorUser.avatar,
-        },
-        target: { userId: actorUser._id!, snippet: actorUser.avatar },
-        timestamp: nowIso,
-      });
-    }
+    await logFeedItem({
+      userId: user._id!,
+      type: "profile_avatar_updated",
+      actor: {
+        id: actorUser._id!.toString(),
+        firstName: actorUser.firstName,
+        lastName: actorUser.lastName,
+        username: actorUser.username,
+        avatar: actorUser.avatar,
+      },
+      target: { userId: actorUser._id!, snippet: actorUser.avatar },
+      timestamp: nowIso,
+    });
 
-    if (
-      actorUser.location &&
-      canViewerSee(actorUser, user) &&
-      actorUser.shareLocation === true
-    ) {
+    if (actorUser.location && actorUser.shareLocation === true) {
       await logFeedItem({
         userId: user._id!,
         type: "profile_location_updated",
@@ -214,11 +210,11 @@ export async function generateUserFeed(
       });
     }
 
-    if (
-      actorUser.status &&
-      actorUser.statusLastUpdatedAt &&
-      canViewerSee(actorUser, user)
-    ) {
+    const userStatuses = statuses.filter(
+      (s) => String(s.userId) === String(actorUser._id!)
+    );
+
+    for (const status of userStatuses) {
       await logFeedItem({
         userId: user._id!,
         type: "profile_status_updated",
@@ -230,9 +226,11 @@ export async function generateUserFeed(
           avatar: resolveAvatar(actorUser),
         },
         target: {
-          userId: actorUser._id!,
-          snippet: actorUser.status,
-          avatar: actorUser.avatar,
+          userId: actorUser._id,
+          status: {
+            content: status.content,
+            attachments: status.attachments ?? [],
+          },
         },
         timestamp: nowIso,
       });
@@ -263,7 +261,11 @@ export async function generateUserFeed(
         distanceFromEvent: doc.actor.distanceFromEvent,
         eventLocation: doc.actor.eventLocation,
       },
-      target: doc.target,
+      target: {
+        ...doc.target,
+        snippet: doc.target?.snippet,
+        attachments: doc.target?.attachments,
+      },
       timestamp: doc.timestamp,
     }));
 

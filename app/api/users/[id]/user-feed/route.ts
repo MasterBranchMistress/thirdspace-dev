@@ -2,7 +2,7 @@ import clientPromise from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { COLLECTIONS, DBS, EVENT_STATUSES } from "@/lib/constants";
-import { UserDoc } from "@/lib/models/User";
+import { UserDoc, UserStatusDoc } from "@/lib/models/User";
 import { EventDoc } from "@/lib/models/Event";
 import { generateEventFeed } from "@/utils/feed-generator/generateEventFeed";
 import { generateUserFeed } from "@/utils/feed-generator/generateUserFeed";
@@ -19,6 +19,9 @@ export async function GET(
   const usersCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
   const eventsCollection = db.collection<EventDoc>(COLLECTIONS._EVENTS);
   const feedCollection = db.collection<FeedItem>(COLLECTIONS._USER_FEED);
+  const statusCollection = db.collection<UserStatusDoc>(
+    COLLECTIONS._USER_STATUSES
+  );
 
   try {
     const user = await usersCollection.findOne({ _id: new ObjectId(id) });
@@ -55,7 +58,7 @@ export async function GET(
     }
 
     // Fetch friends + recent events
-    const [friends, events] = await Promise.all([
+    const [friends, events, statuses] = await Promise.all([
       usersCollection.find({ _id: { $in: friendsIds } }).toArray(),
 
       eventsCollection
@@ -65,7 +68,20 @@ export async function GET(
         })
         .sort({ date: -1 })
         .toArray(),
+
+      statusCollection
+        .find({ userId: { $in: [...friendsIds, user._id] } })
+        .toArray(),
     ]);
+
+    console.log("friends", Array.isArray(friends), friends.length);
+    console.log("events", Array.isArray(events), events.length);
+    console.log(
+      "statuses",
+      Array.isArray(statuses),
+      statuses?.length,
+      statuses
+    );
 
     const feedQuery: any = { userId: user._id };
     if (sinceDate) {
@@ -78,7 +94,12 @@ export async function GET(
       .sort({ timestamp: -1 })
       .toArray();
 
-    const generatedUserFeed = await generateUserFeed(user, friends, events);
+    const generatedUserFeed = await generateUserFeed(
+      user,
+      friends,
+      events,
+      statuses
+    );
     const generatedEventFeed = await generateEventFeed(user, events, friends);
     const combined = [...generatedUserFeed, ...generatedEventFeed];
 

@@ -33,9 +33,18 @@ export async function PATCH(
         { status: 400 }
       );
     }
-    const sentFriendRequest = await userCollection.updateOne(
+    const incomingRequest = await userCollection.updateOne(
       { _id: new ObjectId(id) },
-      { $addToSet: { pendingFriendRequests: new ObjectId(String(fromId)) } }
+      {
+        $addToSet: {
+          pendingFriendRequestsIncoming: new ObjectId(String(fromId)),
+        },
+      }
+    );
+
+    const outgoingRequest = await userCollection.updateOne(
+      { _id: new ObjectId(String(fromId)) },
+      { $addToSet: { pendingFriendRequestsOutgoing: new ObjectId(String(id)) } }
     );
 
     const sender = await userCollection.findOne({
@@ -66,7 +75,11 @@ export async function PATCH(
     }
 
     return NextResponse.json(
-      { message: "Friend request sent!", sentFriendRequest },
+      {
+        message: "Friend request sent!",
+        outgoingRequest,
+        incomingRequest,
+      },
       { status: 201 }
     );
   } catch (error: unknown) {

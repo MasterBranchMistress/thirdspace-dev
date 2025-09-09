@@ -195,30 +195,6 @@ export async function PATCH(
       updateFields.tagsLastupdatedAt = new Date();
     }
 
-    // ✅ Status
-    if (
-      typeof updates.status === "string" &&
-      updates.status.trim() !== user.status
-    ) {
-      const trimmed = updates.status.trim();
-      updateFields.status = trimmed;
-      changes.status = trimmed;
-      updateFields.statusLastUpdatedAt = new Date();
-      feedItemsToInsert.push({
-        userId: null!,
-        type: "profile_status_updated",
-        actor: {
-          id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          username: user.username,
-          avatar: user.avatar!,
-        },
-        target: { snippet: trimmed },
-        timestamp,
-      });
-    }
-
     // If no updates
     if (Object.keys(updateFields).length === 0) {
       return NextResponse.json(

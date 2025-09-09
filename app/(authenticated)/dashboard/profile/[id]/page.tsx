@@ -15,6 +15,8 @@ import ProfileHeading from "@/components/profile-heading/profileHeading";
 import ideas from "@/public/lottie/ideas.json";
 import EventGridCard from "@/components/event-item-card/eventItemCard";
 import endEvents from "@/public/lottie/end-events.json";
+import { useUserRelationships } from "@/app/context/UserRelationshipsContext";
+import LoadingPage from "@/components/spinner/LoadingPage";
 
 type Profile = {
   user: UserDoc;
@@ -54,7 +56,8 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { data: session } = useSession();
-  const viewerId = session?.user?.id;
+  const viewer = session?.user;
+  const { getRelationship, isSelf } = useUserRelationships();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,7 +68,7 @@ export default function ProfilePage() {
         const [profileRes, eventsRes, attendingRes] = await Promise.all([
           fetch(`/api/users/${id}`),
           fetch(
-            `/api/users/${id}/get-hosted-events?viewerId=${viewerId}&page=1&limit=5`
+            `/api/users/${id}/get-hosted-events?viewerId=${viewer?.id}&page=1&limit=5`
           ),
           fetch(`/api/users/${id}/attending-events`),
         ]);
@@ -103,12 +106,13 @@ export default function ProfilePage() {
       }
     };
 
-    if (id && viewerId) {
+    if (id && viewer?.id) {
       fetchData();
+      // getRelationship(String(profile?.user._id))
     }
-  }, [id, viewerId]);
+  }, [id, viewer?.id]);
 
-  const isSelf = id?.toString() === viewerId?.toString();
+  const isUserViewingSelf = isSelf(String(id));
 
   const hosted = (hostedEvents?.events ?? []).map((e) => ({
     ...e,
@@ -121,7 +125,6 @@ export default function ProfilePage() {
 
   const totalEvents = [...hosted, ...joined];
 
-  console.log("Events: ", totalEvents);
   if (loading) {
     return (
       <>
@@ -129,7 +132,7 @@ export default function ProfilePage() {
           <FeedBackground />
         </div>
         <div className="flex justify-center items-center h-screen">
-          <Spinner color="primary" variant="wave" />
+          <LoadingPage />
         </div>
       </>
     );
@@ -174,7 +177,12 @@ export default function ProfilePage() {
       {profile && !loading && (
         <div className="mt-[-5%] pt-0 w-full bg-black/5 shadow-xl backdrop-blur-sm rounded-none overflow-hidden">
           <div className="flex w-full flex-col items-center">
-            <ProfileHeading user={profile.user} />
+            <ProfileHeading
+              user={profile.user}
+              relationship={getRelationship(String(profile.user._id))}
+              isSelf={isUserViewingSelf}
+              viewer={viewer as never}
+            />
           </div>
         </div>
       )}
@@ -220,10 +228,10 @@ export default function ProfilePage() {
             </div>
           </div>
         </section>
-      ) : !isSelf ? (
-        <div className="flex flex-col items-center justify-center text-center h-auto my-auto p-10">
+      ) : !isUserViewingSelf ? (
+        <div className="flex flex-col items-center mx-3 justify-center text-center h-full my-auto p-3">
           <Lottie animationData={ideas} style={{ width: 200 }} />
-          <p className="mt-4 text-primary text-sm font-light max-w-md">
+          <p className="h-auto text-primary text-sm font-light max-w-md">
             Hmmm, it looks like{" "}
             <span className="font-medium">{profile?.user.firstName}</span>{" "}
             hasn’t attended any events yet. Maybe they need some ideas? ✨
@@ -239,7 +247,7 @@ export default function ProfilePage() {
           </Button>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center text-center h-auto my-auto p-10">
+        <div className="flex flex-col items-center justify-center text-center h-full mx-3 my-auto p-3">
           <Lottie animationData={ideas} style={{ width: 200 }} />
           <p className="mt-4 text-primary text-sm font-light max-w-md">
             You haven’t created or joined any events yet. Get started below!

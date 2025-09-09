@@ -1,6 +1,15 @@
 import { models, model, Schema, Types } from "mongoose";
 import { ObjectId } from "mongodb";
 import { EVENT_STATUSES, REF, USER_RANKING } from "../constants";
+import { Attachment } from "@/types/user-feed";
+
+export type UserStatusDoc = {
+  _id: ObjectId;
+  userId: ObjectId;
+  content: string;
+  createdAt: Date;
+  attachments: string[];
+};
 
 export interface Availability {
   day: string;
@@ -40,6 +49,8 @@ export interface Avatar {
 type VisibilityLevel = "off" | "friends" | "followers" | "public";
 
 export interface UserDoc {
+  statusAttachments: (string | Attachment)[] | undefined;
+  status: string | undefined;
   _id?: ObjectId;
   firstName: string;
   lastName: string;
@@ -56,7 +67,8 @@ export interface UserDoc {
   provider?: string;
   friends?: ObjectId[];
   blocked?: ObjectId[];
-  pendingFriendRequests?: ObjectId[];
+  pendingFriendRequestsIncoming?: ObjectId[];
+  pendingFriendRequestsOutgoing?: ObjectId[];
   createdAt?: Date;
   updatedAt?: Date;
   bioLastUpdatedAt?: Date;
@@ -86,7 +98,6 @@ export interface UserDoc {
   shareHostedEvents?: boolean;
   visibility?: VisibilityLevel;
   lang?: string;
-  status: string;
   followers?: ObjectId[];
   following?: ObjectId[];
 }

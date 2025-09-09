@@ -19,6 +19,11 @@ export type FeedItemType =
   | "event_is_nearby"
   | "event_coming_up";
 
+export type UserStatus = {
+  content: string;
+  attachments: string[];
+};
+
 /**
  * Actor representing a user in the feed.
  * `id` can come from Mongo so we support both ObjectId and string.
@@ -108,7 +113,6 @@ export interface FeedTarget {
   profilePicture?: string;
   badge?: "bronze" | "silver" | "gold" | "platinum";
   tags?: string[];
-  status?: string;
   notes?: string;
   currency?: string;
   cost?: number;
@@ -119,8 +123,6 @@ export interface FeedTarget {
   };
   startingDate?: string;
   totalAttendance?: number;
-
-  // (Optional/legacy) If you’re standardizing on attachments, consider deprecating these:
   mediaUrls?: string[];
   thumbnailUrl?: string;
   mediaType?: "image" | "video" | null;
@@ -130,6 +132,7 @@ export interface FeedTarget {
   comments?: string[];
   likes?: number;
   orbiters?: number;
+  status?: UserStatus;
 }
 
 /**
@@ -139,7 +142,6 @@ export interface FeedItemUser {
   id: string; // feed item id, not the actor id
   type: FeedItemType;
   actor: FeedUserActor;
-  status?: string;
   target?: FeedTarget;
   avatar?: string;
   timestamp: string; // ISO string

@@ -38,7 +38,17 @@ export async function PATCH(
         _id: new ObjectId(String(recipientId)),
       },
       {
-        $pull: { pendingFriendRequests: new ObjectId(String(id)) },
+        $pull: { pendingFriendRequestsIncoming: new ObjectId(String(id)) },
+      }
+    );
+    await users.updateOne(
+      {
+        _id: new ObjectId(String(id)),
+      },
+      {
+        $pull: {
+          pendingFriendRequestsOutgoing: new ObjectId(String(recipientId)),
+        },
       }
     );
 

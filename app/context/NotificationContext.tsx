@@ -12,6 +12,7 @@ import React, {
 } from "react";
 import { useSession } from "next-auth/react";
 import { ObjectId } from "mongodb";
+import { user } from "@heroui/theme";
 
 export type Notification = {
   _id: ObjectId;
@@ -31,6 +32,7 @@ type Ctx = {
   refresh: () => Promise<void>;
   accept: (senderId: string) => Promise<void>;
   reject: (senderId: string) => Promise<void>;
+  cancel: (senderId: string) => Promise<void>;
   clearAll: () => Promise<void>;
   clearNotification: (notifId: string) => Promise<void>;
   notificationCount: number;
@@ -120,6 +122,29 @@ export function NotificationsProvider({
     },
     [userId, notifications, removeBySender]
   );
+
+  const cancel = useCallback(
+    async (senderId: string) => {
+      if (!userId) return;
+      const snapshot = notifications;
+      removeBySender(senderId);
+      try {
+        await fetchJSON(
+          `/api/users/${senderId}/friend-request/cancel-request`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ recipientId: userId }),
+          }
+        );
+        await refresh();
+      } catch (e) {
+        setNotifications(snapshot);
+        throw e;
+      }
+    },
+    [userId, notifications, removeBySender]
+  );
   useEffect(() => {
     setNotifications([]);
     setError(null);
@@ -179,6 +204,7 @@ export function NotificationsProvider({
       refresh,
       accept,
       reject,
+      cancel,
       clearNotification,
       clearAll,
       notificationCount: notifications.length,
@@ -189,6 +215,7 @@ export function NotificationsProvider({
       error,
       refresh,
       accept,
+      cancel,
       reject,
       clearAll,
       clearNotification,

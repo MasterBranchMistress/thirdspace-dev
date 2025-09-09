@@ -82,7 +82,7 @@ export default function ProfileSettingsModal({
   onOpenChange: (open: boolean) => void;
 }) {
   const { notify } = useToast();
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const userId = session?.user?.id;
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -101,7 +101,8 @@ export default function ProfileSettingsModal({
     () => daysSince(form?.usernameLastChangedAt) >= USERNAME_COOLDOWN_DAYS,
     [form?.usernameLastChangedAt]
   );
-  const { setAvatar } = useAvatar();
+  const { avatar, setAvatar } = useAvatar();
+  const user = session?.user;
 
   useEffect(() => {
     if (!isOpen || !userId) return;
@@ -225,6 +226,7 @@ export default function ProfileSettingsModal({
       if (selectedFile) {
         const imageUrl = `https://thirdspace-attachments-dev.s3.us-east-2.amazonaws.com/${form.avatar?.key}`;
         setAvatar(imageUrl);
+        update({ user: { ...session.user, avatar: imageUrl } });
         const avatarRes = await fetch(
           `/api/users/${userId}/avatar-handling/upload-avatar`,
           {
@@ -264,7 +266,7 @@ export default function ProfileSettingsModal({
       }
       setInitialForm(next);
       onOpenChange(false);
-      notify(`Success! 🥳`, `Profile saved successfully `);
+      notify(`Success! 🥳`, `Profile changes saved successfully!`);
       confetti({
         particleCount: 100,
         spread: 80,

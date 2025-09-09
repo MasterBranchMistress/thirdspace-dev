@@ -9,7 +9,6 @@ export function canViewerSee(user: UserDoc, viewer: UserDoc | null): boolean {
   try {
     switch (level) {
       case "public":
-        console.log("We hit public!!!");
         return true;
       case "followers":
         return (

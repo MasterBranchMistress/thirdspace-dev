@@ -11,6 +11,7 @@ import { SessionProvider } from "next-auth/react";
 import { FeedProvider } from "@/app/context/UserFeedContext";
 import { NotificationsProvider } from "@/app/context/NotificationContext";
 import { AvatarProvider } from "@/app/context/AvatarContext";
+import { UserRelationshipsProvider } from "@/app/context/UserRelationshipsContext";
 
 export interface ProvidersProps {
   children: React.ReactNode;
@@ -30,17 +31,19 @@ export function Providers({ children, themeProps }: ProvidersProps) {
 
   return (
     <SessionProvider>
-      <AvatarProvider>
-        <ToastProvider>
-          <FeedProvider>
-            <HeroUIProvider navigate={router.push}>
-              <NextThemesProvider {...themeProps}>
-                <NotificationsProvider>{children}</NotificationsProvider>
-              </NextThemesProvider>
-            </HeroUIProvider>
-          </FeedProvider>
-        </ToastProvider>
-      </AvatarProvider>
+      <UserRelationshipsProvider>
+        <AvatarProvider>
+          <ToastProvider>
+            <FeedProvider>
+              <HeroUIProvider navigate={router.push}>
+                <NextThemesProvider {...themeProps}>
+                  <NotificationsProvider>{children}</NotificationsProvider>
+                </NextThemesProvider>
+              </HeroUIProvider>
+            </FeedProvider>
+          </ToastProvider>
+        </AvatarProvider>
+      </UserRelationshipsProvider>
     </SessionProvider>
   );
 }

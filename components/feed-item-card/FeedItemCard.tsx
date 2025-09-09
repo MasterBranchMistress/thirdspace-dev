@@ -12,16 +12,23 @@ import {
   DropdownTrigger,
   Button,
   Dropdown,
+  user,
 } from "@heroui/react";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import FeedCardFooter from "./FeedCardFooter";
 import { FeedEventActor, FeedItem, FeedUserActor } from "@/types/user-feed";
 import {
+  BellAlertIcon,
   EllipsisVerticalIcon,
   ExclamationCircleIcon,
   EyeSlashIcon,
+  HandRaisedIcon,
+  HandThumbUpIcon,
+  TrashIcon,
   UserMinusIcon,
+  UserPlusIcon,
 } from "@heroicons/react/24/outline";
 import AttachmentSwiper from "../swiper/swiper";
 import { useBrowserLocation } from "@/utils/geolocation/get-user-location/getUserLocation";
@@ -29,12 +36,17 @@ import { getDistFromMiles } from "@/utils/geolocation/get-distance-from-event/ge
 import { getGravatarUrl } from "@/utils/gravatar";
 import { useRouter } from "next/navigation";
 import { dropDownStyle } from "@/utils/get-dropdown-style/getDropDownStyle";
+import { useUserRelationships } from "@/app/context/UserRelationshipsContext";
+import Lottie from "lottie-react";
+import sendmessage from "@/public/lottie/comments.json";
 
 interface FeedItemCardProps {
   item: FeedItem;
 }
 
 export default function FeedItemCard({ item }: FeedItemCardProps) {
+  const { data: session } = useSession();
+  const logginedInUser = session?.user;
   const [avatarUrl, setAvatarUrl] = useState<string>();
   const { type, target, actor, timestamp } = item;
   const isUserActor = (
@@ -49,6 +61,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
       setAvatarUrl(actor.avatar ?? "/misc/party.jpg");
     }
   }, [actor]);
+  const { getRelationship } = useUserRelationships();
 
   const userLocation = useBrowserLocation();
   const eventDistance = useMemo(() => {
@@ -67,8 +80,17 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
     return null;
   }, [userLocation, target?.location]);
 
-  const buttonText = isUserActor(actor) ? "Follow" : null;
+  const buttonText = isUserActor(actor) ? (
+    <Lottie animationData={sendmessage} style={{ width: "1.6rem" }} />
+  ) : null;
   const router = useRouter();
+  const relationship = isUserActor(actor)
+    ? getRelationship(String(actor.id))
+    : getRelationship(String(target?.userId));
+
+  const isSelf = isUserActor(actor)
+    ? String(logginedInUser?.id) === String(actor.id)
+    : String(logginedInUser?.id) === String(target?.userId);
 
   const message =
     type === "event_is_popular"
@@ -151,47 +173,79 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
         {/* Right side: Orbit button + ellipses */}
         <div className="flex items-center shrink-0">
           {isUserActor(actor) && (
-            <Button
-              variant="shadow"
-              size="sm"
-              color="primary"
-              className="p-1 text-xs rounded-full"
-            >
-              {buttonText}
-            </Button>
+            <button className="p-1 text-xs rounded-full">{buttonText}</button>
           )}
           <Dropdown classNames={dropDownStyle} backdrop="blur">
             <DropdownTrigger>
-              <EllipsisVerticalIcon className="text-primary" width={27} />
+              <EllipsisVerticalIcon className="text-primary" width={24} />
             </DropdownTrigger>
             <DropdownMenu aria-label="Dynamic Actions">
-              <DropdownItem
-                key="hide"
-                className="text-concrete bg-none"
-                color="danger"
-                variant="solid"
-                endContent={<EyeSlashIcon width={20} />}
-              >
-                Hide Post
-              </DropdownItem>
-              <DropdownItem
-                key="block"
-                className="text-concrete bg-none"
-                color="danger"
-                variant="solid"
-                endContent={<UserMinusIcon width={20} />}
-              >
-                Block User
-              </DropdownItem>
-              <DropdownItem
-                key="report"
-                className="text-concrete bg-danger"
-                color="danger"
-                variant="solid"
-                endContent={<ExclamationCircleIcon width={20} />}
-              >
-                Report Post
-              </DropdownItem>
+              {!isSelf ? (
+                <DropdownItem
+                  key="follow user"
+                  className="text-concrete bg-none"
+                  color="primary"
+                  variant="solid"
+                  endContent={<BellAlertIcon width={20} />}
+                >
+                  Follow
+                </DropdownItem>
+              ) : null}
+              {!isSelf ? (
+                <DropdownItem
+                  key="add friend"
+                  className={`${relationship === "friend" ? "text-danger" : "text-concrete"} bg-none`}
+                  variant="solid"
+                  endContent={
+                    relationship === "friend" ? (
+                      <UserMinusIcon width={20} />
+                    ) : (
+                      <UserPlusIcon width={20} />
+                    )
+                  }
+                >
+                  {relationship === "friend" ? "Unfriend" : "Friend"}
+                </DropdownItem>
+              ) : null}
+              {!isSelf ? (
+                <DropdownItem
+                  key="block"
+                  className={`${relationship === "blocked" ? "text-concrete" : "text-danger"} bg-none`}
+                  color="danger"
+                  variant="solid"
+                  endContent={
+                    relationship === "blocked" ? (
+                      <HandThumbUpIcon width={20} />
+                    ) : (
+                      <HandRaisedIcon width={20} />
+                    )
+                  }
+                >
+                  {relationship === "blocked" ? "Unblock" : "Block"}
+                </DropdownItem>
+              ) : null}
+              {!isSelf ? (
+                <DropdownItem
+                  key="report"
+                  className="text-concrete bg-danger"
+                  color="danger"
+                  variant="solid"
+                  endContent={<ExclamationCircleIcon width={20} />}
+                >
+                  Report Post
+                </DropdownItem>
+              ) : null}
+              {isSelf ? (
+                <DropdownItem
+                  key="delete_post"
+                  className="text-concrete bg-danger"
+                  color="danger"
+                  variant="solid"
+                  endContent={<TrashIcon width={20} />}
+                >
+                  Delete Post
+                </DropdownItem>
+              ) : null}
             </DropdownMenu>
           </Dropdown>
         </div>
@@ -223,12 +277,13 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
 
           {type === "profile_status_updated" && isUserActor(actor) && (
             <div className="font-light tracking-tight max-w-[100%] text-center">
-              <p className="mx-auto text-sm mb-2">{target?.snippet}</p>
-              {target?.attachments && target.attachments.length > 0 && (
-                <div className="h-full">
-                  <AttachmentSwiper attachments={target.attachments} />
-                </div>
-              )}
+              <p className="mx-1.5 text-sm mb-2">{target?.status?.content}</p>
+              {target?.status?.attachments &&
+                target.status.attachments.length > 0 && (
+                  <div className="h-full">
+                    <AttachmentSwiper attachments={target.status.attachments} />
+                  </div>
+                )}
             </div>
           )}
           {type === "hosted_event" && !isUserActor(actor) && (
