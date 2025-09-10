@@ -28,7 +28,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Sender not found" });
     }
 
-    const senderIsInPendingRequests = user.pendingFriendRequests?.some(
+    const senderIsInPendingRequests = user.pendingFriendRequestsIncoming?.some(
       (c) => c.toString() === fromId
     );
 
@@ -49,12 +49,24 @@ export async function PATCH(
 
     // ✅ add to friends (both ways)
     await userCollection.updateOne(
-      { _id: new ObjectId(id) },
+      { _id: new ObjectId(user._id) }, //recipient
       { $addToSet: { friends: new ObjectId(String(fromId)) } }
+    );
+    await userCollection.updateOne(
+      { _id: new ObjectId(user._id) },
+      { $pull: { pendingFriendRequestsIncoming: new ObjectId(String(fromId)) } }
     );
     await userCollection.updateOne(
       { _id: new ObjectId(String(fromId)) },
       { $addToSet: { friends: new ObjectId(id) } }
+    );
+    await userCollection.updateOne(
+      { _id: new ObjectId(String(fromId)) },
+      {
+        $pull: {
+          pendingFriendRequestsOutgoing: new ObjectId(String(user._id)),
+        },
+      }
     );
 
     await userCollection.updateOne(

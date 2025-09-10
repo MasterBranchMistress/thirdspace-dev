@@ -374,13 +374,6 @@ export default function EventViewPage() {
                       {event.budgetInfo &&
                         `Orbit Goal: ${event.budgetInfo.currency === "USD" ? "$" : ""}${event.budgetInfo.estimatedCost} ${event.budgetInfo.currency}`}
                     </div>
-                    {/* type EventDonation = {
-                      userId: ObjectId;
-                      amount: number;
-                      currency: string; // "USD" (default now, extensible later)
-                      timestamp: Date;
-                      refunded?: boolean; // in case you need to track clawbacks
-                    }; */}
                   </>
                 }
               </CardBody>
@@ -432,11 +425,6 @@ export default function EventViewPage() {
                   />
                 </div>
               </div>
-
-              {/* <Lottie
-                animationData={tip}
-                style={{ width: "9rem", marginTop: "-.5rem" }}
-              /> */}
               <div className="flex flex-row gap-2 mt-3 bg-concrete">
                 <Button
                   endContent={<RocketLaunchIcon width={18} />}

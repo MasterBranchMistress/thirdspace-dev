@@ -30,20 +30,27 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           open={open}
           onOpenChange={setOpen}
           className={`
-    bg-white/20           
-    backdrop-blur-md      
-    border-none border-white/25 
     shadow-lg 
     text-sm           
     px-4 py-2 rounded-lg
     data-[state=open]:animate-appearance-in
     data-[state=closed]:animate-appearance-out
     text-center
-    ${status === "authenticated" ? "text-primary" : "text-white"}
+    ${status === "authenticated" ? "text-concrete bg-primary" : "text-white bg-white/20 backdrop-blur-md border-none border-white/25"}
   `}
         >
-          <Toast.Title className="font-bold">{toastTitle}</Toast.Title>
-          <Toast.Description>{toastDesc}</Toast.Description>
+          <div className="flex items-center">
+            <div className="flex-1 text-center">
+              <Toast.Title className="font-bold">{toastTitle}</Toast.Title>
+              <Toast.Description>{toastDesc}</Toast.Description>
+            </div>
+            <Toast.Close
+              className="ml-2 inline-flex items-center px-2 py-1 text-xs text-white font-light"
+              aria-label="Close"
+            >
+              ✕
+            </Toast.Close>
+          </div>
         </Toast.Root>
 
         <Toast.Viewport className="fixed top-4 left-1/2 translate-x-[-50%] z-50 w-[90vw] max-w-sm outline-none" />

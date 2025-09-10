@@ -30,7 +30,7 @@ export async function PATCH(
 
     await userCollection.updateOne(
       {
-        _id: new ObjectId(String(id)),
+        _id: new ObjectId(String(user._id)),
       },
       {
         $pull: { pendingFriendRequestsIncoming: new ObjectId(String(fromId)) },
@@ -42,7 +42,7 @@ export async function PATCH(
       },
       {
         $pull: {
-          pendingFriendRequestsOutgoing: new ObjectId(String(id)),
+          pendingFriendRequestsOutgoing: new ObjectId(String(user._id)),
         },
       }
     );

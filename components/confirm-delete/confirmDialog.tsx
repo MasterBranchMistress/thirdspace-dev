@@ -11,6 +11,7 @@ import {
 import Lottie from "lottie-react";
 import { useState } from "react";
 import sad from "@/public/lottie/sad.json";
+import thinking from "@/public/lottie/thinking.json";
 
 type ConfirmDialogProps = {
   isOpen: boolean;
@@ -71,9 +72,15 @@ export default function ConfirmDialog({
       <ModalContent>
         {() => (
           <div className="flex flex-col justify-center items-center gap-0">
-            {danger && (
+            {danger === true && (
               <Lottie
                 animationData={sad}
+                style={{ width: "6rem", padding: "1rem 0 0" }}
+              />
+            )}
+            {danger === false && (
+              <Lottie
+                animationData={thinking}
                 style={{ width: "6rem", padding: "1rem 0 0" }}
               />
             )}
