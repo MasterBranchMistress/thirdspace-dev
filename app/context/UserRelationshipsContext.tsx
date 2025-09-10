@@ -9,23 +9,23 @@ import {
 } from "react";
 import { useSession } from "next-auth/react";
 
-type RelationshipStatus =
-  | "friend"
-  | "blocked"
-  | "pending_friend_request_incoming"
-  | "pending_friend_request_outgoing"
-  | "following"
-  | "none";
+type RelationshipFlags = {
+  friend?: boolean;
+  blocked?: boolean;
+  pendingIncoming?: boolean;
+  pendingOutgoing?: boolean;
+  following?: boolean;
+};
 
 type Relationships = {
-  [userId: string]: RelationshipStatus;
+  [userId: string]: RelationshipFlags;
 };
 
 type UserRelationshipsContextType = {
   relationships: Relationships;
   refreshRelationships: () => Promise<void>;
-  getRelationship: (userId: string) => RelationshipStatus;
-  setRelationship: (userId: string, status: RelationshipStatus) => void;
+  getRelationship: (userId: string) => RelationshipFlags;
+  setRelationship: (userId: string, status: RelationshipFlags) => void;
   isSelf: (userId: string) => boolean;
 };
 
@@ -56,38 +56,42 @@ export function UserRelationshipsProvider({
 
       const map: Relationships = {};
 
-      //       pendingFriendRequestsIncoming?: ObjectId[];
-      // pendingFriendRequestsOutgoing?: ObjectId[];
-
-      // normalize
-      (user.friends ?? []).forEach((fid: string) => (map[fid] = "friend"));
-      (user.blocked ?? []).forEach((bid: string) => (map[bid] = "blocked"));
+      (user.friends ?? []).forEach((fid: string) => {
+        map[fid] = { ...(map[fid] ?? {}), friend: true };
+      });
+      (user.blocked ?? []).forEach((bid: string) => {
+        map[bid] = { ...(map[bid] ?? {}), blocked: true };
+      });
       (user.pendingFriendRequestsIncoming ?? []).forEach((rid: string) => {
-        map[String(rid)] = "pending_friend_request_incoming";
+        map[rid] = { ...(map[rid] ?? {}), pendingIncoming: true };
       });
       (user.pendingFriendRequestsOutgoing ?? []).forEach((rid: string) => {
-        map[String(rid)] = "pending_friend_request_outgoing";
+        map[rid] = { ...(map[rid] ?? {}), pendingOutgoing: true };
       });
       (user.following ?? []).forEach((fid: string) => {
-        if (!map[fid]) map[fid] = "following";
+        map[fid] = { ...(map[fid] ?? {}), following: true };
       });
+
       setRelationships(map);
-      console.log(relationships);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const isSelf = (targetId: string) => {
-    return targetId === userId;
+  const isSelf = (targetId: string) => targetId === userId;
+
+  const getRelationship = (targetId: string): RelationshipFlags => {
+    return relationships[targetId] ?? {};
   };
 
-  const getRelationship = (targetId: string): RelationshipStatus => {
-    return relationships[targetId] ?? "none";
-  };
-
-  const setRelationship = (targetId: string, status: RelationshipStatus) => {
-    setRelationships((prev) => ({ ...prev, [targetId]: status }));
+  const setRelationship = (targetId: string, status: RelationshipFlags) => {
+    setRelationships((prev) => ({
+      ...prev,
+      [targetId]: {
+        ...(prev[targetId] ?? {}),
+        ...status,
+      },
+    }));
   };
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardFooter,
@@ -10,19 +10,7 @@ import {
   Chip,
 } from "@heroui/react";
 import { UserDoc } from "@/lib/models/User";
-import {
-  ChatBubbleLeftEllipsisIcon,
-  ChatBubbleLeftRightIcon,
-  FireIcon,
-  GlobeAmericasIcon,
-  HandRaisedIcon,
-  NoSymbolIcon,
-  PencilSquareIcon,
-  RocketLaunchIcon,
-  UserGroupIcon,
-  UserMinusIcon,
-  UserPlusIcon,
-} from "@heroicons/react/24/outline";
+import { ChatBubbleLeftRightIcon, FireIcon } from "@heroicons/react/24/outline";
 import { sendFriendRequest } from "@/utils/user-relationship-handlling/sendFriendRequest";
 import { SessionUser } from "@/types/user-session";
 import { useUserRelationships } from "@/app/context/UserRelationshipsContext";
@@ -34,6 +22,17 @@ import confetti from "canvas-confetti";
 import { blockUser } from "@/utils/user-relationship-handlling/blockUser";
 import ConfirmDialog from "../confirm-delete/confirmDialog";
 import { unblockUser } from "@/utils/user-relationship-handlling/unblockUser";
+import { handleFollowUser } from "@/utils/user-relationship-handlling/followUnfollowUser";
+import {
+  getUserActionConfig,
+  getSecondaryActionConfig,
+  getManageActionConfig,
+} from "./buttonConfigs";
+import {
+  DialogConfig,
+  getBlockDialogConfig,
+  getUnfriendDialogConfig,
+} from "./dialogConfig";
 
 export default function ProfileHeading({
   disabled,
@@ -50,15 +49,23 @@ export default function ProfileHeading({
   isSelf: boolean;
 }) {
   const [showOverlay, setShowOverlay] = useState(false);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [openStatusDialog, setOpenStatusDialog] = useState(false);
-  const isPendingIncoming = relationship === "pending_friend_request_incoming";
-  const isPendingOutgoing = relationship === "pending_friend_request_outgoing";
-  const isFriend = relationship === "friend";
-  const isFollowing = relationship === "following";
-  const isBlocked = relationship === "blocked";
+  const [dialogConfig, setDialogConfig] = useState<DialogConfig | null>(null);
+  const [dialogAction, setDialogAction] = useState<() => Promise<void>>(
+    async () => {}
+  );
+
+  const { setRelationship, getRelationship } = useUserRelationships();
+
+  const flags = getRelationship(String(user._id));
+
+  const isFriend = !!flags.friend;
+  const isBlocked = !!flags.blocked;
+  const isPendingIncoming = !!flags.pendingIncoming;
+  const isPendingOutgoing = !!flags.pendingOutgoing;
+  const isFollowing = !!flags.following;
+
   const { reject, cancel, accept } = useNotifications();
-  const { setRelationship } = useUserRelationships();
+
   const { notify } = useToast();
 
   const [userActionFunction, setUserActionFunction] = useState<
@@ -70,166 +77,111 @@ export default function ProfileHeading({
   const [manageStatusFunction, setManageStatusFunction] = useState<
     () => Promise<void>
   >(async () => {});
+  const [secondaryActionFunction, setSecondaryActionFunction] = useState<
+    () => Promise<void>
+  >(async () => {});
+
+  const statuses = {
+    isSelf: isSelf,
+    isFriend: isFriend,
+    isPendingIncoming: isPendingIncoming,
+    isPendingOutgoing: isPendingOutgoing,
+    isFollowing: isFollowing,
+    isBlocked: isBlocked,
+  };
+  const { label: userActionLabel, icon: userActionIcon } =
+    getUserActionConfig(statuses);
+  const { label: secondaryActionLabel, icon: secondaryActionIcon } =
+    getSecondaryActionConfig(statuses);
+  const { label: manageActionLabel, icon: manageActionIcon } =
+    getManageActionConfig(statuses);
 
   useEffect(() => {
     if (isSelf) {
       setUserActionFunction(() => async () => {
-        //TODO: implement function edit profile. Open already made edit profile
-        // open settings modal or navigate
+        /* edit profile */
       });
     } else if (isFriend) {
       setManageStatusFunction(() => async () => {
-        //Unfreind
-        unfriend({ loggedInUser: viewer, userToUnfriend: user });
-        setRelationship(String(user._id), isFollowing ? "following" : "none");
-        setRelationship(String(viewer.id), isFollowing ? "following" : "none");
+        await unfriend({ loggedInUser: viewer, userToUnfriend: user });
+        setRelationship(String(user._id), { friend: false });
         notify(
-          `@${user.username} has been unfriended ❌`,
-          `${user.firstName} will not be notified of your request`
+          `Unfriended ${user.username} 🙅`,
+          `${user.firstName} won't be notified of this decision.`
         );
       });
     } else if (isPendingOutgoing) {
       setUserActionFunction(() => async () => {
         await cancel(viewer.id);
-        setRelationship(String(user._id), "none");
-        setRelationship(String(viewer.id), "none");
+        setRelationship(String(user._id), {});
         notify(
-          "Friend request canceled! ❌",
-          `Your friend request to @${user.username} has been canceled.`
+          "Friend request canceled! 🤝",
+          `${user.firstName} won't be notified of this decision.`
         );
       });
     } else if (isPendingIncoming) {
-      setUserActionFunction(() => async () => {
-        //made a seperate dropdown for this. done
-        // open a modal with Accept / Reject options
-      });
+      // Respond handled via dropdown
+      setUserActionFunction(() => async () => {});
     } else {
       setUserActionFunction(() => async () => {
         await sendFriendRequest(viewer, user);
-        setRelationship(viewer.id, "pending_friend_request_incoming");
-        setRelationship(String(user._id), "pending_friend_request_outgoing");
+        setRelationship(String(user._id), { pendingOutgoing: true });
         notify(
-          "Friend request sent! 🤝",
-          `${user.firstName} has been notified of your request.`
+          "Friend request sent! 🚀",
+          `Send ${user.firstName} a quick message to let them know you're here!`
         );
-        confetti({
-          particleCount: 100,
-          spread: 80,
-          origin: { y: 0.6 },
+        confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+      });
+    }
+
+    if (isBlocked) {
+      setManageActionFunction(() => async () => {
+        await unblockUser({ loggedInUser: viewer, userToUnblock: user });
+        setRelationship(String(user._id), {});
+        notify(
+          `Unblocked ${user.username} 👩‍🚀`,
+          `${user.firstName} will now be able to see your profile activity and interact with you!`
+        );
+      });
+    } else {
+      setManageActionFunction(() => async () => {
+        await blockUser({ loggedInUser: viewer, userToBlock: user });
+        setRelationship(String(user._id), { blocked: true });
+        notify(
+          `Blocked ${user.username} 🙅`,
+          `${user.firstName} will not be able to see your profile activity or interact with you!`
+        );
+      });
+    }
+
+    if (!isFollowing) {
+      setSecondaryActionFunction(() => async () => {
+        await handleFollowUser({ userWereFollowing: user });
+        setRelationship(String(user._id), {
+          ...(isFriend ? { friend: true } : {}),
+          following: true,
         });
+      });
+    } else {
+      setSecondaryActionFunction(() => async () => {
+        await handleFollowUser({ userWereFollowing: user });
+        setRelationship(String(user._id), { following: false });
+        notify(
+          `Following ${user.firstName} ${user.lastName} 👍`,
+          `You'll see priority posts from ${user.firstName} in your feed from now on.`
+        );
+        confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
       });
     }
   }, [
     relationship,
     isSelf,
     isFriend,
-    isPendingOutgoing,
+    isBlocked,
+    isFollowing,
     isPendingIncoming,
-    viewer,
-    user,
+    isPendingOutgoing,
   ]);
-
-  //block/unblock... last button
-  useEffect(() => {
-    console.log(`Is Blocked?: `, isBlocked);
-    if (!isBlocked) {
-      setManageActionFunction(() => async () => {
-        try {
-          blockUser({ loggedInUser: viewer, userToBlock: user });
-          setRelationship(String(user._id), "blocked");
-          notify(
-            `${user.username} has been blocked! ❌`,
-            `${user.firstName} ${user.lastName} will not be notified of your request.`
-          );
-        } catch (err) {
-          throw new Error(err as string);
-        }
-      });
-    }
-    if (isBlocked) {
-      setManageActionFunction(() => async () => {
-        try {
-          unblockUser({ loggedInUser: viewer, userToUnblock: user });
-          setRelationship(String(user._id), "none");
-          notify(
-            `${user.username} has been unblocked! ✅`,
-            `${user.firstName} ${user.lastName} will not be notified of your request.`
-          );
-        } catch (err) {
-          throw new Error(err as string);
-        }
-      });
-    }
-  }, [relationship, isBlocked, viewer, user]);
-
-  let userActionLabel = "Add Friend";
-  let userActionIcon = <UserPlusIcon width={17} className="shrink-0" />;
-  let secondaryActionLabel = "Follow";
-  let secondaryActionIcon = (
-    <RocketLaunchIcon width={17} className="shrink-0" />
-  );
-  let manageActionLabel = "Block User";
-  let manageActionIcon = <HandRaisedIcon width={17} className="shrink-0" />;
-  let dialogTitle;
-  let dialogDesc;
-  let confirmText;
-  let denyText;
-  let statusTitle;
-  let statusDesc;
-  let confirmStatus;
-  let denyStatusText;
-
-  if (isSelf) {
-    userActionLabel = "Edit Profile";
-    userActionIcon = <PencilSquareIcon width={17} className="shrink-0" />;
-    secondaryActionLabel = "Explore";
-    secondaryActionIcon = <GlobeAmericasIcon width={17} className="shrink-0" />;
-    manageActionLabel = "Friend List";
-    manageActionIcon = <UserGroupIcon width={17} className="shrink-0" />;
-  } else if (isFriend) {
-    userActionLabel = "Unfriend";
-    userActionIcon = <UserMinusIcon width={17} />;
-    if (isFollowing) {
-      secondaryActionLabel = "Unfollow";
-      secondaryActionIcon = <UserMinusIcon width={17} className="shrink-0" />;
-    }
-  } else if (isPendingOutgoing) {
-    userActionLabel = "Cancel";
-    userActionIcon = <UserMinusIcon width={17} className="shrink-0" />;
-    if (isFollowing) {
-      secondaryActionLabel = "Unfollow";
-      secondaryActionIcon = <UserMinusIcon width={17} className="shrink-0" />;
-    }
-  }
-  if (isPendingIncoming) {
-    userActionLabel = "Respond";
-    userActionIcon = (
-      <ChatBubbleLeftEllipsisIcon width={17} className="shrink-0" />
-    );
-  }
-
-  if (isBlocked) {
-    manageActionLabel = "Blocked";
-    manageActionIcon = <NoSymbolIcon width={17} className="shrink-0" />;
-    dialogTitle = `Unblock @${user.username}?`;
-    dialogDesc = `${user.firstName} ${user.lastName} will be able to see your profile activity. Continue?`;
-    denyText = `Cancel`;
-    confirmText = `Unblock`;
-  }
-
-  if (!isBlocked) {
-    dialogTitle = `Block @${user.username}?`;
-    dialogDesc = `${user.firstName} ${user.lastName} will not be able to see your profile activity. Continue?`;
-    denyText = `Cancel`;
-    confirmText = `Block`;
-  }
-
-  if (isFriend) {
-    statusTitle = `Unfriend @${user.username}?`;
-    statusDesc = `${user.firstName} ${user.lastName} will no longer be in your Orbit, but will still be able to see your group activity. Continue?`;
-    denyStatusText = `Cancel`;
-    confirmStatus = `Unfriend`;
-  }
 
   return (
     <>
@@ -317,7 +269,12 @@ export default function ProfileHeading({
               variant="flat"
               disabled={disabled}
               onPress={
-                !isFriend ? userActionFunction : () => setOpenStatusDialog(true)
+                !isFriend
+                  ? userActionFunction
+                  : () => {
+                      setDialogConfig(getUnfriendDialogConfig(user));
+                      setDialogAction(() => manageStatusFunction);
+                    }
               }
             >
               {userActionIcon}
@@ -332,17 +289,22 @@ export default function ProfileHeading({
                   spread: 80,
                   origin: { y: 0.6 },
                 });
-                setRelationship(viewer.id, "friend");
-                setRelationship(String(user._id), "friend");
+                setRelationship(viewer.id, { friend: true });
+                setRelationship(String(user._id), { friend: true });
                 notify(
                   "Friend request Accepted! 🤝",
                   `${user.firstName} has been notified. Send a quick message!`
                 );
+                confetti({
+                  particleCount: 100,
+                  spread: 80,
+                  origin: { y: 0.6 },
+                });
               }}
               onReject={async () => {
                 await reject(String(user._id));
-                setRelationship(viewer.id, "none");
-                setRelationship(String(user._id), "none");
+                setRelationship(viewer.id, { friend: false });
+                setRelationship(String(user._id), { friend: false });
                 notify(
                   "Friend request Rejected! ❌",
                   `${user.firstName} will not be notified of this.`
@@ -351,12 +313,14 @@ export default function ProfileHeading({
             ></RespondDropdown>
           )}
           <Button
-            className="text-tiny tracking-tighter text-white bg-black/20 border-white/20 border-1 "
+            className={`text-tiny tracking-tighter ${!isFollowing ? `text-concrete` : `text-danger`} bg-black/20 border-white/20 border-1`}
             color="default"
             radius="lg"
             size="sm"
             variant="flat"
+            spinner="dot"
             disabled={disabled}
+            onPress={secondaryActionFunction}
           >
             {secondaryActionIcon}
             {secondaryActionLabel}
@@ -367,7 +331,9 @@ export default function ProfileHeading({
             radius="lg"
             size="sm"
             variant="flat"
-            disabled={disabled}
+            onPress={() => {
+              notify("Feature Coming Soon! 🤝", `Dev in-progress`);
+            }}
           >
             <FireIcon width={17} className="shrink-0" /> Spark
           </Button>
@@ -378,7 +344,10 @@ export default function ProfileHeading({
             size="sm"
             variant="flat"
             disabled={disabled}
-            onPress={() => setOpenDialog(true)}
+            onPress={() => {
+              setDialogConfig(getBlockDialogConfig(isBlocked, user));
+              setDialogAction(() => manageActionFunction);
+            }}
           >
             {manageActionIcon}
             {manageActionLabel}
@@ -386,26 +355,18 @@ export default function ProfileHeading({
         </CardFooter>
       </Card>
 
-      <ConfirmDialog
-        isOpen={openDialog}
-        onOpenChange={setOpenDialog}
-        title={dialogTitle}
-        description={dialogDesc}
-        confirmLabel={confirmText}
-        cancelLabel={denyText}
-        danger={!isBlocked}
-        onConfirm={manageActionFunction}
-      />
-      <ConfirmDialog
-        isOpen={openStatusDialog}
-        onOpenChange={setOpenStatusDialog}
-        title={statusTitle}
-        description={statusDesc}
-        confirmLabel={confirmStatus}
-        cancelLabel={denyStatusText}
-        danger={isFriend}
-        onConfirm={manageStatusFunction}
-      />
+      {dialogConfig && (
+        <ConfirmDialog
+          isOpen={!!dialogConfig}
+          onOpenChange={(open) => !open && setDialogConfig(null)}
+          title={dialogConfig.title}
+          description={dialogConfig.description}
+          confirmLabel={dialogConfig.confirmLabel}
+          cancelLabel={dialogConfig.cancelLabel}
+          danger={dialogConfig.danger}
+          onConfirm={dialogAction}
+        />
+      )}
     </>
   );
 }

@@ -53,7 +53,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           </div>
         </Toast.Root>
 
-        <Toast.Viewport className="fixed top-4 left-1/2 translate-x-[-50%] z-50 w-[90vw] max-w-sm outline-none" />
+        <Toast.Viewport className="fixed bottom-4 left-1/2 translate-x-[-50%] z-50 w-[90vw] max-w-sm outline-none" />
       </Toast.Provider>
     </ToastContext.Provider>
   );

@@ -85,7 +85,7 @@ export default function ConfirmDialog({
               />
             )}
             <ModalHeader className="text-base text-center">{title}</ModalHeader>
-            <ModalBody>
+            <ModalBody className="pt-0">
               <p className="text-sm text-white/80">{description}</p>
             </ModalBody>
             <ModalFooter>
