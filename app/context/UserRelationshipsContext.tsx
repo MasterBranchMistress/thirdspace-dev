@@ -9,7 +9,7 @@ import {
 } from "react";
 import { useSession } from "next-auth/react";
 
-type RelationshipFlags = {
+export type RelationshipFlags = {
   friend?: boolean;
   blocked?: boolean;
   pendingIncoming?: boolean;

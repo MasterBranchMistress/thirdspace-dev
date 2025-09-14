@@ -6,6 +6,13 @@ import ViewsIcon from "@/public/lottie/eye.json";
 import HeartsIcon from "@/public/lottie/hearts.json";
 import CommentsIcon from "@/public/lottie/comments.json";
 import BoostIcon from "@/public/lottie/fire.json";
+import {
+  ArrowPathRoundedSquareIcon,
+  ArrowRightStartOnRectangleIcon,
+  EyeIcon,
+  FireIcon,
+} from "@heroicons/react/24/outline";
+import { ArrowRightEndOnRectangleIcon } from "@heroicons/react/24/solid";
 
 export function FeedStats() {
   const stats = useMemo(
@@ -20,7 +27,7 @@ export function FeedStats() {
   return (
     <>
       <Tooltip content={`Views`}>
-        <div className="flex gap-1 items-center align-middle">
+        <div className="flex gap-2 items-center align-middle">
           <Lottie
             animationData={ViewsIcon}
             autoplay={false}
@@ -34,45 +41,21 @@ export function FeedStats() {
           <p className="font-extrabold text-small">{stats.followers}</p>
         </div>
       </Tooltip>
-      <Tooltip content={"Comments"}>
-        <div className="flex gap-1 items-center align-middle">
-          <Lottie
-            animationData={CommentsIcon}
-            loop
-            autoplay
-            style={{
-              height: "25px",
-              width: "25px",
-            }}
-          />
+      <Tooltip content={"Reposts"}>
+        <div className="flex gap-2 items-center align-middle">
+          <ArrowPathRoundedSquareIcon width={20} />
           <p className="font-extrabold text-small">{stats.comments}</p>
         </div>
       </Tooltip>
-      {/* <Tooltip content={"Likes"}>
-        <div className="flex gap-1 items-center align-middle">
-          <Lottie
-            animationData={HeartsIcon}
-            loop
-            autoplay={true}
-            style={{
-              height: "21px",
-              width: "21px",
-            }}
-          />
+      <Tooltip content={"Shares"}>
+        <div className="flex gap-2 items-center align-middle">
+          <ArrowRightStartOnRectangleIcon width={20} />
           <p className="font-extrabold text-small">{stats.likes}</p>
         </div>
-      </Tooltip> */}
+      </Tooltip>
       <Tooltip content={"Sparks"}>
-        <div className="flex gap-1 items-center align-middle">
-          <Lottie
-            animationData={BoostIcon}
-            autoplay
-            style={{
-              height: "25px",
-              width: "25px",
-              marginBottom: ".5rem",
-            }}
-          />
+        <div className="flex gap-2 items-center align-middle">
+          <FireIcon width={20} />
           <p className="font-extrabold text-small">{stats.heat}</p>
         </div>
       </Tooltip>

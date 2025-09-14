@@ -20,10 +20,13 @@ import { useSession } from "next-auth/react";
 import FeedCardFooter from "./FeedCardFooter";
 import { FeedEventActor, FeedItem, FeedUserActor } from "@/types/user-feed";
 import {
+  ArrowPathRoundedSquareIcon,
+  ArrowRightStartOnRectangleIcon,
   BellAlertIcon,
   EllipsisVerticalIcon,
   ExclamationCircleIcon,
   EyeSlashIcon,
+  FlagIcon,
   HandRaisedIcon,
   HandThumbUpIcon,
   TrashIcon,
@@ -172,68 +175,44 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
 
         {/* Right side: Orbit button + ellipses */}
         <div className="flex items-center shrink-0">
-          {isUserActor(actor) && (
+          {/* {isUserActor(actor) && (
             <button className="p-1 text-xs rounded-full">{buttonText}</button>
-          )}
+          )} */}
           <Dropdown classNames={dropDownStyle} backdrop="blur">
             <DropdownTrigger>
               <EllipsisVerticalIcon className="text-primary" width={24} />
             </DropdownTrigger>
             <DropdownMenu aria-label="Dynamic Actions">
+              <DropdownItem
+                key="share"
+                className="text-concrete"
+                color="primary"
+                variant="solid"
+                endContent={<ArrowRightStartOnRectangleIcon width={20} />}
+              >
+                Share
+              </DropdownItem>
+              <DropdownItem
+                key="repost"
+                className="text-concrete"
+                color="primary"
+                variant="solid"
+                endContent={<ArrowPathRoundedSquareIcon width={20} />}
+              >
+                Repost
+              </DropdownItem>
               {!isSelf ? (
-                <DropdownItem
-                  key="follow user"
-                  className="text-concrete bg-none"
-                  color="primary"
-                  variant="solid"
-                  endContent={<BellAlertIcon width={20} />}
-                >
-                  Follow
-                </DropdownItem>
-              ) : null}
-              {!isSelf ? (
-                <DropdownItem
-                  key="add friend"
-                  className={`${relationship === "friend" ? "text-danger" : "text-concrete"} bg-none`}
-                  variant="solid"
-                  endContent={
-                    relationship === "friend" ? (
-                      <UserMinusIcon width={20} />
-                    ) : (
-                      <UserPlusIcon width={20} />
-                    )
-                  }
-                >
-                  {relationship === "friend" ? "Unfriend" : "Friend"}
-                </DropdownItem>
-              ) : null}
-              {!isSelf ? (
-                <DropdownItem
-                  key="block"
-                  className={`${relationship === "blocked" ? "text-concrete" : "text-danger"} bg-none`}
-                  color="danger"
-                  variant="solid"
-                  endContent={
-                    relationship === "blocked" ? (
-                      <HandThumbUpIcon width={20} />
-                    ) : (
-                      <HandRaisedIcon width={20} />
-                    )
-                  }
-                >
-                  {relationship === "blocked" ? "Unblock" : "Block"}
-                </DropdownItem>
-              ) : null}
-              {!isSelf ? (
-                <DropdownItem
-                  key="report"
-                  className="text-concrete bg-danger"
-                  color="danger"
-                  variant="solid"
-                  endContent={<ExclamationCircleIcon width={20} />}
-                >
-                  Report Post
-                </DropdownItem>
+                <>
+                  <DropdownItem
+                    key="report"
+                    className="text-concrete bg-danger"
+                    color="danger"
+                    variant="solid"
+                    endContent={<FlagIcon width={20} />}
+                  >
+                    Report Post
+                  </DropdownItem>
+                </>
               ) : null}
               {isSelf ? (
                 <DropdownItem
@@ -255,7 +234,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
         <p className="font-bold text-center tracking-tighter">{message}</p>
         <div className="flex flex-col justify-center items-center">
           {type === "profile_bio_updated" && target?.snippet && (
-            <span className="font-light mt-2 max-w-[100%]">
+            <span className="font-light mx-2 my-2 max-w-[100%]">
               {target.snippet}
             </span>
           )}

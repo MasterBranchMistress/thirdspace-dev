@@ -41,7 +41,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         >
           <div className="flex items-center">
             <div className="flex-1 text-center">
-              <Toast.Title className="font-bold">{toastTitle}</Toast.Title>
+              <Toast.Title className="font-light">{toastTitle}</Toast.Title>
               <Toast.Description>{toastDesc}</Toast.Description>
             </div>
             <Toast.Close
@@ -53,7 +53,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           </div>
         </Toast.Root>
 
-        <Toast.Viewport className="fixed bottom-4 left-1/2 translate-x-[-50%] z-50 w-[90vw] max-w-sm outline-none" />
+        <Toast.Viewport className="fixed bottom-50 left-1/2 translate-x-[-50%] z-50 w-[90vw] max-w-auto outline-none" />
       </Toast.Provider>
     </ToastContext.Provider>
   );

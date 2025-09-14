@@ -13,7 +13,10 @@ import { UserDoc } from "@/lib/models/User";
 import { ChatBubbleLeftRightIcon, FireIcon } from "@heroicons/react/24/outline";
 import { sendFriendRequest } from "@/utils/user-relationship-handlling/sendFriendRequest";
 import { SessionUser } from "@/types/user-session";
-import { useUserRelationships } from "@/app/context/UserRelationshipsContext";
+import {
+  RelationshipFlags,
+  useUserRelationships,
+} from "@/app/context/UserRelationshipsContext";
 import { useNotifications } from "@/app/context/NotificationContext";
 import { useToast } from "@/app/providers/ToastProvider";
 import { RespondDropdown } from "../confirm-deny-dropdown/confirmDenyFriend";
@@ -33,6 +36,7 @@ import {
   getBlockDialogConfig,
   getUnfriendDialogConfig,
 } from "./dialogConfig";
+import ProfileSettingsModal from "../profile-settings/profileSettings";
 
 export default function ProfileHeading({
   disabled,
@@ -45,7 +49,7 @@ export default function ProfileHeading({
   disabled?: boolean;
   user: UserDoc;
   viewer: SessionUser;
-  relationship: string;
+  relationship: RelationshipFlags;
   isSelf: boolean;
 }) {
   const [showOverlay, setShowOverlay] = useState(false);
@@ -53,6 +57,7 @@ export default function ProfileHeading({
   const [dialogAction, setDialogAction] = useState<() => Promise<void>>(
     async () => {}
   );
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   const { setRelationship, getRelationship } = useUserRelationships();
 
@@ -99,25 +104,22 @@ export default function ProfileHeading({
   useEffect(() => {
     if (isSelf) {
       setUserActionFunction(() => async () => {
-        /* edit profile */
+        setIsEditingProfile(true);
+      });
+      setSecondaryActionFunction(() => async () => {
+        notify("Explore coming soon 🤝", "");
       });
     } else if (isFriend) {
       setManageStatusFunction(() => async () => {
         await unfriend({ loggedInUser: viewer, userToUnfriend: user });
         setRelationship(String(user._id), { friend: false });
-        notify(
-          `Unfriended ${user.username} 🙅`,
-          `${user.firstName} won't be notified of this decision.`
-        );
+        notify(`Unfriended ${user.username} 🙅`, ``);
       });
     } else if (isPendingOutgoing) {
       setUserActionFunction(() => async () => {
         await cancel(viewer.id);
         setRelationship(String(user._id), {});
-        notify(
-          "Friend request canceled! 🤝",
-          `${user.firstName} won't be notified of this decision.`
-        );
+        notify("Friend request canceled! 🤝", ``);
       });
     } else if (isPendingIncoming) {
       // Respond handled via dropdown
@@ -126,10 +128,7 @@ export default function ProfileHeading({
       setUserActionFunction(() => async () => {
         await sendFriendRequest(viewer, user);
         setRelationship(String(user._id), { pendingOutgoing: true });
-        notify(
-          "Friend request sent! 🚀",
-          `Send ${user.firstName} a quick message to let them know you're here!`
-        );
+        notify("Friend request sent! 🚀", ``);
         confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
       });
     }
@@ -138,40 +137,32 @@ export default function ProfileHeading({
       setManageActionFunction(() => async () => {
         await unblockUser({ loggedInUser: viewer, userToUnblock: user });
         setRelationship(String(user._id), {});
-        notify(
-          `Unblocked ${user.username} 👩‍🚀`,
-          `${user.firstName} will now be able to see your profile activity and interact with you!`
-        );
+        notify(`Unblocked ${user.username} 👩‍🚀`, ``);
       });
     } else {
       setManageActionFunction(() => async () => {
         await blockUser({ loggedInUser: viewer, userToBlock: user });
         setRelationship(String(user._id), { blocked: true });
-        notify(
-          `Blocked ${user.username} 🙅`,
-          `${user.firstName} will not be able to see your profile activity or interact with you!`
-        );
+        notify(`Blocked ${user.username} 🙅`, ``);
       });
     }
-
-    if (!isFollowing) {
-      setSecondaryActionFunction(() => async () => {
-        await handleFollowUser({ userWereFollowing: user });
-        setRelationship(String(user._id), {
-          ...(isFriend ? { friend: true } : {}),
-          following: true,
+    if (!isSelf) {
+      if (!isFollowing) {
+        setSecondaryActionFunction(() => async () => {
+          await handleFollowUser({ userWereFollowing: user });
+          setRelationship(String(user._id), {
+            ...(isFriend ? { friend: true } : {}),
+            following: true,
+          });
         });
-      });
-    } else {
-      setSecondaryActionFunction(() => async () => {
-        await handleFollowUser({ userWereFollowing: user });
-        setRelationship(String(user._id), { following: false });
-        notify(
-          `Following ${user.firstName} ${user.lastName} 👍`,
-          `You'll see priority posts from ${user.firstName} in your feed from now on.`
-        );
-        confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
-      });
+      } else {
+        setSecondaryActionFunction(() => async () => {
+          await handleFollowUser({ userWereFollowing: user });
+          setRelationship(String(user._id), { following: false });
+          notify(`Following ${user.firstName} ${user.lastName} 👍`, ``);
+          confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+        });
+      }
     }
   }, [
     relationship,
@@ -332,7 +323,7 @@ export default function ProfileHeading({
             size="sm"
             variant="flat"
             onPress={() => {
-              notify("Feature Coming Soon! 🤝", `Dev in-progress`);
+              notify("Feature Coming Soon! 🤝", ``);
             }}
           >
             <FireIcon width={17} className="shrink-0" /> Spark
@@ -367,6 +358,10 @@ export default function ProfileHeading({
           onConfirm={dialogAction}
         />
       )}
+      <ProfileSettingsModal
+        isOpen={isEditingProfile}
+        onOpenChange={setIsEditingProfile}
+      />
     </>
   );
 }

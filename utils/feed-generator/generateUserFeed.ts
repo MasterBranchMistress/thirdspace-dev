@@ -9,8 +9,6 @@ import { getDistFromMiles } from "../geolocation/get-distance-from-event/getDist
 import { geocodeAddress } from "../geolocation/geocode-address/geocodeAddress";
 import { canViewerSee } from "../user-privacy/canViewerSee";
 import { UserStatusDoc } from "@/lib/models/UserStatusDoc";
-import { ObjectId } from "mongodb";
-import { snippet } from "@heroui/theme";
 
 function resolveAvatar(user: UserDoc): string {
   return user.avatar ?? getGravatarUrl(user.email);
