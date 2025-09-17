@@ -32,6 +32,7 @@ import LocationAutocomplete from "../location-auto-complete/locationAutocomplete
 import BudgetInput from "../budget-handling/budgetSlider";
 import Lottie from "lottie-react";
 import hourglass from "@/public/lottie/hourglass.json";
+import AttachmentUploader from "../attachment-uploader/attachmentUploader";
 
 type EditEventModalProps = {
   isOpen: boolean;
@@ -332,7 +333,7 @@ export function EditEventModal({
                   </Chip>
                 ))}
               </div>
-              <EventAttachmentUploader
+              <AttachmentUploader
                 onFilesSelected={(files) =>
                   setNewFiles((prev) => [...prev, ...files])
                 }

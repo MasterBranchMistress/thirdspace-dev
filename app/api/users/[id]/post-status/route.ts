@@ -7,7 +7,6 @@ import { DBS, COLLECTIONS } from "@/lib/constants";
 import { UserDoc, UserStatusDoc } from "@/lib/models/User";
 import { UserFeedDoc } from "@/lib/models/UserFeedDoc";
 import detectMediaType from "@/utils/detect-media-type/detectMediaType";
-import { snippet } from "@heroui/theme";
 
 export async function POST(
   req: NextRequest,
@@ -81,22 +80,36 @@ export async function POST(
       timestamp: new Date().toISOString(),
     });
 
-    // 2. Insert feed items for each friend
-    if (userPrivacyLevel === "friends" || userPrivacyLevel === "followers") {
-      for (const friendId of user.friends || []) {
-        await feedCollection.insertOne({
-          userId: friendId,
-          type: "profile_status_updated",
-          actor: actorPayload,
-          target: {
-            status: {
-              content: content.trim(),
-              attachments: parsedAttachments,
-            },
-          },
-          timestamp: new Date().toISOString(),
-        });
-      }
+    const recipients = new Set<string>();
+
+    if (userPrivacyLevel === "friends") {
+      (user.friends || []).forEach((f: any) => recipients.add(String(f)));
+    } else if (
+      userPrivacyLevel === "followers" ||
+      userPrivacyLevel === "public"
+    ) {
+      (user.followers || []).forEach((f: any) => recipients.add(String(f)));
+      (user.friends || []).forEach((f: any) => recipients.add(String(f)));
+    }
+
+    recipients.delete(String(user._id));
+
+    const now = new Date().toISOString();
+    const feedDocs = Array.from(recipients).map((recipientId) => ({
+      userId: new ObjectId(recipientId),
+      type: "profile_status_updated" as const,
+      actor: actorPayload,
+      target: {
+        status: {
+          content: content.trim(),
+          attachments: parsedAttachments,
+        },
+      },
+      timestamp: now,
+    }));
+
+    if (feedDocs.length > 0) {
+      await feedCollection.insertMany(feedDocs);
     }
 
     return NextResponse.json({

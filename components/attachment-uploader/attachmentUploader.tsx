@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
-export default function EventAttachmentUploader({
+export default function AttachmentUploader({
   onFilesSelected,
 }: {
   onFilesSelected: (files: File[]) => void;

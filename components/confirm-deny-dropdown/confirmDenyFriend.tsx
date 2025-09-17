@@ -23,7 +23,6 @@ export function RespondDropdown({
   onReject: () => void;
   disabled?: boolean;
 }) {
-  const { setRelationship, relationships } = useUserRelationships();
   return (
     <Dropdown classNames={dropDownStyle} backdrop="blur">
       <DropdownTrigger>
