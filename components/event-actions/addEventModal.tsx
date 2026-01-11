@@ -1,0 +1,300 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import {
+  Modal,
+  ModalContent,
+  ModalBody,
+  ModalFooter,
+  Button,
+  Input,
+  Textarea,
+  Chip,
+  DatePicker,
+} from "@heroui/react";
+import AttachmentUploader from "../attachment-uploader/attachmentUploader";
+import { useSession } from "next-auth/react";
+import { useToast } from "@/app/providers/ToastProvider";
+import Image from "next/image";
+import logo from "@/public/third-space-logos/thirdspace-logo-5.png";
+import Lottie from "lottie-react";
+import hourglass from "@/public/lottie/hourglass.json";
+import LocationAutocomplete from "../location-auto-complete/locationAutocomplete";
+import BudgetInput from "../budget-handling/budgetSlider";
+// import { makeIdempotencyKey } from "@/utils/makeIdempotencyKey";
+// import { handleAddEvent } from "@/utils/handle-event-posting/handleAddEvent";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import { SelectEventPrivacy } from "./selectEventPrivacy";
+import {
+  calendarStyling,
+  inputStyling,
+} from "@/utils/get-dropdown-style/getDropDownStyle";
+import {
+  DateValue,
+  ZonedDateTime,
+  getLocalTimeZone,
+  now,
+  parseAbsoluteToLocal,
+} from "@internationalized/date";
+import { parseZonedDate } from "@/utils/date-handling/parseCalendarZoneDateTime";
+
+type AddEventProps = {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+};
+
+export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
+  const { data: session } = useSession();
+  const { notify } = useToast();
+  const user = session?.user;
+
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [date, setDate] = useState<ZonedDateTime | null>(null);
+  const [eventDate, setEventDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [tagInput, setTagInput] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [location, setLocation] = useState<{
+    name: string;
+    lat?: number;
+    lng?: number;
+  } | null>(null);
+  const [budget, setBudget] = useState<number>(0);
+  const [isPublic, setIsPublic] = useState<boolean>(false);
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      // reset only when modal closes (optional)
+      // keep as no-op so you don't lose draft accidentally — comment this out if you want a clean slate every open
+      // resetForm();
+    }
+  }, [isOpen]);
+
+  function resetForm() {
+    setTitle("");
+    setDescription("");
+    setEventDate("");
+    setStartTime("");
+    setTagInput("");
+    setTags([]);
+    setLocation(null);
+    setBudget(0);
+    setIsPublic(false);
+    setNewFiles([]);
+  }
+
+  const normalizeTags = (raw: string) =>
+    raw
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean)
+      .slice(0, 10);
+
+  const submit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!user) return notify("You must be signed in to create an event!", "");
+    if (!title.trim()) return notify("Event title is required", "");
+    if (!date) return notify("Date is required!", "");
+    if (loading) return;
+
+    setLoading(true);
+    // const idempotencyKey = makeIdempotencyKey();
+
+    const eventData = {
+      title: title.trim(),
+      description: description.trim() || undefined,
+      date: new Date(
+        date + (startTime ? `T${startTime}:00Z` : "T00:00:00Z")
+      ).toISOString(),
+      startTime: startTime || undefined,
+      tags,
+      public: isPublic,
+      recurring: false,
+      recurrenceRule: null,
+      location: location ?? undefined,
+      budgetInfo: { estimatedCost: budget || undefined, currency: "USD" },
+    };
+
+    // try {
+    //   await handleAddEvent({
+    //     loggedInUser: user,
+    //     eventData,
+    //     attachments: newFiles,
+    //     eventId: null,
+    //     idempotencyKey,
+    //   });
+
+    //   notify("Event created", "Your event is live!");
+    //   // confetti and gentle UX after success
+    //   try {
+    //     const confettiModule = (await import("canvas-confetti")).default;
+    //     confettiModule({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+    //   } catch {
+    //     /* optional */
+    //   }
+
+    //   resetForm();
+    //   // close modal
+    //   onOpenChange(false);
+    //   // optional: reload to show event in feed
+    //   setTimeout(() => window.location.reload(), 800);
+    // } catch (err: any) {
+    //   console.error("Create event error", err);
+    //   notify("Something went wrong here!", "Unable to create event");
+    // } finally {
+    //   setLoading(false);
+    // }
+  };
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
+      size="xs"
+      placement="center"
+      backdrop="blur"
+      scrollBehavior="inside"
+      isDismissable={false}
+      hideCloseButton={false}
+      classNames={{
+        closeButton: "text-concrete",
+      }}
+      className="bg-transparent text-concrete h-auto overflow-y-auto"
+    >
+      <ModalContent className="p-6 space-y-4 text-concrete">
+        {(onClose) => (
+          <>
+            {loading ? (
+              <div className="flex flex-col justify-center items-center py-6">
+                <Lottie animationData={hourglass} style={{ width: "12rem" }} />
+                <h1>Creating event — one sec!</h1>
+              </div>
+            ) : (
+              <form onSubmit={submit}>
+                <Image
+                  src={logo}
+                  width={600}
+                  alt="thirdspace-logo-white"
+                  className="justify-center p-0"
+                  style={{ marginTop: "-7rem", marginBottom: "-6rem" }}
+                ></Image>
+
+                <div className="z-10 flex flex-col space-y-6">
+                  <Input
+                    label="Event Title"
+                    value={title}
+                    onChange={(e: any) => setTitle(e.target.value)}
+                    variant="underlined"
+                    classNames={inputStyling}
+                    required
+                  />
+                  <Textarea
+                    label="Event Description"
+                    variant="underlined"
+                    value={description}
+                    onChange={(e: any) => setDescription(e.target.value)}
+                    classNames={inputStyling}
+                    rows={4}
+                  />
+                  <DatePicker
+                    label="Date"
+                    classNames={calendarStyling}
+                    labelPlacement="outside"
+                    selectorButtonPlacement="end"
+                    isRequired
+                    value={date}
+                    onChange={(val) => {
+                      console.log(val);
+                      setDate(val); // keep ZonedDateTime in state
+                    }}
+                    variant="underlined"
+                  />
+
+                  <Input
+                    label="Tags (comma separated)"
+                    value={tagInput}
+                    classNames={inputStyling}
+                    onChange={(e: any) => setTagInput(e.target.value)}
+                    onBlur={() => {
+                      const parsed = normalizeTags(tagInput);
+                      setTags(parsed);
+                      setTagInput(parsed.join(", "));
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        const parsed = normalizeTags(tagInput);
+                        setTags(parsed);
+                        setTagInput(parsed.join(", "));
+                      }
+                    }}
+                  />
+
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map((t, i) => (
+                      <Chip key={i} size="sm" color="primary">
+                        #{t}
+                      </Chip>
+                    ))}
+                  </div>
+
+                  <LocationAutocomplete
+                    value={location?.name ?? ""}
+                    onChange={(val) =>
+                      setLocation({
+                        ...(location ?? { name: "" }),
+                        name: val,
+                      })
+                    }
+                    onSelect={(loc) => setLocation(loc)}
+                  />
+
+                  <BudgetInput initialValue={budget} onChange={setBudget} />
+
+                  <SelectEventPrivacy
+                    isPublic={isPublic}
+                    setIsPublic={setIsPublic}
+                  />
+
+                  <AttachmentUploader
+                    onFilesSelected={(files) =>
+                      setNewFiles((prev) => [...prev, ...files])
+                    }
+                  />
+                  <div className="text-sm text-muted-foreground">
+                    Attachments to upload: {newFiles.length}
+                  </div>
+                </div>
+
+                <ModalFooter className="flex justify-end gap-2 p-4">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    color="secondary"
+                    onPress={() => {
+                      resetForm();
+                      onOpenChange(false);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    color="primary"
+                    variant="shadow"
+                    isLoading={loading}
+                  >
+                    Create Event
+                  </Button>
+                </ModalFooter>
+              </form>
+            )}
+          </>
+        )}
+      </ModalContent>
+    </Modal>
+  );
+}

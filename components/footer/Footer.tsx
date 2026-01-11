@@ -1,6 +1,6 @@
 "use client";
 
-import { useDisclosure } from "@heroui/react";
+import { useState } from "react";
 import {
   Dropdown,
   DropdownTrigger,
@@ -11,9 +11,10 @@ import Lottie from "lottie-react";
 import addPost from "@/public/lottie/add-event.json";
 import { PencilIcon, CalendarDaysIcon } from "@heroicons/react/24/outline";
 import AddStatus from "../add-post-handling/add-status-modal";
+import AddEventModal from "../event-actions/addEventModal";
 
 export default function Footer() {
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [openModal, setOpenModal] = useState<"status" | "event" | null>(null);
 
   return (
     <div className="fixed bottom-1.5 left-1.5 z-50">
@@ -28,18 +29,18 @@ export default function Footer() {
             />
           </button>
         </DropdownTrigger>
+
         <DropdownMenu
           aria-label="Add something"
           onAction={(key) => {
-            if (key === "add-status") onOpen();
-            if (key === "add-event") {
-              // handle add-event flow
-            }
+            if (key === "add-status") setOpenModal("status");
+            if (key === "add-event") setOpenModal("event");
           }}
         >
           <DropdownItem key="add-status" endContent={<PencilIcon width={16} />}>
             Add Status
           </DropdownItem>
+
           <DropdownItem
             key="add-event"
             endContent={<CalendarDaysIcon width={16} />}
@@ -49,8 +50,22 @@ export default function Footer() {
         </DropdownMenu>
       </Dropdown>
 
-      {/* Modal sits outside, controlled by disclosure */}
-      <AddStatus isOpen={isOpen} onOpenChange={onOpenChange} />
+      <AddStatus
+        isOpen={openModal === "status"}
+        onOpenChange={(open: boolean) => {
+          // keep explicit: if modal says it's closed, clear state
+          if (!open) setOpenModal(null);
+          else setOpenModal("status");
+        }}
+      />
+
+      <AddEventModal
+        isOpen={openModal === "event"}
+        onOpenChange={(open: boolean) => {
+          if (!open) setOpenModal(null);
+          else setOpenModal("event");
+        }}
+      />
     </div>
   );
 }

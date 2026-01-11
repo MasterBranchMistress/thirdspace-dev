@@ -234,7 +234,7 @@ export function EditEventModal({
       hideCloseButton={false}
       className="bg-transparent text-concrete h-auto overflow-y-auto"
     >
-      <ModalContent className="p-6 space-y-4">
+      <ModalContent className="p-6 space-y-4 text-concrete">
         {loading ? (
           <div className="flex flex-col justify-center items-center py-6">
             <Lottie animationData={hourglass} style={{ width: "12rem" }} />
@@ -273,6 +273,7 @@ export function EditEventModal({
                 isRequired
                 value={date}
                 onChange={(val) => {
+                  console.log("datepicker val:", val);
                   setDate(val); // keep ZonedDateTime in state
                   if (val) {
                     const { isoDate, time } = parseZonedDate(val);
