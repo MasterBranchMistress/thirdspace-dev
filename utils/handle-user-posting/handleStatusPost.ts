@@ -13,6 +13,7 @@ export async function handleAddStatus({
 }: Props) {
   try {
     let uploadedUrls: string[] = [];
+    //TODO: remove console log
     console.log("handleAddStatus called", {
       userId: loggedInUser.id,
       attachmentsCount: attachments?.length ?? 0,

@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import {
   Modal,
   ModalContent,
-  ModalBody,
   ModalFooter,
   Button,
   Input,
   Textarea,
   Chip,
   DatePicker,
+  TimeInput,
+  TimeInputValue,
 } from "@heroui/react";
 import AttachmentUploader from "../attachment-uploader/attachmentUploader";
 import { useSession } from "next-auth/react";
@@ -30,12 +31,13 @@ import {
   inputStyling,
 } from "@/utils/get-dropdown-style/getDropDownStyle";
 import {
-  DateValue,
-  ZonedDateTime,
   getLocalTimeZone,
   now,
   parseAbsoluteToLocal,
+  Time,
+  ZonedDateTime,
 } from "@internationalized/date";
+import React from "react";
 import { parseZonedDate } from "@/utils/date-handling/parseCalendarZoneDateTime";
 
 type AddEventProps = {
@@ -47,7 +49,9 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
   const { data: session } = useSession();
   const { notify } = useToast();
   const user = session?.user;
-
+  // let [value, setValue] = React.useState(
+  //   parseAbsoluteToLocal("2024-04-08T18:45:22Z")
+  // );
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState<ZonedDateTime | null>(null);
@@ -78,6 +82,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
     setDescription("");
     setEventDate("");
     setStartTime("");
+    0;
     setTagInput("");
     setTags([]);
     setLocation(null);
@@ -199,20 +204,24 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
                     classNames={inputStyling}
                     rows={4}
                   />
-                  <DatePicker
-                    label="Date"
-                    classNames={calendarStyling}
-                    labelPlacement="outside"
-                    selectorButtonPlacement="end"
-                    isRequired
-                    value={date}
-                    onChange={(val) => {
-                      console.log(val);
-                      setDate(val); // keep ZonedDateTime in state
-                    }}
-                    variant="underlined"
-                  />
+                  <div className="w-full max-w-xl flex flex-row gap-4">
+                    <DatePicker
+                      hideTimeZone
+                      isRequired
+                      classNames={calendarStyling}
+                      defaultValue={now(getLocalTimeZone())}
+                      label="Event Date"
+                      variant="underlined"
+                      onChange={(val) => {
+                        console.log("datepicker val:", val);
+                        setDate(val); // keep ZonedDateTime in state
 
+                        const { isoDate, time } = parseZonedDate(val);
+                        setEventDate(String(isoDate));
+                        setStartTime(time);
+                      }}
+                    />
+                  </div>
                   <Input
                     label="Tags (comma separated)"
                     value={tagInput}
@@ -264,9 +273,6 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
                       setNewFiles((prev) => [...prev, ...files])
                     }
                   />
-                  <div className="text-sm text-muted-foreground">
-                    Attachments to upload: {newFiles.length}
-                  </div>
                 </div>
 
                 <ModalFooter className="flex justify-end gap-2 p-4">

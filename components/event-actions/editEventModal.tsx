@@ -21,11 +21,8 @@ import {
   calendarStyling,
 } from "@/utils/get-dropdown-style/getDropDownStyle";
 import { parseZonedDate } from "@/utils/date-handling/parseCalendarZoneDateTime";
-import EventStatusSelect from "./eventStatusSelect";
 import { RecurrenceRule, SelectRecurringEvent } from "./selectRecurringEvent";
 import { SelectEventPrivacy } from "./selectEventPrivacy";
-import EventAttachmentUploader from "../attachment-uploader/attachmentUploader";
-import { Attachment } from "@/types/user-feed";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useSession } from "next-auth/react";
 import LocationAutocomplete from "../location-auto-complete/locationAutocomplete";
