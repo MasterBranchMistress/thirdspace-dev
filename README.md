@@ -593,3 +593,27 @@ The app now includes a **notifications system** with global context and UI integ
 - Location stored as `{ name, lat, lng, geo }` for clean geocoding and mapping.
 
 ![sprint2](public/screenshots/sprint2-0.png) ![sprint2](public/screenshots/sprint2-1.png) ![sprint2](public/screenshots/sprint2-2.png) ![sprint2](public/screenshots/sprint2-3.png) ![sprint2](public/screenshots/sprint2-4.png) ![sprint2](public/screenshots/sprint2-5.png) ![sprint2](public/screenshots/sprint2-6.png) ![sprint2](public/screenshots/sprint2-7.png) ![sprint2](public/screenshots/sprint2-8.png) ![sprint2](public/screenshots/sprint2-9.png) ![sprint2](public/screenshots/sprint2-10.png)
+
+## ✅ Recent Feature Updates
+
+### Status Creation (Complete)
+
+- Added a **Create Status** modal for posting updates to the user feed.
+- Supports **text content + optional attachments**.
+- Uses a reusable **presigned S3 upload flow** (request presigned URLs → upload → store public URLs).
+- Includes client-side validation + toast feedback for success/failure.
+
+### Event Creation (Complete)
+
+- Added a **Create Event** modal for publishing events.
+- Captures core fields:
+  - title, description, tags
+  - date + start time (timezone-safe handling)
+  - location (autocomplete)
+  - budget estimate
+  - public/private visibility
+  - optional attachments
+- Uses the same reusable **presigned upload helper** for event attachments.
+- Includes client-side validation + toast feedback for success/failure.
+
+![alt text](public/screenshots/lin-1.png) ![alt text](public/screenshots/lin-2.png) ![alt text](public/screenshots/lin-3.png) ![alt text](public/screenshots/lin-4.png)
