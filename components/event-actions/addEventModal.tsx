@@ -22,8 +22,6 @@ import Lottie from "lottie-react";
 import hourglass from "@/public/lottie/hourglass.json";
 import LocationAutocomplete from "../location-auto-complete/locationAutocomplete";
 import BudgetInput from "../budget-handling/budgetSlider";
-// import { makeIdempotencyKey } from "@/utils/makeIdempotencyKey";
-// import { handleAddEvent } from "@/utils/handle-event-posting/handleAddEvent";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { SelectEventPrivacy } from "./selectEventPrivacy";
 import {
@@ -39,6 +37,7 @@ import {
 } from "@internationalized/date";
 import React from "react";
 import { parseZonedDate } from "@/utils/date-handling/parseCalendarZoneDateTime";
+import { handleAddEvent } from "@/utils/handle-user-posting/handleEventPost";
 
 type AddEventProps = {
   isOpen: boolean;
@@ -82,11 +81,11 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
     setDescription("");
     setEventDate("");
     setStartTime("");
-    0;
     setTagInput("");
     setTags([]);
     setLocation(null);
     setBudget(0);
+    setDate(null);
     setIsPublic(false);
     setNewFiles([]);
   }
@@ -99,59 +98,93 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
       .slice(0, 10);
 
   const submit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!user) return notify("You must be signed in to create an event!", "");
-    if (!title.trim()) return notify("Event title is required", "");
-    if (!date) return notify("Date is required!", "");
-    if (loading) return;
-
-    setLoading(true);
     // const idempotencyKey = makeIdempotencyKey();
 
     const eventData = {
       title: title.trim(),
-      description: description.trim() || undefined,
-      date: new Date(
-        date + (startTime ? `T${startTime}:00Z` : "T00:00:00Z")
-      ).toISOString(),
-      startTime: startTime || undefined,
+      description: description.trim(),
+      date: eventDate,
+      startTime: startTime,
       tags,
       public: isPublic,
       recurring: false,
       recurrenceRule: null,
-      location: location ?? undefined,
-      budgetInfo: { estimatedCost: budget || undefined, currency: "USD" },
+      location: location,
+      budgetInfo: { estimatedCost: budget },
     };
 
-    // try {
-    //   await handleAddEvent({
-    //     loggedInUser: user,
-    //     eventData,
-    //     attachments: newFiles,
-    //     eventId: null,
-    //     idempotencyKey,
-    //   });
+    //error handling....
+    if (e) e.preventDefault();
+    if (!date) return console.log("Date is required!", "");
+    if (!startTime?.trim()) return console.log("Start time is required!", "");
+    if (!user) return notify("You must be signed in to create an event!", "");
+    if (loading) return;
 
-    //   notify("Event created", "Your event is live!");
-    //   // confetti and gentle UX after success
-    //   try {
-    //     const confettiModule = (await import("canvas-confetti")).default;
-    //     confettiModule({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-    //   } catch {
-    //     /* optional */
-    //   }
+    if (!title?.trim()) return notify("Event title is required.", "");
+    if (!description?.trim())
+      return notify("Event description is required.", "");
+    if (!date) return notify("Date is required.", "");
 
-    //   resetForm();
-    //   // close modal
-    //   onOpenChange(false);
-    //   // optional: reload to show event in feed
-    //   setTimeout(() => window.location.reload(), 800);
-    // } catch (err: any) {
-    //   console.error("Create event error", err);
-    //   notify("Something went wrong here!", "Unable to create event");
-    // } finally {
-    //   setLoading(false);
-    // }
+    if (!startTime?.trim()) return notify("Start time is required.", "");
+    if (!/^\d{2}:\d{2}$/.test(startTime))
+      return notify("Start time must be in HH:mm format.", "");
+
+    if (!Array.isArray(tags) || tags.length === 0)
+      return notify("Add at least one tag.", "");
+
+    if (!location?.name?.trim()) return notify("Location is required.", "");
+
+    if (newFiles?.some((f) => f.size > 10 * 1024 * 1024))
+      return notify("One or more attachments exceed 10MB.", "");
+    if (newFiles?.some((f) => !f.type))
+      return notify(
+        "One or more attachments have an unsupported file type.",
+        ""
+      );
+    if (eventData.budgetInfo.estimatedCost == null)
+      return notify("Estimated cost is required.", "");
+    if (Number.isNaN(Number(eventData.budgetInfo.estimatedCost)))
+      return notify("Estimated cost must be a number.", "");
+    if (Number(eventData.budgetInfo.estimatedCost) < 0)
+      return notify("Estimated cost can't be negative.", "");
+
+    setLoading(true);
+
+    try {
+      setLoading(true);
+      await handleAddEvent({
+        loggedInUser: user,
+        eventTitle: eventData.title,
+        eventDesc: eventData.description,
+        eventTags: eventData.tags,
+        eventTimeAndDate: eventData.date,
+        eventLocation: eventData.location?.name as any,
+        eventStartTime: eventData.startTime,
+        estimatedCost: eventData.budgetInfo.estimatedCost,
+        eventPrivacy: eventData.public,
+        attachments: newFiles,
+      });
+      notify("Event created", "Your event is live!");
+      // confetti and gentle UX after success
+      try {
+        const confettiModule = (await import("canvas-confetti")).default;
+        confettiModule({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+      } catch (err) {
+        notify("Whoops, something went wrong here!", "");
+        console.error(err);
+      }
+
+      resetForm();
+      // close modal
+      onOpenChange(false);
+      // optional: reload to show event in feed
+      setTimeout(() => window.location.reload(), 800);
+    } catch (err: any) {
+      console.error("Create event error", err);
+      notify("Something went wrong here!", "Unable to create event");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -175,7 +208,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
             {loading ? (
               <div className="flex flex-col justify-center items-center py-6">
                 <Lottie animationData={hourglass} style={{ width: "12rem" }} />
-                <h1>Creating event — one sec!</h1>
+                <h1>Creating event... one sec!</h1>
               </div>
             ) : (
               <form onSubmit={submit}>
@@ -213,12 +246,18 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
                       label="Event Date"
                       variant="underlined"
                       onChange={(val) => {
-                        console.log("datepicker val:", val);
-                        setDate(val); // keep ZonedDateTime in state
-
+                        // keep ZonedDateTime in state
                         const { isoDate, time } = parseZonedDate(val);
+                        setDate(val);
                         setEventDate(String(isoDate));
                         setStartTime(time);
+                        console.log(
+                          "datepicker val:",
+                          "Event date: ",
+                          eventDate,
+                          "event time: ",
+                          startTime
+                        );
                       }}
                     />
                   </div>
