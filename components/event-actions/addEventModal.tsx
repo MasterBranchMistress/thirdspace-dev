@@ -178,6 +178,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
       // close modal
       onOpenChange(false);
       // optional: reload to show event in feed
+      //TODO: use websocket to update
       setTimeout(() => window.location.reload(), 800);
     } catch (err: any) {
       console.error("Create event error", err);
@@ -227,7 +228,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
                     onChange={(e: any) => setTitle(e.target.value)}
                     variant="underlined"
                     classNames={inputStyling}
-                    required
+                    isRequired
                   />
                   <Textarea
                     label="Event Description"
@@ -236,6 +237,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
                     onChange={(e: any) => setDescription(e.target.value)}
                     classNames={inputStyling}
                     rows={4}
+                    isRequired
                   />
                   <div className="w-full max-w-xl flex flex-row gap-4">
                     <DatePicker
@@ -279,6 +281,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
                         setTagInput(parsed.join(", "));
                       }
                     }}
+                    isRequired
                   />
 
                   <div className="flex flex-wrap gap-2">

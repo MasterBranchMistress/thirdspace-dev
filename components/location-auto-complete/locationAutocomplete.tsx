@@ -1,5 +1,6 @@
 "use client";
 
+import { Input } from "@heroui/input";
 import { AddressAutofillProps } from "@mapbox/search-js-react/dist/components/AddressAutofill";
 import dynamic from "next/dynamic";
 
@@ -49,7 +50,7 @@ export default function LocationAutocomplete({
       }}
     >
       <div className="relative w-full mt-6">
-        <input
+        <Input
           aria-label="Location"
           placeholder="Search Location..."
           type="text"
@@ -58,6 +59,7 @@ export default function LocationAutocomplete({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="w-full text-sm border-b-2 border-concrete pb-2 focus:outline-none focus:ring-0 focus:border-concrete"
+          isRequired
         />
         <label
           htmlFor="location"

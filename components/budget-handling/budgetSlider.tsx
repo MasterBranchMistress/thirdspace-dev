@@ -24,7 +24,7 @@ export default function BudgetInput({
   return (
     <div className="flex flex-col gap-2 mt-3 mb-[-3]">
       <label className="text-sm font-light text-concrete">
-        Estimated Budget
+        Estimated Total Budget
       </label>
 
       {/* Slider */}
@@ -35,7 +35,7 @@ export default function BudgetInput({
         step={10}
         size="sm"
         minValue={0}
-        maxValue={1000}
+        maxValue={50000}
         color="secondary"
         renderThumb={(props) => (
           <div

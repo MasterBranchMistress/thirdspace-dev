@@ -95,7 +95,7 @@ export default function AddStatus({ isOpen, onOpenChange }: AddStatusProps) {
                 ></Image>
                 <ModalBody className="mt-[-7rem] overflow-y-auto">
                   <Textarea
-                    isRequired={true}
+                    isRequired
                     variant="underlined"
                     color="secondary"
                     placeholder="What are you up to?"
@@ -115,16 +115,16 @@ export default function AddStatus({ isOpen, onOpenChange }: AddStatusProps) {
                   />
                 </ModalBody>
                 <ModalFooter>
-                  <Button
+                  {/* <Button
                     size="sm"
                     color="secondary"
                     variant="ghost"
                     onPress={() => console.log(`Save as draft function`)}
                   >
                     Save as Draft
-                  </Button>
+                  </Button> */}
                   <Button
-                    type="button"
+                    type="submit"
                     size="sm"
                     color="primary"
                     variant="shadow"
