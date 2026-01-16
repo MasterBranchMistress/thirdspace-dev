@@ -54,7 +54,7 @@ export default function AttachmentSwiper({
                   muted
                   playsInline
                   autoPlay={true}
-                  className="w-full h-auto object-contain rounded-none"
+                  className="w-full h-[800] object-cover rounded-none"
                 />
               ) : (
                 <Image
