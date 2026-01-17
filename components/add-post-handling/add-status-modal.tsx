@@ -11,7 +11,7 @@ import {
 import AttachmentSwiper from "../swiper/swiper";
 import { dropDownStyle } from "@/utils/get-dropdown-style/getDropDownStyle";
 import AttachmentUploader from "../attachment-uploader/attachmentUploader";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import logo from "@/public/third-space-logos/thirdspace-logo-5.png";
 import { PaperAirplaneIcon, XMarkIcon } from "@heroicons/react/24/outline";
@@ -31,17 +31,20 @@ export default function AddStatus({ isOpen, onOpenChange }: AddStatusProps) {
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
+  const useRefOnSubmit = useRef(false);
   const { notify } = useToast();
   const { data: session } = useSession();
   const user = session?.user;
 
   const submitStatus = async () => {
-    if (!user) return;
-    if (!content) return;
-    if (loading) return;
+    if (useRefOnSubmit.current) return;
+    useRefOnSubmit.current = true;
 
-    setLoading(true);
     try {
+      if (!user) return;
+      if (!content) return;
+
+      setLoading(true);
       await handleAddStatus({
         loggedInUser: user,
         content,
@@ -61,6 +64,7 @@ export default function AddStatus({ isOpen, onOpenChange }: AddStatusProps) {
       }, 3000);
     } finally {
       setLoading(false);
+      useRefOnSubmit.current = false;
     }
   };
 
@@ -129,6 +133,8 @@ export default function AddStatus({ isOpen, onOpenChange }: AddStatusProps) {
                     color="primary"
                     variant="shadow"
                     onPress={submitStatus}
+                    isDisabled={loading}
+                    isLoading={loading}
                   >
                     Post
                   </Button>
