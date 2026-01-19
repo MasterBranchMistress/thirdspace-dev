@@ -58,7 +58,8 @@ export default function CommentItem({
   const [replyText, setReplyText] = useState("");
   const [isDeleted, setIsDeleted] = useState(comment.deleted ?? false);
   const [isEditing, setIsEditing] = useState(false);
-  const [commentPinned, setCommentPinned] = useState(comment.pinned);
+  // const [commentPinned, setCommentPinned] = useState(comment.pinned);
+  const [commentPinned, setCommentPinned] = useState(!!comment.pinned);
   const [textToInsertOnEdit, setTextToInsertOnEdit] = useState(comment.text);
   const lottieRef = useRef<any>(null);
   const { notify } = useToast();
@@ -79,7 +80,7 @@ export default function CommentItem({
         setIsDeleted(true);
         notify(
           "Comment Deleted 🚮",
-          "Orbiters will no longer be able to see this comment."
+          "Orbiters will no longer be able to see this comment.",
         );
       } else {
         setIsDeleted(false);
@@ -126,7 +127,6 @@ export default function CommentItem({
         }),
       });
       if (res.ok) {
-        setCommentPinned(true);
         window.location.reload();
       }
     } catch (err) {
@@ -140,11 +140,8 @@ export default function CommentItem({
   // here we use a useEffect to reseed the hook with our current edit state
   //so react knows whats going on
   useEffect(() => {
-    isCommentPinned ? setCommentPinned(false) : setCommentPinned(true);
-    if (isEditing) {
-      setTextToInsertOnEdit(comment.text);
-    }
-  }, [isEditing, comment.text, isCommentPinned]);
+    setCommentPinned(!!comment.pinned);
+  }, [comment.pinned]);
 
   const commentIsDirty = textToInsertOnEdit.trim() !== comment.text.trim();
 
@@ -254,14 +251,13 @@ export default function CommentItem({
                 onPressEdit={() => setIsEditing(true)}
                 onDelete={() => deleteComment(String(comment._id))}
                 onPin={() => {
-                  !commentPinned
-                    ? setCommentPinned(true)
-                    : setCommentPinned(false);
+                  !commentPinned;
+                  setCommentPinned((p) => !p);
                   pinComment(String(comment._id));
                 }}
                 isHost={isHost!}
                 isCommentOwner={isCommentOwner!}
-                isCommentPinned={commentPinned!}
+                isCommentPinned={!!comment.pinned}
               />
             ) : null}
           </div>
