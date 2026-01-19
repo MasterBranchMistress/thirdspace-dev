@@ -21,6 +21,7 @@ type EventDonation = {
 export interface EventDoc {
   coverImage?: string;
   _id?: ObjectId;
+  sourceId: string;
   type?: FeedItemType;
   title: string;
   description: string;
@@ -78,7 +79,7 @@ const MessageSchema = new Schema(
     text: { type: String, required: true },
     timestamp: { type: Date, default: Date.now() },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const AttachmentSchema = new Schema(
@@ -87,7 +88,7 @@ const AttachmentSchema = new Schema(
     type: { type: String, enum: ["image", "video"], default: "image" },
     thumbNail: { type: String },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const EventSchema = new Schema(
@@ -135,7 +136,7 @@ const EventSchema = new Schema(
     },
     orbiters: [{ type: ObjectId, ref: REF._USER }],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default models.Event || model("Event", EventSchema);

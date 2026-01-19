@@ -18,7 +18,7 @@ export async function generateUserFeed(
   user: UserDoc,
   friends: UserDoc[],
   events: EventDoc[],
-  statuses: UserStatusDoc[]
+  statuses: UserStatusDoc[],
 ): Promise<FeedItemUser[]> {
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
@@ -26,17 +26,32 @@ export async function generateUserFeed(
   const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
   const eventCollection = db.collection<EventDoc>(COLLECTIONS._EVENTS);
   const statusCollection = db.collection<UserStatusDoc>(
-    COLLECTIONS._USER_STATUSES
+    COLLECTIONS._USER_STATUSES,
   );
 
-  async function logFeedItem(item: Omit<UserFeedDoc, "_id">) {
-    const exists = await feedCollection.findOne({
-      userId: item.userId,
-      type: item.type,
-      "actor.id": item.actor.id,
-      "target.userId": item.target?.userId,
-      "target.eventId": item.target?.eventId,
-    });
+  async function logFeedItem(
+    item: Omit<UserFeedDoc, "_id"> & { sourceId: string },
+  ) {
+    const exists = await feedCollection.updateOne(
+      {
+        userId: item.userId,
+        sourceId: item.sourceId,
+        type: item.type,
+      },
+      {
+        $setOnInsert: {
+          ...item,
+          timestamp: item.timestamp ?? new Date().toISOString(),
+        },
+      },
+      {
+        upsert: true,
+      },
+    );
+    if (exists) {
+      console.log("Post: ", item);
+      return;
+    }
     if (!exists) {
       await feedCollection.insertOne({
         ...item,
@@ -68,6 +83,7 @@ export async function generateUserFeed(
   await logFeedItem({
     userId: user._id!,
     type: "joined_platform",
+    sourceId: `${user._id?.toString()}:joined_platform`,
     actor: {
       id: user._id!.toString(),
       firstName: user.firstName,
@@ -105,7 +121,7 @@ export async function generateUserFeed(
         .toArray();
 
       const canceledOrCompletedIds = canceledOrCompletedEvents.map(
-        (e) => e._id
+        (e) => e._id,
       );
 
       const deleted = await feedCollection.deleteMany({
@@ -155,6 +171,7 @@ export async function generateUserFeed(
       if (host) {
         await logFeedItem({
           userId: user._id!,
+          sourceId: `${event._id?.toString()}:hosted_event`,
           type: "hosted_event",
           actor,
           target: {
@@ -180,6 +197,7 @@ export async function generateUserFeed(
     // Profile updates
     await logFeedItem({
       userId: user._id!,
+      sourceId: `${user._id?.toString()}:profile_avatar_updated`,
       type: "profile_avatar_updated",
       actor: {
         id: actorUser._id!.toString(),
@@ -195,6 +213,7 @@ export async function generateUserFeed(
     if (actorUser.location && actorUser.shareLocation === true) {
       await logFeedItem({
         userId: user._id!,
+        sourceId: `${user._id?.toString()}:profile_location_updated`,
         type: "profile_location_updated",
         actor: {
           id: actorUser._id!.toString(),
@@ -209,12 +228,13 @@ export async function generateUserFeed(
     }
 
     const userStatuses = statuses.filter(
-      (s) => String(s.userId) === String(actorUser._id!)
+      (s) => String(s.userId) === String(actorUser._id!),
     );
 
     for (const status of userStatuses) {
       await logFeedItem({
         userId: user._id!,
+        sourceId: `${status.sourceId}`,
         type: "profile_status_updated",
         actor: {
           id: actorUser._id!.toString(),

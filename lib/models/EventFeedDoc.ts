@@ -4,6 +4,7 @@ import { FeedEventActor, FeedTarget, FeedItemType } from "@/types/user-feed";
 export interface EventFeedDoc {
   _id?: ObjectId;
   userId: ObjectId;
+  sourceId: string;
   type: Extract<
     FeedItemType,
     | "event_is_popular"

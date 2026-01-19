@@ -12,7 +12,7 @@ import { authOptions } from "@/lib/authOptions";
 
 export async function POST(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const client = await clientPromise;
   const { id } = await context.params;
@@ -39,13 +39,13 @@ export async function POST(
     if (!data?.title || !data?.date || !data?.description || !data?.location) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
     if (!Array.isArray(attachments)) {
       return NextResponse.json(
         { error: "Attachments must be an array" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -69,7 +69,7 @@ export async function POST(
     if (lat == null || lng == null) {
       return NextResponse.json(
         { error: "Could not geocode location" },
-        { status: 422 }
+        { status: 422 },
       );
     }
 
@@ -77,6 +77,7 @@ export async function POST(
     const now = new Date();
     const baseEvent: EventDoc = {
       title: data.title,
+      sourceId: new ObjectId().toString(),
       type: "hosted_event",
       description: data.description,
       attachments: parsedAttachments,
@@ -120,6 +121,7 @@ export async function POST(
     // --- Always insert self feed item ---
     const baseFeedEvent: Omit<EventFeedDoc, "_id"> = {
       userId: new ObjectId(String(user._id)),
+      sourceId: new ObjectId().toString(),
       type: "hosted_event",
       actor: {
         firstName: user.firstName,
@@ -158,7 +160,7 @@ export async function POST(
           (f) => ({
             ...baseFeedEventNoId,
             userId: new ObjectId(f._id),
-          })
+          }),
         );
 
         await feedCollection.insertMany(friendFeedEvents);
@@ -179,43 +181,43 @@ export async function POST(
         else if (rule === "monthly")
           currentDate.setMonth(currentDate.getMonth() + 1);
 
-        occurrences.push({
-          title: data.title,
-          type: "hosted_event",
-          description: data.description,
-          date: new Date(currentDate),
-          startTime: data.startTime,
-          attachments: parsedAttachments,
-          location: {
-            name: data.location?.name,
-            lat: lat,
-            lng: lng,
-          },
-          host: new ObjectId(user._id),
-          attendees: [],
-          tags: data.tags || [],
-          messages: [],
-          status: EVENT_STATUSES._ACTIVE,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          banned: [],
-          public: data.public ?? true,
-          recurring: false,
-          recurrenceRule: data.recurrenceRule,
-          recurrenceEndDate: data.recurrenceEndDate
-            ? new Date(data.recurrenceEndDate)
-            : undefined,
-          recurringParentEventId: eventResult.insertedId,
-          budgetInfo: data.budgetInfo
-            ? {
-                estimatedCost: data.budgetInfo.estimatedCost ?? 0,
-                currency: data.budgetInfo.currency,
-                notes: data.budgetInfo.notes,
-              }
-            : undefined,
-          timestamp: new Date(),
-          orbiters: [],
-        } as EventDoc);
+        // occurrences.push({
+        //   title: data.title,
+        //   type: "hosted_event",
+        //   description: data.description,
+        //   date: new Date(currentDate),
+        //   startTime: data.startTime,
+        //   attachments: parsedAttachments,
+        //   location: {
+        //     name: data.location?.name,
+        //     lat: lat,
+        //     lng: lng,
+        //   },
+        //   host: new ObjectId(user._id),
+        //   attendees: [],
+        //   tags: data.tags || [],
+        //   messages: [],
+        //   status: EVENT_STATUSES._ACTIVE,
+        //   createdAt: new Date(),
+        //   updatedAt: new Date(),
+        //   banned: [],
+        //   public: data.public ?? true,
+        //   recurring: false,
+        //   recurrenceRule: data.recurrenceRule,
+        //   recurrenceEndDate: data.recurrenceEndDate
+        //     ? new Date(data.recurrenceEndDate)
+        //     : undefined,
+        //   recurringParentEventId: eventResult.insertedId,
+        //   budgetInfo: data.budgetInfo
+        //     ? {
+        //         estimatedCost: data.budgetInfo.estimatedCost ?? 0,
+        //         currency: data.budgetInfo.currency,
+        //         notes: data.budgetInfo.notes,
+        //       }
+        //     : undefined,
+        //   timestamp: new Date(),
+        //   orbiters: [],
+        // } as EventDoc);
       }
 
       if (occurrences.length > 0) {
@@ -225,7 +227,7 @@ export async function POST(
 
     return NextResponse.json(
       { message: "✅ Event created", eventId: eventResult.insertedId },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error: any) {
     console.error("[createEvent]", error);

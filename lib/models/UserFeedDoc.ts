@@ -4,6 +4,7 @@ import { FeedUserActor, FeedTarget, FeedItemType } from "@/types/user-feed";
 export interface UserFeedDoc {
   _id?: ObjectId;
   userId: ObjectId;
+  sourceId?: string;
   type: Extract<
     FeedItemType,
     | "friend_accepted"

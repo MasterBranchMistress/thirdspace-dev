@@ -10,7 +10,7 @@ import detectMediaType from "@/utils/detect-media-type/detectMediaType";
 
 export async function POST(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await context.params;
@@ -20,14 +20,14 @@ export async function POST(
     if (!content || typeof content !== "string" || content.length > 300) {
       return NextResponse.json(
         { error: "Invalid status content" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (attachments && !Array.isArray(attachments)) {
       return NextResponse.json(
         { error: "Attachments must be an array" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -39,14 +39,17 @@ export async function POST(
     const client = await clientPromise;
     const db = client.db(DBS._THIRDSPACE);
     const statusCollection = db.collection<UserStatusDoc>(
-      COLLECTIONS._USER_STATUSES
+      COLLECTIONS._USER_STATUSES,
     );
     const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
     const feedCollection = db.collection<UserFeedDoc>(COLLECTIONS._USER_FEED);
 
+    const _id = new ObjectId();
+
     const newStatus: UserStatusDoc = {
-      _id: new ObjectId(),
+      _id,
       userId: new ObjectId(id),
+      sourceId: _id.toString(),
       content: content.trim(),
       createdAt: new Date(),
       attachments: parsedAttachments,
@@ -59,7 +62,7 @@ export async function POST(
     if (!user) return;
 
     const actorPayload = {
-      id: id,
+      id: user._id,
       firstName: user.firstName,
       lastName: user.lastName,
       username: user.username,
@@ -71,6 +74,7 @@ export async function POST(
       userId: user._id,
       type: "profile_status_updated",
       actor: actorPayload,
+      sourceId: newStatus._id.toString(),
       target: {
         status: {
           content: content.trim(),
@@ -99,6 +103,7 @@ export async function POST(
       userId: new ObjectId(recipientId),
       type: "profile_status_updated" as const,
       actor: actorPayload,
+      sourceId: newStatus.sourceId,
       target: {
         status: {
           content: content.trim(),
@@ -123,7 +128,7 @@ export async function POST(
     console.error("Error posting status:", error);
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

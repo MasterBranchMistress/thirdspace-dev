@@ -18,7 +18,7 @@ function resolveAvatar(user?: UserDoc | null): string {
 export async function generateEventFeed(
   user: UserDoc,
   events: EventDoc[],
-  friends: UserDoc[]
+  friends: UserDoc[],
 ): Promise<FeedItemEvent[]> {
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
@@ -37,7 +37,7 @@ export async function generateEventFeed(
         "target.eventId": item.target?.eventId,
       },
       { $setOnInsert: { ...item, timestamp: new Date() } },
-      { upsert: true }
+      { upsert: true },
     );
   }
 
@@ -56,6 +56,7 @@ export async function generateEventFeed(
 
     const base: Omit<EventFeedDoc, "_id"> = {
       userId: user._id!,
+      sourceId: event._id?.toString() ?? "",
       actor: {
         id: hostUser?._id?.toString(),
         firstName: hostUser?.firstName,
@@ -115,6 +116,7 @@ export async function generateEventFeed(
 
   const feed: FeedItemEvent[] = results.map((doc) => ({
     id: doc._id!.toString(),
+    sourceId: doc._id.toString(),
     type: doc.type as FeedItemEvent["type"],
     actor: {
       id: doc.actor.id,

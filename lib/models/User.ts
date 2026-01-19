@@ -6,6 +6,7 @@ import { Attachment } from "@/types/user-feed";
 export type UserStatusDoc = {
   _id: ObjectId;
   userId: ObjectId;
+  sourceId: string;
   content: string;
   createdAt: Date;
   attachments: string[];
@@ -149,7 +150,7 @@ const NotificationSchema = new Schema(
     read: { type: Boolean },
     timestamp: { type: Date, default: Date.now },
   },
-  { _id: true }
+  { _id: true },
 );
 
 const UserSchema = new Schema(
@@ -201,7 +202,7 @@ const UserSchema = new Schema(
     following: { type: ObjectId, ref: REF._USER },
     status: { type: String, required: false },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default models.User || model(REF._USER, UserSchema);

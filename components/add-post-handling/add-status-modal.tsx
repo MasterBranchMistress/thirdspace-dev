@@ -78,6 +78,7 @@ export default function AddStatus({ isOpen, onOpenChange }: AddStatusProps) {
       scrollBehavior="inside"
       className="bg-transparent text-concrete h-auto"
       classNames={{ closeButton: "text-concrete" }}
+      isDismissable={!loading}
     >
       <ModalContent>
         {(onClose) => (
