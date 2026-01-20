@@ -150,7 +150,7 @@ export default function CommentItem({
       {/* badge here */}
       <div className={`flex items-start gap-2 bg-concrete`}>
         <Badge
-          isInvisible={isHostCommenting ? false : true}
+          isInvisible={!isHostCommenting}
           content={<StarIcon width={9} />}
           classNames={{
             badge: "text-concrete bg-primary p-0.5 border-concrete mt-1",
