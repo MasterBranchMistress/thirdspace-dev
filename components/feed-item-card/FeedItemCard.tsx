@@ -23,6 +23,7 @@ import {
   ArrowPathRoundedSquareIcon,
   ArrowRightStartOnRectangleIcon,
   BellAlertIcon,
+  CheckBadgeIcon,
   EllipsisVerticalIcon,
   ExclamationCircleIcon,
   EyeSlashIcon,
@@ -32,6 +33,7 @@ import {
   TrashIcon,
   UserMinusIcon,
   UserPlusIcon,
+  XCircleIcon,
 } from "@heroicons/react/24/outline";
 import AttachmentSwiper from "../swiper/swiper";
 import { useBrowserLocation } from "@/utils/geolocation/get-user-location/getUserLocation";
@@ -42,6 +44,11 @@ import { dropDownStyle } from "@/utils/get-dropdown-style/getDropDownStyle";
 import { useUserRelationships } from "@/app/context/UserRelationshipsContext";
 import Lottie from "lottie-react";
 import sendmessage from "@/public/lottie/comments.json";
+import {
+  CheckCircleIcon,
+  CheckIcon,
+  EnvelopeIcon,
+} from "@heroicons/react/24/solid";
 
 interface FeedItemCardProps {
   item: FeedItem;
@@ -53,7 +60,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
   const [avatarUrl, setAvatarUrl] = useState<string>();
   const { type, target, actor, timestamp } = item;
   const isUserActor = (
-    a: FeedUserActor | FeedEventActor | null | undefined
+    a: FeedUserActor | FeedEventActor | null | undefined,
   ): a is FeedUserActor => {
     return !!a && typeof (a as any).id === "string";
   };
@@ -77,7 +84,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
         userLocation.coords.lat,
         userLocation.coords.lng,
         target.location.lat,
-        target.location.lng
+        target.location.lng,
       )?.toFixed(1);
     }
     return null;
@@ -126,7 +133,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           <button
             onClick={() =>
               router.push(
-                `/dashboard/profile/${isUserActor(actor) ? actor.id : target?.userId}`
+                `/dashboard/profile/${isUserActor(actor) ? actor.id : target?.userId}`,
               )
             }
             className="hover:cursor-pointer"
@@ -336,14 +343,54 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             </div>
           )}
           {type === "event_coming_up" && (
-            <div className="font-light max-w-[100%] mt-3 tracking-tight">
-              {target?.description}
-              {target?.attachments && target.attachments.length > 0 && (
-                <div className="h-full overflow-hidden">
-                  <AttachmentSwiper attachments={target.attachments} />
-                </div>
-              )}
-            </div>
+            <>
+              <span className="mt-1">
+                <Button
+                  endContent={
+                    <CheckCircleIcon
+                      color="secondary"
+                      width={20}
+                      className="p-0 m-0"
+                    />
+                  }
+                  size="sm"
+                  variant="shadow"
+                  color="success"
+                  className="text-secondary font-bold"
+                  onPress={() =>
+                    router.push(`/dashboard/event/${actor.eventId}`)
+                  }
+                >
+                  Check In
+                </Button>
+                <Button
+                  endContent={
+                    <EnvelopeIcon
+                      color="primary"
+                      width={20}
+                      className="p-0 m-0"
+                    />
+                  }
+                  size="sm"
+                  variant="shadow"
+                  color="primary"
+                  className="text-secondary font-bold ml-2 mt-2"
+                  onPress={() => console.log("set up modal for reason why")}
+                  //TODO: setup messaging via Twilio
+                >
+                  Message Host
+                </Button>
+              </span>
+
+              <div className="font-light max-w-[100%] mt-3 tracking-tight">
+                {target?.description}
+                {target?.attachments && target.attachments.length > 0 && (
+                  <div className="h-full overflow-hidden">
+                    <AttachmentSwiper attachments={target.attachments} />
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
         <span className="text-xs z-20 w-full text-primary tracking-tight font-extralight text-center mt-3">

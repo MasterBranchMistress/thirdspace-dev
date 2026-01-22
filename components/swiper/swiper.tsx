@@ -31,7 +31,7 @@ export default function AttachmentSwiper({
           // Play the active one
           const activeSlide = swiper.slides[swiper.activeIndex];
           const activeVideo = activeSlide.querySelector(
-            "video"
+            "video",
           ) as HTMLVideoElement;
           if (activeVideo) {
             activeVideo.muted = true; // Required for autoplay
@@ -62,7 +62,7 @@ export default function AttachmentSwiper({
                   width="100%"
                   // height={500}
                   alt={`Attachment ${index + 1}`}
-                  className="w-full h-[500] object-cover rounded-none"
+                  className="w-full h-auto object-contain rounded-none"
                 />
               )}
             </SwiperSlide>

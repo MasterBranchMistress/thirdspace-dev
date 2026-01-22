@@ -1,18 +1,14 @@
 import { faker } from "@faker-js/faker";
 import { useMemo } from "react";
-import { Tooltip } from "@heroui/react";
+import { Button, Tooltip } from "@heroui/react";
 import Lottie from "lottie-react";
 import ViewsIcon from "@/public/lottie/eye.json";
-import HeartsIcon from "@/public/lottie/hearts.json";
-import CommentsIcon from "@/public/lottie/comments.json";
-import BoostIcon from "@/public/lottie/fire.json";
 import {
   ArrowPathRoundedSquareIcon,
   ArrowRightStartOnRectangleIcon,
   EyeIcon,
   FireIcon,
 } from "@heroicons/react/24/outline";
-import { ArrowRightEndOnRectangleIcon } from "@heroicons/react/24/solid";
 
 export function FeedStats() {
   const stats = useMemo(
@@ -22,7 +18,7 @@ export function FeedStats() {
       likes: faker.number.int({ min: 20, max: 300 }),
       heat: faker.number.int({ min: 10, max: 75 }),
     }),
-    []
+    [],
   );
   return (
     <>
@@ -54,9 +50,11 @@ export function FeedStats() {
         </div>
       </Tooltip>
       <Tooltip content={"Sparks"}>
-        <div className="flex gap-2 items-center align-middle">
-          <FireIcon width={20} />
-          <p className="font-extrabold text-small">{stats.heat}</p>
+        <div className="flex items-center align-middle">
+          <Button isIconOnly color="primary" variant="light">
+            <FireIcon width={20} />
+          </Button>
+          <p className="font-extrabold text-small">0</p>
         </div>
       </Tooltip>
     </>
