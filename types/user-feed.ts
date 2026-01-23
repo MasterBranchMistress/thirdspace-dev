@@ -22,6 +22,7 @@ export type FeedItemType =
 export type UserStatus = {
   content: string;
   attachments: string[];
+  sourceId: string;
 };
 
 /**

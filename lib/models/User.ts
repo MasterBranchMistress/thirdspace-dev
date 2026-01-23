@@ -2,14 +2,31 @@ import { models, model, Schema, Types } from "mongoose";
 import { ObjectId } from "mongodb";
 import { EVENT_STATUSES, REF, USER_RANKING } from "../constants";
 import { Attachment } from "@/types/user-feed";
+import { CommentDoc } from "./Comment";
 
 export type UserStatusDoc = {
   _id: ObjectId;
   userId: ObjectId;
   sourceId: string;
+  views: number;
+  sparks: number;
   content: string;
   createdAt: Date;
   attachments: string[];
+};
+
+export type StatusViewDoc = {
+  sourceId: string;
+  viewerId: ObjectId;
+  authorId: ObjectId;
+  firstViewedAt: Date;
+  lastViewedAt: Date;
+};
+
+export type StatusSparkDoc = {
+  sourceId: string;
+  userId: ObjectId;
+  sparkedAtDate: Date;
 };
 
 export interface Availability {

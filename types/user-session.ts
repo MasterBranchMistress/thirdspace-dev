@@ -18,8 +18,8 @@ export type SessionUser = {
   tags?: string[];
   location?: {
     name: string;
-    lat: number;
-    lng: number;
+    lat?: number;
+    lng?: number;
   };
   lang?: string;
 };

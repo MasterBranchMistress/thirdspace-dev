@@ -114,6 +114,8 @@ export async function POST(
         : undefined,
       timestamp: now,
       orbiters: [],
+      views: 0,
+      sparks: 0,
     };
 
     const eventResult = await eventCollection.insertOne(baseEvent);
@@ -137,6 +139,7 @@ export async function POST(
         title: data.title,
         snippet: data.description,
         attachments: parsedAttachments,
+        views: 0,
         startingDate: data.date,
         location: {
           name: data.location.name,

@@ -398,7 +398,16 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
         </span>
       </CardBody>
       <CardFooter className="flex gap-2 px-0 w-full z-30">
-        <FeedCardFooter type={type} target={target} actor={actor} />
+        <FeedCardFooter
+          type={type}
+          target={target}
+          actor={actor}
+          sourceId={
+            (isUserActor(actor) && target?.status?.sourceId) ||
+            target?.eventId?.toString() ||
+            ""
+          }
+        />
       </CardFooter>
     </Card>
   );

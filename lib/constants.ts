@@ -10,6 +10,7 @@ export const COLLECTIONS = {
   _USER_FEED: "user_feed",
   _EVENT_FEED: "event_feed",
   _USER_STATUSES: "user_statuses",
+  _USER_STATUS_VIEWS: "user_status_views",
   _COMMENTS: "comments",
 };
 
@@ -76,4 +77,8 @@ export const FEED_BUTTON_DROPDOWN_OPTIONS = {
       label: "Delete file",
     },
   ],
+};
+
+export const STATUS_CONSTANT = {
+  _THROTTLE_MINUTES: 2,
 };

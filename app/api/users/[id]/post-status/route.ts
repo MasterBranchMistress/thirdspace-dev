@@ -53,6 +53,8 @@ export async function POST(
       content: content.trim(),
       createdAt: new Date(),
       attachments: parsedAttachments,
+      views: 0,
+      sparks: 0,
     };
 
     const result = await statusCollection.insertOne(newStatus);
@@ -79,6 +81,7 @@ export async function POST(
         status: {
           content: content.trim(),
           attachments: parsedAttachments,
+          sourceId: newStatus._id.toString(),
         },
       },
       timestamp: new Date().toISOString(),
@@ -104,10 +107,12 @@ export async function POST(
       type: "profile_status_updated" as const,
       actor: actorPayload,
       sourceId: newStatus.sourceId,
+
       target: {
         status: {
           content: content.trim(),
           attachments: parsedAttachments,
+          sourceId: newStatus._id.toString(),
         },
       },
       timestamp: now,

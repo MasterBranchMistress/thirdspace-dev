@@ -71,6 +71,8 @@ export interface EventDoc {
   donations?: EventDonation[];
   timestamp: Date;
   orbiters?: ObjectId[];
+  views: number;
+  sparks: number;
 }
 
 const MessageSchema = new Schema(

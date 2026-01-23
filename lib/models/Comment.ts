@@ -3,7 +3,8 @@ import { ObjectId } from "mongodb";
 // /models/Comment.ts
 export interface CommentDoc {
   _id: ObjectId;
-  eventId: ObjectId; // which event this belongs to
+  eventId?: ObjectId; // for events
+  sourceId?: string; // for statuses. I know its different from event. dont kill me. TODO: standardize id based off source id alone
   userId: ObjectId;
   commenter: {
     userId: string;

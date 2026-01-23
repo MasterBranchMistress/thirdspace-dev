@@ -35,6 +35,7 @@ interface FeedCardFooterProps {
     title?: string;
     avatar?: string;
   };
+  sourceId: string;
 }
 
 const EventMiniMap = dynamic(
@@ -44,12 +45,13 @@ const EventMiniMap = dynamic(
     loading: () => (
       <div className="w-full h-40 rounded-none bg-default-100 animate-pulse" />
     ),
-  }
+  },
 );
 
 export default function FeedCardFooter({
   type,
   target,
+  sourceId,
   actor,
 }: FeedCardFooterProps) {
   const hasCoords =
@@ -97,7 +99,7 @@ export default function FeedCardFooter({
       )}
 
       <div className="flex justify-evenly gap-10 w-[90%]">
-        <FeedStats />
+        <FeedStats statusId={sourceId} />
       </div>
     </div>
   );
