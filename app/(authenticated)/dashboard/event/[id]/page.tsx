@@ -43,6 +43,10 @@ import LoadingPage from "@/components/spinner/LoadingPage";
 import notFound from "@/public/lottie/user-not-found.json";
 import tip from "@/public/lottie/tip.json";
 import CommentList from "@/components/comment-handling/CommentList";
+import {
+  Attendee,
+  OrbiterList,
+} from "@/components/event-page-components/orbiter-list";
 
 type Comment = {
   userId: any;
@@ -80,7 +84,7 @@ type EventDetails = {
     firstName: string;
     lastName: string;
   };
-  attendees: string[];
+  attendees: Attendee[];
   budgetInfo: {
     estimatedCost: number;
     currency: string;
@@ -93,6 +97,7 @@ export default function EventViewPage() {
   const [loading, setLoading] = useState(true);
   const [isHost, setIsHost] = useState(false);
   const [isJoined, setIsJoined] = useState(false);
+  const [orbiters, setOrbiters] = useState([]);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [attachments, setAttachments] = useState([]);
@@ -139,7 +144,7 @@ export default function EventViewPage() {
         // ✅ check if joined
         if (userId && Array.isArray(eventData.attendees)) {
           const joined = eventData.attendees.some(
-            (attendee: any) => String(attendee._id) === String(userId)
+            (attendee: any) => String(attendee._id) === String(userId),
           );
           setIsJoined(joined);
           console.log("Joined: ", joined);
@@ -157,8 +162,6 @@ export default function EventViewPage() {
     if (id && userId) fetchEvent();
   }, [id, userId]);
 
-  console.log("Event: ", event?._id, "Is host of event? ", isHost);
-
   // Handlers
   const handleJoin = async () => {
     if (!userId) return;
@@ -171,7 +174,7 @@ export default function EventViewPage() {
       const errData = await res.json().catch(() => ({}));
       notify(
         "Oops! Couldn't join 😭",
-        errData.error || "Something went wrong. Please try again later."
+        errData.error || "Something went wrong. Please try again later.",
       );
       return;
     }
@@ -183,7 +186,7 @@ export default function EventViewPage() {
     });
     notify(
       "Successfully Joined Event 🎉",
-      "Jump in and let the group know you've arrived!"
+      "Jump in and let the group know you've arrived!",
     );
   };
 
@@ -206,7 +209,7 @@ export default function EventViewPage() {
     });
     notify(
       "Successfully Canceled Event 🙅",
-      "Your orbiters will be notified fo the update"
+      "Your orbiters will be notified fo the update",
     );
   };
 
@@ -228,13 +231,15 @@ export default function EventViewPage() {
         const data = await res.json().catch(() => ({}));
         notify(
           "Couldn't delete event 😭",
-          data.error || "Something went wrong."
+          data.error || "Something went wrong.",
         );
       }
     } catch (err) {
       notify("Couldn't delete event 😭", (err as Error).message);
     }
   };
+
+  console.log(event?.attendees);
 
   return (
     <>
@@ -370,9 +375,12 @@ export default function EventViewPage() {
                         </span>
                       ))}
                     </div>
-                    <div className="text-primary text-sm text-center font-light tracking-tight mt-3">
+                    <div className="text-primary text-sm font-bold text-center tracking-tight mt-3">
                       {event.budgetInfo &&
-                        `Orbit Goal: ${event.budgetInfo.currency === "USD" ? "$" : ""}${event.budgetInfo.estimatedCost} ${event.budgetInfo.currency}`}
+                        `Orbit Goal: ${event.budgetInfo.currency === "usd" ? "$" : ""}${event.budgetInfo.estimatedCost}`}
+                    </div>
+                    <div className="flex items-center justify-center pt-3">
+                      <OrbiterList attendeeUsers={event?.attendees} />
                     </div>
                   </>
                 }
@@ -392,7 +400,7 @@ export default function EventViewPage() {
                   {event.donations
                     ? event.donations.reduce(
                         (sum: number, d: { amount: number }) => sum + d.amount,
-                        0
+                        0,
                       )
                     : 7}{" "}
                   out of ${event.budgetInfo?.estimatedCost ?? 0} to Orbit Goal!
@@ -409,16 +417,16 @@ export default function EventViewPage() {
                               (event.donations.reduce(
                                 (sum: number, d: { amount: number }) =>
                                   sum + d.amount,
-                                0
+                                0,
                               ) /
                                 (event.budgetInfo?.estimatedCost ?? 1)) *
                                 100,
-                              100
+                              100,
                             )
                           : Math.min(
                               (7 / (event.budgetInfo?.estimatedCost ?? 1)) *
                                 100,
-                              100
+                              100,
                             )
                       }%`,
                     }}

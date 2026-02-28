@@ -11,6 +11,9 @@ export const COLLECTIONS = {
   _EVENT_FEED: "event_feed",
   _USER_STATUSES: "user_statuses",
   _USER_STATUS_VIEWS: "user_status_views",
+  _USER_EVENT_VIEWS: "user_event_views",
+  _USER_EVENT_SPARKS: "user_event_sparks",
+  _USER_STATUS_SPARKS: "user_status_sparks",
   _COMMENTS: "comments",
 };
 

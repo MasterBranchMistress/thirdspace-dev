@@ -99,7 +99,10 @@ export default function FeedCardFooter({
       )}
 
       <div className="flex justify-evenly gap-10 w-[90%]">
-        <FeedStats statusId={sourceId} />
+        <FeedStats
+          eventId={actor?.eventId?.toString() || ""}
+          statusId={sourceId}
+        />
       </div>
     </div>
   );

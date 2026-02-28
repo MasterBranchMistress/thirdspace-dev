@@ -83,6 +83,7 @@ export interface FeedEventActor {
  */
 export interface FeedTarget {
   eventId?: string | ObjectId;
+  statusId?: string | ObjectId;
   eventStatus?: string;
   userId?: string | ObjectId;
   title?: string;

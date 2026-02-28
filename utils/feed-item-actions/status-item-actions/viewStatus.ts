@@ -8,7 +8,7 @@ type Props = {
 export const viewStatus = async ({ loggedInUser, statusId }: Props) => {
   try {
     const addView = await fetch(
-      `/api/users/${loggedInUser?.id}/feed-item-actions/${statusId}/view`,
+      `/api/users/${loggedInUser?.id}/feed-item-actions/status-items/${statusId}/view`,
       {
         method: "POST",
         headers: {

@@ -23,10 +23,26 @@ export type StatusViewDoc = {
   lastViewedAt: Date;
 };
 
+export type EventViewDoc = {
+  _id: ObjectId;
+  viewerId: ObjectId;
+  hostId: ObjectId;
+  firstViewedAt: Date;
+  lastViewedAt: Date;
+};
+
+export type EventSparkDoc = {
+  _id: ObjectId;
+  sparkerId: ObjectId;
+  hostId: ObjectId;
+  sparkedAt: Date;
+};
+
 export type StatusSparkDoc = {
-  sourceId: string;
-  userId: ObjectId;
-  sparkedAtDate: Date;
+  _id: ObjectId;
+  sparkerId: ObjectId;
+  authorId: ObjectId;
+  sparkedAt: Date;
 };
 
 export interface Availability {

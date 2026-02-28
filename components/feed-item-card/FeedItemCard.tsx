@@ -18,22 +18,14 @@ import {
 import React, { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import FeedCardFooter from "./FeedCardFooter";
+import fire from "@/public/lottie/fire.json";
 import { FeedEventActor, FeedItem, FeedUserActor } from "@/types/user-feed";
 import {
   ArrowPathRoundedSquareIcon,
   ArrowRightStartOnRectangleIcon,
-  BellAlertIcon,
-  CheckBadgeIcon,
   EllipsisVerticalIcon,
-  ExclamationCircleIcon,
-  EyeSlashIcon,
   FlagIcon,
-  HandRaisedIcon,
-  HandThumbUpIcon,
   TrashIcon,
-  UserMinusIcon,
-  UserPlusIcon,
-  XCircleIcon,
 } from "@heroicons/react/24/outline";
 import AttachmentSwiper from "../swiper/swiper";
 import { useBrowserLocation } from "@/utils/geolocation/get-user-location/getUserLocation";
@@ -49,16 +41,22 @@ import {
   CheckIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/solid";
+import userNotFound from "@/public/lottie/user-not-found.json";
 
 interface FeedItemCardProps {
   item: FeedItem;
 }
+import { useToast } from "@/app/providers/ToastProvider";
+import { sparkEvent } from "@/utils/feed-item-actions/event-item-actions/sendSpark";
+import { sparkStatus } from "@/utils/feed-item-actions/status-item-actions/sendSpark";
 
 export default function FeedItemCard({ item }: FeedItemCardProps) {
   const { data: session } = useSession();
-  const logginedInUser = session?.user;
+  const user = session?.user;
   const [avatarUrl, setAvatarUrl] = useState<string>();
+  const [showPulse, setShowPulse] = useState(false);
   const { type, target, actor, timestamp } = item;
+  const { notify } = useToast();
   const isUserActor = (
     a: FeedUserActor | FeedEventActor | null | undefined,
   ): a is FeedUserActor => {
@@ -72,6 +70,8 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
     }
   }, [actor]);
   const { getRelationship } = useUserRelationships();
+
+  console.log(actor);
 
   const userLocation = useBrowserLocation();
   const eventDistance = useMemo(() => {
@@ -99,8 +99,8 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
     : getRelationship(String(target?.userId));
 
   const isSelf = isUserActor(actor)
-    ? String(logginedInUser?.id) === String(actor.id)
-    : String(logginedInUser?.id) === String(target?.userId);
+    ? String(user?.id) === String(actor.id)
+    : String(user?.id) === String(target?.userId);
 
   const message =
     type === "event_is_popular"
@@ -121,6 +121,38 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                     ? ``
                     : isUserActor(actor) &&
                       `${actor.firstName} is doing something cool 🤔`;
+
+  const handleEventSpark = async (eventId?: string) => {
+    if (!eventId || !user) return;
+
+    try {
+      await sparkEvent({ loggedInUser: user, eventId });
+      notify(
+        `You Sparked ${target?.title} hosted by ${actor.firstName} 🔥`,
+        ``,
+      );
+
+      setShowPulse(true);
+      setTimeout(() => setShowPulse(false), 5000);
+    } catch (err) {
+      console.error(err);
+      notify("Something went wrong", "");
+    }
+  };
+
+  const handleStatusSpark = async (statusId?: string) => {
+    if (!statusId || !user) return;
+    try {
+      await sparkStatus({ loggedInUser: user, statusId });
+      notify(`You sparked ${actor.firstName}'s status 🚀`, ``);
+
+      setShowPulse(true);
+      setTimeout(() => setShowPulse(false), 5000);
+    } catch (err) {
+      console.error(err);
+      notify("Something went wrong", "");
+    }
+  };
 
   return (
     <Card
@@ -267,7 +299,20 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
               {target?.status?.attachments &&
                 target.status.attachments.length > 0 && (
                   <div className="h-full">
-                    <AttachmentSwiper attachments={target.status.attachments} />
+                    <AttachmentSwiper
+                      attachments={target.status.attachments}
+                      onDoubleTap={() =>
+                        handleStatusSpark(target.status?.sourceId)
+                      }
+                      overlay={
+                        showPulse ? (
+                          <Lottie
+                            animationData={fire}
+                            style={{ width: 100, height: 100 }}
+                          />
+                        ) : null
+                      }
+                    />
                   </div>
                 )}
             </div>
@@ -291,13 +336,27 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                     {target?.title}
                   </Button>
                 </div>
-                <div className="tracking-tight text-sm px-3 mt-3">
+                <div className="font-light tracking-tight text-sm px-3 mt-3">
                   {target?.snippet}
                 </div>
               </div>
               {target?.attachments && target.attachments.length > 0 && (
-                <div className="h-full overflow-hidden">
-                  <AttachmentSwiper attachments={target.attachments} />
+                <div className="relative h-full overflow-hidden">
+                  {/* Media */}
+                  <AttachmentSwiper
+                    attachments={target.attachments}
+                    onDoubleTap={() =>
+                      handleEventSpark(actor?.eventId?.toString())
+                    }
+                    overlay={
+                      showPulse ? (
+                        <Lottie
+                          animationData={fire}
+                          style={{ width: 100, height: 100 }}
+                        />
+                      ) : null
+                    }
+                  />
                 </div>
               )}
             </div>
@@ -383,7 +442,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
               </span>
 
               <div className="font-light max-w-[100%] mt-3 tracking-tight">
-                {target?.description}
+                <div className="px-3"> {target?.description}</div>
                 {target?.attachments && target.attachments.length > 0 && (
                   <div className="h-full overflow-hidden">
                     <AttachmentSwiper attachments={target.attachments} />
@@ -397,7 +456,8 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           {formatDistanceToNow(timestamp, { addSuffix: true })}
         </span>
       </CardBody>
-      <CardFooter className="flex gap-2 px-0 w-full z-30">
+      {/* Contemplating removing this componant altogether. Makes the feed look cleaner. Thean stats can show on-click */}
+      {/* <CardFooter className="flex gap-2 px-0 w-full z-30">
         <FeedCardFooter
           type={type}
           target={target}
@@ -408,7 +468,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             ""
           }
         />
-      </CardFooter>
+      </CardFooter> */}
     </Card>
   );
 }

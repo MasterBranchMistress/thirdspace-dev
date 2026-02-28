@@ -1,6 +1,8 @@
 import { SessionUser } from "@/types/user-session";
+import { UserFeedDoc } from "@/lib/models/UserFeedDoc";
+import { FeedItemType } from "@/types/user-feed";
 
-export type StatusData = {
+export type EventData = {
   _id: string;
   sourceId: string;
   userId: string;
@@ -11,12 +13,12 @@ export type StatusData = {
   views: number;
 };
 
-export const getStatusInfo = async (
+export const getEventInfo = async (
   loggedInUser?: SessionUser,
-  statusId?: string,
+  eventId?: string,
 ) => {
   const r = await fetch(
-    `/api/users/${loggedInUser?.id}/feed-item-actions/${statusId}/get-status-info`,
+    `/api/users/${loggedInUser?.id}/feed-item-actions/event-items/${eventId}/get-event-info`,
     {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -27,8 +29,8 @@ export const getStatusInfo = async (
   const res = await r.json();
 
   if (!r.ok) {
-    throw new Error(res.error ?? "unable to get status info");
+    throw new Error(res.error ?? "unable to get event info");
   }
 
-  return res.statusInfo as StatusData;
+  return res.eventInfo as EventData;
 };
