@@ -195,37 +195,37 @@ export async function generateUserFeed(
     }
 
     // Profile updates
-    await logFeedItem({
-      userId: user._id!,
-      sourceId: `${user._id?.toString()}:profile_avatar_updated`,
-      type: "profile_avatar_updated",
-      actor: {
-        id: actorUser._id!.toString(),
-        firstName: actorUser.firstName,
-        lastName: actorUser.lastName,
-        username: actorUser.username,
-        avatar: actorUser.avatar,
-      },
-      target: { userId: actorUser._id!, snippet: actorUser.avatar },
-      timestamp: nowIso,
-    });
+    // await logFeedItem({
+    //   userId: user._id!,
+    //   sourceId: `${user._id?.toString()}:profile_avatar_updated`,
+    //   type: "profile_avatar_updated",
+    //   actor: {
+    //     id: actorUser._id!.toString(),
+    //     firstName: actorUser.firstName,
+    //     lastName: actorUser.lastName,
+    //     username: actorUser.username,
+    //     avatar: actorUser.avatar,
+    //   },
+    //   target: { userId: actorUser._id!, snippet: actorUser.avatar },
+    //   timestamp: nowIso,
+    // });
 
-    if (actorUser.location && actorUser.shareLocation === true) {
-      await logFeedItem({
-        userId: user._id!,
-        sourceId: `${user._id?.toString()}:profile_location_updated`,
-        type: "profile_location_updated",
-        actor: {
-          id: actorUser._id!.toString(),
-          firstName: actorUser.firstName,
-          lastName: actorUser.lastName,
-          username: actorUser.username,
-          avatar: resolveAvatar(actorUser),
-        },
-        target: { userId: actorUser._id!, snippet: actorUser.location.name },
-        timestamp: nowIso,
-      });
-    }
+    // if (actorUser.location && actorUser.shareLocation === true) {
+    //   await logFeedItem({
+    //     userId: user._id!,
+    //     sourceId: `${user._id?.toString()}:profile_location_updated`,
+    //     type: "profile_location_updated",
+    //     actor: {
+    //       id: actorUser._id!.toString(),
+    //       firstName: actorUser.firstName,
+    //       lastName: actorUser.lastName,
+    //       username: actorUser.username,
+    //       avatar: resolveAvatar(actorUser),
+    //     },
+    //     target: { userId: actorUser._id!, snippet: actorUser.location.name },
+    //     timestamp: nowIso,
+    //   });
+    // }
 
     const userStatuses = statuses.filter(
       (s) => String(s.userId) === String(actorUser._id!),
@@ -248,6 +248,7 @@ export async function generateUserFeed(
           status: {
             content: status.content,
             attachments: status.attachments ?? [],
+            sourceId: status.sourceId,
           },
         },
         timestamp: nowIso,
