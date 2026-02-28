@@ -617,3 +617,17 @@ The app now includes a **notifications system** with global context and UI integ
 - Includes client-side validation + toast feedback for success/failure.
 
 ![alt text](public/screenshots/lin-1.png) ![alt text](public/screenshots/lin-2.png) ![alt text](public/screenshots/lin-3.png) ![alt text](public/screenshots/lin-4.png)
+
+## ✨ Spark Interaction (Double-Tap Support)
+
+Users can double-tap event media to send a **Spark** — a lightweight expression of support.
+
+Sparks:
+
+- Are tied to the canonical event (not feed items)
+- Are deduplicated via indexed reactions (1 spark per user per event)
+- Trigger a centered pulse animation for immediate feedback
+- Do not introduce public popularity metrics
+
+Designed to encourage positive engagement without creating comparison pressure.
+![alt text](public/screenshots/spark-functionality.png)
