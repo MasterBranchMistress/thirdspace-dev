@@ -10,6 +10,7 @@ export type FeedItemType =
   | "joined_event"
   | "joined_platform"
   | "hosted_event"
+  | "_hosted_event_"
   | "profile_updated"
   | "profile_bio_updated"
   | "profile_avatar_updated"

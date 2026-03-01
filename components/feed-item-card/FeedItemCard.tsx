@@ -41,20 +41,23 @@ import {
   CheckIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/solid";
-import userNotFound from "@/public/lottie/user-not-found.json";
 
 interface FeedItemCardProps {
   item: FeedItem;
 }
 import { useToast } from "@/app/providers/ToastProvider";
-import { sparkEvent } from "@/utils/feed-item-actions/event-item-actions/sendSpark";
-import { sparkStatus } from "@/utils/feed-item-actions/status-item-actions/sendSpark";
+import { sparkEvent } from "@/utils/feed-item-actions/event-item-actions/sparkHandler";
+import {
+  getStatusSparks,
+  sparkStatus,
+} from "@/utils/feed-item-actions/status-item-actions/sparkHandler";
 
 export default function FeedItemCard({ item }: FeedItemCardProps) {
   const { data: session } = useSession();
   const user = session?.user;
   const [avatarUrl, setAvatarUrl] = useState<string>();
   const [showPulse, setShowPulse] = useState(false);
+  const [hasSparked, setHasSparked] = useState(false);
   const { type, target, actor, timestamp } = item;
   const { notify } = useToast();
   const isUserActor = (
@@ -71,7 +74,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
   }, [actor]);
   const { getRelationship } = useUserRelationships();
 
-  console.log(actor);
+  // console.log(actor); //for debugging
 
   const userLocation = useBrowserLocation();
   const eventDistance = useMemo(() => {
@@ -89,6 +92,10 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
     }
     return null;
   }, [userLocation, target?.location]);
+
+  useEffect(() => {
+    setHasSparked(Boolean((item as any).hasSparked));
+  }, [(item as any).hasSparked]);
 
   const buttonText = isUserActor(actor) ? (
     <Lottie animationData={sendmessage} style={{ width: "1.6rem" }} />
@@ -112,7 +119,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           : type === "hosted_event"
             ? ""
             : type === "joined_platform" && isUserActor(actor)
-              ? `${actor.firstName} just joined ThirdSpace! 🚀`
+              ? `Welcome aboard ${actor.firstName}! There's much to do 🚀`
               : type === "profile_location_updated" && isUserActor(actor)
                 ? `${actor.firstName} moved somewhere new 📍`
                 : type === "profile_bio_updated" && isUserActor(actor)
@@ -126,15 +133,17 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
     if (!eventId || !user) return;
 
     try {
+      setHasSparked(true); // optimistic
       await sparkEvent({ loggedInUser: user, eventId });
-      notify(
-        `You Sparked ${target?.title} hosted by ${actor.firstName} 🔥`,
-        ``,
-      );
+      // notify(
+      //   `You Sparked ${target?.title} hosted by ${actor.firstName} 🔥`,
+      //   ``,
+      // );
 
       setShowPulse(true);
-      setTimeout(() => setShowPulse(false), 5000);
+      setTimeout(() => setShowPulse(false), 1000);
     } catch (err) {
+      setHasSparked(false); // rollback
       console.error(err);
       notify("Something went wrong", "");
     }
@@ -143,12 +152,13 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
   const handleStatusSpark = async (statusId?: string) => {
     if (!statusId || !user) return;
     try {
+      setHasSparked(true); // optimistic
       await sparkStatus({ loggedInUser: user, statusId });
-      notify(`You sparked ${actor.firstName}'s status 🚀`, ``);
-
+      // notify(`You sparked ${actor.firstName}'s status 🚀`, ``);
       setShowPulse(true);
-      setTimeout(() => setShowPulse(false), 5000);
+      setTimeout(() => setShowPulse(false), 1000);
     } catch (err) {
+      setHasSparked(false); // rollback
       console.error(err);
       notify("Something went wrong", "");
     }
@@ -289,7 +299,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                 console.log(`Said hi to ${actor.firstName}`);
               }}
             >
-              Send a Spark ✨
+              Show Me Around ✨
             </Button>
           )}
 
@@ -364,19 +374,43 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           {type === "hosted_event" && isUserActor(actor) && (
             <div className="mt-2 tracking-tight max-w-[100%] font-normal text-sm">
               <div className="flex flex-col items-center justify-center text-center">
-                <div className="font-bold text-sm text-center">
-                  <span className="font-light">
-                    {actor.firstName} is hosting
+                <div className="flex flex-row font-bold text-sm text-center mb-2 items-center">
+                  <span className="font-semibold shadow-lg shadow-primary border-1 border-primary py-1 mr-[-12] px-3 rounded-l-lg">
+                    {actor?.firstName} is hosting
                   </span>
-                  {"  "}"{target?.title}"
+                  <Button
+                    size="sm"
+                    variant="shadow"
+                    color="primary"
+                    className="text-secondary font-bold ml-2"
+                    onPress={() =>
+                      router.push(`/dashboard/event/${actor.eventId}`)
+                    }
+                  >
+                    {target?.title}
+                  </Button>
                 </div>
-                <div className="tracking-tight px-3 text-sm mt-3">
+                <div className="font-light tracking-tight text-sm px-3 mt-3">
                   {target?.snippet}
                 </div>
               </div>
               {target?.attachments && target.attachments.length > 0 && (
-                <div className="h-full overflow-hidden">
-                  <AttachmentSwiper attachments={target.attachments} />
+                <div className="relative h-full overflow-hidden">
+                  {/* Media */}
+                  <AttachmentSwiper
+                    attachments={target.attachments}
+                    onDoubleTap={() =>
+                      handleEventSpark(actor?.eventId?.toString())
+                    }
+                    overlay={
+                      showPulse ? (
+                        <Lottie
+                          animationData={fire}
+                          style={{ width: 100, height: 100 }}
+                        />
+                      ) : null
+                    }
+                  />
                 </div>
               )}
             </div>
@@ -457,7 +491,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
         </span>
       </CardBody>
       {/* Contemplating removing this componant altogether. Makes the feed look cleaner. Thean stats can show on-click */}
-      {/* <CardFooter className="flex gap-2 px-0 w-full z-30">
+      <CardFooter className="flex gap-2 px-0 w-full z-30">
         <FeedCardFooter
           type={type}
           target={target}
@@ -467,8 +501,10 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             target?.eventId?.toString() ||
             ""
           }
+          userId={target?.userId?.toString()}
+          hasSparked={hasSparked}
         />
-      </CardFooter> */}
+      </CardFooter>
     </Card>
   );
 }

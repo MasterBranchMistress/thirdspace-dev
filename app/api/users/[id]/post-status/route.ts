@@ -54,7 +54,7 @@ export async function POST(
       createdAt: new Date(),
       attachments: parsedAttachments,
       views: 0,
-      sparks: 0,
+      sparks: [],
     };
 
     const result = await statusCollection.insertOne(newStatus);

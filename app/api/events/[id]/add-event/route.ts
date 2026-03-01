@@ -115,7 +115,7 @@ export async function POST(
       timestamp: now,
       orbiters: [],
       views: 0,
-      sparks: 0,
+      sparks: [],
     };
 
     const eventResult = await eventCollection.insertOne(baseEvent);
@@ -151,7 +151,7 @@ export async function POST(
       timestamp: now,
     };
     await feedCollection.insertOne(baseFeedEvent);
-    if (["friends", "followers"].includes(user.visibility!)) {
+    if (["friends", "followers", "public", "off"].includes(user.visibility!)) {
       const friends = await userCollection
         .find({ _id: { $in: user.friends ?? [] } })
         .toArray();

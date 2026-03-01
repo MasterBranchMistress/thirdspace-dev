@@ -1,5 +1,5 @@
 import React from "react";
-import { FeedStats } from "./FeedStats";
+import SparkMeta from "./FeedStats";
 import { Image } from "@heroui/react";
 import { ObjectId } from "mongodb";
 import dynamic from "next/dynamic";
@@ -7,6 +7,7 @@ import { useInView } from "react-intersection-observer";
 
 interface FeedCardFooterProps {
   type: string;
+  userId?: string;
   actor?: {
     id?: string | ObjectId;
     name?: string;
@@ -36,6 +37,7 @@ interface FeedCardFooterProps {
     avatar?: string;
   };
   sourceId: string;
+  hasSparked: boolean;
 }
 
 const EventMiniMap = dynamic(
@@ -51,8 +53,7 @@ const EventMiniMap = dynamic(
 export default function FeedCardFooter({
   type,
   target,
-  sourceId,
-  actor,
+  hasSparked,
 }: FeedCardFooterProps) {
   const hasCoords =
     typeof target?.location?.lat === "number" &&
@@ -99,10 +100,7 @@ export default function FeedCardFooter({
       )}
 
       <div className="flex justify-evenly gap-10 w-[90%]">
-        <FeedStats
-          eventId={actor?.eventId?.toString() || ""}
-          statusId={sourceId}
-        />
+        <SparkMeta hasSparked={hasSparked} />
       </div>
     </div>
   );

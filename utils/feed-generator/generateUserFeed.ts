@@ -98,18 +98,10 @@ export async function generateUserFeed(
   const actors: UserDoc[] = [user, ...friends];
 
   for (const actorUser of actors) {
+    console.log(`Can I see? ${!canViewerSee(actorUser, user)}`);
     if (!canViewerSee(actorUser, user)) continue;
     for (const event of events) {
-      if (event.type === "hosted_event") {
-        const now = new Date();
-        const twoWeeks = new Date(now.getTime() + 1000 * 60 * 60 * 24 * 14);
-
-        const eventDate = new Date(event.date); // ✅ normalize string → Date
-
-        const isUpcoming = eventDate >= now && eventDate <= twoWeeks;
-
-        if (!isUpcoming) continue;
-      }
+      console.log(`hello: ${event._id}`);
 
       const host = await userCollection.findOne({ _id: event.host });
       if (event.host?.toString() !== actorUser._id?.toString()) continue;
@@ -133,9 +125,19 @@ export async function generateUserFeed(
       let evLng = event.location?.lng;
       if (typeof evLat !== "number" || typeof evLng !== "number") {
         const addr = event.location?.address ?? event.location?.name ?? "";
-        if (!addr) continue;
+        if (!addr) {
+          console.log(
+            "[SKIP] no address/coords for",
+            event.title,
+            event.location,
+          );
+          continue;
+        }
         const geo = await geocodeAddress(addr);
-        if (!geo) continue;
+        if (!geo) {
+          console.log("[SKIP] geocode failed for", event.title, "addr=", addr);
+          continue;
+        }
         evLat = geo.lat;
         evLng = geo.lng;
       }
@@ -147,11 +149,39 @@ export async function generateUserFeed(
         distMiles = typeof d === "number" ? Number(d.toFixed(1)) : null;
       }
 
-      const passesDistance = viewerHasCoords
-        ? distMiles !== null && distMiles <= radiusMiles
-        : true;
+      //TODO: DECIDE TO THROW AWAY DISTANCE LOGIC IN LUIE OF RELEVANCE ALGO MAYBE??
 
-      if (!passesDistance) continue;
+      // const isFriend = friends.some((friend) => {
+      //   String(friend._id) === String(user._id);
+      // });
+
+      // console.log("friends.length", friends?.length);
+      // console.log(
+      //   "friends sample",
+      //   friends
+      //     ?.slice(0, 3)
+      //     ?.map((f) => ({ _id: f?._id, username: (f as any)?.username })),
+      // );
+
+      // const passesDistance = isFriend
+      //   ? true
+      //   : viewerHasCoords
+      //     ? distMiles !== null && distMiles <= radiusMiles
+      //     : true;
+
+      // if (!passesDistance) {
+      //   console.log(
+      //     "[SKIP] distance",
+      //     event.title,
+      //     "distMiles=",
+      //     distMiles,
+      //     "radius=",
+      //     radiusMiles,
+      //     "viewerHasCoords=",
+      //     viewerHasCoords,
+      //   );
+      //   continue;
+      // }
 
       const actor = {
         id: actorUser._id!.toString(),
@@ -169,6 +199,13 @@ export async function generateUserFeed(
       };
 
       if (host) {
+        console.log("[HOSTED_EVENT] attempting", {
+          viewer: user.username,
+          actor: actorUser.username,
+          eventId: String(event._id),
+          title: event.title,
+          host: String(event.host),
+        });
         await logFeedItem({
           userId: user._id!,
           sourceId: `${event._id?.toString()}:hosted_event`,

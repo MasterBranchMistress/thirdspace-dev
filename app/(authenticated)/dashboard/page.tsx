@@ -17,6 +17,9 @@ import spaceman from "@/public/lottie/space-man.json";
 import backToTop from "@/public/lottie/back-to-top.json";
 import { useBrowserLocation } from "@/utils/geolocation/get-user-location/getUserLocation";
 import { useAvatar } from "@/app/context/AvatarContext";
+import { getStatusSparks } from "@/utils/feed-item-actions/status-item-actions/sparkHandler";
+import { UserStatusDoc } from "@/lib/models/User";
+import { getEventSparks } from "@/utils/feed-item-actions/event-item-actions/sparkHandler";
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -33,6 +36,7 @@ export default function Home() {
   });
 
   const observer = useRef<IntersectionObserver | null>(null);
+  const hydratedRef = useRef(false);
 
   const lastItemRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -47,7 +51,7 @@ export default function Home() {
 
       if (node) observer.current.observe(node);
     },
-    [loading, hasMore, loadMore]
+    [loading, hasMore, loadMore],
   );
 
   useEffect(() => {
@@ -92,6 +96,51 @@ export default function Home() {
       setAvatar(session.user.avatar);
     }
   }, [session?.user?.avatar, avatar]);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    if (!items?.length) return;
+    if (hydratedRef.current) return;
+
+    const run = async () => {
+      // ---- Status IDs ----
+      const statusIds = items
+        .map((it: any) => it?.target?.status?.sourceId)
+        .filter((id: any): id is string => Boolean(id));
+
+      // ---- Event IDs (stringify ObjectIds) ----
+      const eventIds = items
+        .map((it: any) => it?.target?.eventId ?? it?.actor?.eventId)
+        .filter(Boolean)
+        .map((id: any) => String(id));
+
+      const statusSparkedIds = statusIds.length
+        ? await getStatusSparks(statusIds, session.user)
+        : [];
+
+      const eventSparkedIds = eventIds.length
+        ? await getEventSparks(eventIds, session.user)
+        : [];
+
+      const statusSet = new Set(statusSparkedIds.map(String));
+      const eventSet = new Set(eventSparkedIds.map(String));
+
+      const hydratedItems: FeedItem[] = items.map((it: any) => {
+        const sid = it?.target?.status?.sourceId;
+        if (sid) return { ...it, hasSparked: statusSet.has(String(sid)) };
+
+        const eid = it?.target?.eventId ?? it?.actor?.eventId;
+        if (eid) return { ...it, hasSparked: eventSet.has(String(eid)) };
+
+        return { ...it, hasSparked: false };
+      });
+
+      prependItems?.(hydratedItems);
+      hydratedRef.current = true;
+    };
+
+    run().catch(console.error);
+  }, [items.length, session?.user?.id]);
 
   if (status === "loading" || !coords) return <LoadingPage />;
   if (error) return <p>{error}</p>;

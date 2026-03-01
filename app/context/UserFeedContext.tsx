@@ -11,6 +11,7 @@ import {
 import { useSession } from "next-auth/react";
 import { mergeFeedItems } from "@/utils/merge-feed-items/mergeFeedItems";
 import { FeedItem } from "@/types/user-feed";
+import { getStatusSparks } from "@/utils/feed-item-actions/status-item-actions/sparkHandler";
 
 interface FeedContextType {
   items: FeedItem[];
@@ -48,11 +49,12 @@ export function FeedProvider({ children }: { children: ReactNode }) {
     if (!session?.user?.id) return;
 
     const currentRequestId = ++requestIdRef.current; // bump ID for this fetch
+
     setLoading(true);
 
     try {
       const res = await fetch(
-        `/api/users/${session.user.id}/user-feed?page=${pageToFetch}&limit=10`
+        `/api/users/${session.user.id}/user-feed?page=${pageToFetch}&limit=10`,
       );
 
       if (!res) {
@@ -70,11 +72,11 @@ export function FeedProvider({ children }: { children: ReactNode }) {
 
       if (isRefresh) {
         setItems((prev) =>
-          Array.isArray(data.feed) && data.feed.length > 0 ? data.feed : prev
+          Array.isArray(data.feed) && data.feed.length > 0 ? data.feed : prev,
         );
       } else {
         setItems((prev) =>
-          Array.isArray(data.feed) ? [...prev, ...data.feed] : prev
+          Array.isArray(data.feed) ? [...prev, ...data.feed] : prev,
         );
       }
 

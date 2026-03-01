@@ -5,14 +5,11 @@ import clientPromise from "@/lib/mongodb";
 import { error } from "console";
 import { ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { authOptions } from "@/lib/authOptions";
-import { getServerSession } from "next-auth";
 
 export async function POST(
   req: NextRequest,
   context: { params: Promise<{ id: string; eventId: string }> },
 ) {
-  const session = await getServerSession(authOptions);
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
   const { id, eventId } = await context.params;
@@ -20,7 +17,7 @@ export async function POST(
   const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
   const viewerId = await userCollection.findOne({ _id: new ObjectId(id) });
   console.log("Viewer session: ", viewerId);
-  if (!session?.user.id) {
+  if (!viewerId) {
     return NextResponse.json({ error: "User not logged in" }, { status: 404 });
   }
 
@@ -31,45 +28,27 @@ export async function POST(
   const event = await eventCollection.findOne({ _id: new ObjectId(eventId) });
   if (!event)
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
-  const updateEventSparkDetails = await eventSparkDetails.updateOne(
-    {
-      eventId: new ObjectId(eventId),
-      sparkerId: new ObjectId(session.user.id),
-    },
-    {
-      $set: { lastViewedAt: new Date(), hostId: event.host },
-      $setOnInsert: { firstViewedAt: new Date() },
-    },
-    { upsert: true },
-  );
-
-  const userHasEventSparked = await eventCollection.findOne({
-    sparks: new ObjectId(session.user.id),
+  const updateEventSparkDetails = await eventSparkDetails.deleteOne({
+    eventId: new ObjectId(eventId),
+    sparkerId: new ObjectId(viewerId._id),
   });
 
-  if (!userHasEventSparked) {
+  if (updateEventSparkDetails.deletedCount === 1) {
     await eventCollection.updateOne(
       {
         _id: event._id,
       },
       {
-        $addToSet: { sparks: new ObjectId(session.user.id) },
+        $pull: { sparks: new ObjectId(viewerId._id) },
       },
     );
   } else {
-    await eventCollection.updateOne(
-      {
-        _id: event._id,
-      },
-      {
-        $pull: { sparks: new ObjectId(session.user.id) },
-      },
-    );
+    return NextResponse.json({ message: "User hasn't sparked this event" });
   }
 
   return NextResponse.json(
     {
-      message: `Spark Added to ${event._id}`,
+      message: `Spark deleted from ${event._id}`,
     },
     {
       status: 200,

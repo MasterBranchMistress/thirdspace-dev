@@ -28,30 +28,53 @@ export async function POST(
   const status = await statusCollection.findOne({
     _id: new ObjectId(statusId),
   });
+
+  const userHasStatusSparked = await statusCollection.findOne({
+    sparks: new Object(viewerId._id),
+  });
+
   if (!status)
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
-  const updateStatusSparkDetails = await statusSparkDetails.updateOne(
-    { _id: new ObjectId(statusId), sparkerId: new ObjectId(viewerId._id) },
-    {
-      $set: { lastViewedAt: new Date(), authorId: status.userId },
-      $setOnInsert: { firstViewedAt: new Date() },
-    },
-    { upsert: true },
-  );
 
-  const updateEventSparks = await statusCollection.updateOne(
-    {
-      _id: status._id,
-    },
-    {
-      $inc: { sparks: 1 },
-    },
-  );
-  if (!updateEventSparks) return NextResponse.error();
+  if (!userHasStatusSparked) {
+    await statusSparkDetails.updateOne(
+      {
+        statusId: new ObjectId(statusId),
+        sparkerId: new ObjectId(viewerId._id),
+      },
+      {
+        $set: {
+          statusId: new ObjectId(statusId),
+          sparkerId: new ObjectId(viewerId._id),
+          authorId: status.userId,
+          lastViewedAt: new Date(),
+          createdAt: new Date(),
+        },
+      },
+      { upsert: true },
+    );
+    await statusCollection.updateOne(
+      {
+        _id: status._id,
+      },
+      {
+        $addToSet: { sparks: new ObjectId(viewerId._id) },
+      },
+    );
+  } else {
+    await statusCollection.updateOne(
+      {
+        _id: status._id,
+      },
+      {
+        $pull: { sparks: new ObjectId(viewerId._id) },
+      },
+    );
+  }
 
   return NextResponse.json(
     {
-      message: `Spark Added to ${status._id}`,
+      message: `Spark updated to ${status._id}`,
     },
     {
       status: 200,

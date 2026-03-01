@@ -1,3 +1,5 @@
+import { StatusSparkDoc } from "@/lib/models/User";
+import { UserStatusDoc } from "@/lib/models/UserStatusDoc";
 import { SessionUser } from "@/types/user-session";
 
 type Props = {
@@ -23,4 +25,23 @@ export const sparkStatus = async ({ loggedInUser, statusId }: Props) => {
   } catch (err) {
     console.log(err as Error);
   }
+};
+
+export const getStatusSparks = async (
+  statusIds: string[],
+  loggedInUser?: SessionUser,
+) => {
+  const res = await fetch(
+    `/api/users/${loggedInUser}/metadata/interests/sparked-statuses`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ statusIds }),
+    },
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error ?? "Failed to fetch sparks");
+
+  // Expect API returns { sparkedStatusIds: string[] }
+  return data.sparkedStatusIds as string[];
 };

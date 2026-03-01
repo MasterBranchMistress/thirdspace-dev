@@ -72,7 +72,7 @@ export interface EventDoc {
   timestamp: Date;
   orbiters?: ObjectId[];
   views: number;
-  sparks: number;
+  sparks: ObjectId[];
 }
 
 const MessageSchema = new Schema(

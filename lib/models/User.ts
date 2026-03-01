@@ -9,7 +9,7 @@ export type UserStatusDoc = {
   userId: ObjectId;
   sourceId: string;
   views: number;
-  sparks: number;
+  sparks: ObjectId[];
   content: string;
   createdAt: Date;
   attachments: string[];
