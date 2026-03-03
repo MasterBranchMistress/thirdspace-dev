@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { EventDoc } from "@/lib/models/Event";
+import { UserStatusDoc } from "@/lib/models/User";
 
 export async function PATCH(
   req: NextRequest,
@@ -22,21 +23,23 @@ export async function PATCH(
 
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
-  const comments = db.collection<CommentDoc>(COLLECTIONS._EVENT_COMMENTS);
-  const event = db.collection<EventDoc>(COLLECTIONS._EVENTS);
+  const comments = db.collection<CommentDoc>(COLLECTIONS._STATUS_COMMENTS);
+  const statusCollection = db.collection<UserStatusDoc>(
+    COLLECTIONS._USER_STATUSES,
+  );
 
   //Get Comment
   const comment = await comments.findOne({
     _id: new ObjectId(String(commentId)),
-    eventId: new ObjectId(id),
+    statusId: new ObjectId(id),
   });
   if (!comment) {
     return NextResponse.json({ error: "Comment not found" }, { status: 404 });
   }
 
   //check for event
-  const eventDoc = await event.findOne({ _id: new ObjectId(id) });
-  if (!eventDoc) {
+  const status = await statusCollection.findOne({ _id: new ObjectId(id) });
+  if (!status) {
     return NextResponse.json(
       { error: "Event does not exist" },
       { status: 404 },
@@ -44,7 +47,7 @@ export async function PATCH(
   }
 
   //check if user is the host
-  if (String(userId) !== String(eventDoc.host)) {
+  if (String(userId) !== String(status.userId)) {
     return NextResponse.json(
       { error: "Only the host can pin/unpin comments" },
       { status: 403 },
@@ -65,7 +68,7 @@ export async function PATCH(
   } else {
     // unpin all others first
     await comments.updateMany(
-      { eventId: new ObjectId(id), pinned: true },
+      { statusId: new ObjectId(id), pinned: true },
       { $set: { pinned: false }, $unset: { pinnedAt: "" } },
     );
 

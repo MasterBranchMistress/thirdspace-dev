@@ -13,8 +13,8 @@ export async function DELETE(
   const { id } = await context.params; // eventId
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
-  const commentsCollection = db.collection<CommentDoc>(
-    COLLECTIONS._EVENT_COMMENTS,
+  const statusCollection = db.collection<CommentDoc>(
+    COLLECTIONS._STATUS_COMMENTS,
   );
 
   try {
@@ -31,9 +31,9 @@ export async function DELETE(
     }
 
     // Make sure the comment exists and belongs to the event
-    const existing = await commentsCollection.findOne({
+    const existing = await statusCollection.findOne({
       _id: new ObjectId(String(commentId)),
-      eventId: new ObjectId(id),
+      statusId: new ObjectId(id),
     });
 
     if (!existing) {
@@ -52,7 +52,7 @@ export async function DELETE(
     }
 
     // Decided to go with a soft delete here just so the conversation can be kept for other users
-    await commentsCollection.updateOne(
+    await statusCollection.updateOne(
       { _id: new ObjectId(String(commentId)) },
       { $set: { deleted: true, deletedAt: new Date() } },
     );

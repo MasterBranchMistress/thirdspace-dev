@@ -20,6 +20,7 @@ import { useAvatar } from "@/app/context/AvatarContext";
 import { getStatusSparks } from "@/utils/feed-item-actions/status-item-actions/sparkHandler";
 import { UserStatusDoc } from "@/lib/models/User";
 import { getEventSparks } from "@/utils/feed-item-actions/event-item-actions/sparkHandler";
+import { getFriendSparkPreviews } from "@/utils/metadata/friend-spark-previews/friendSparkPreviews";
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -114,6 +115,12 @@ export default function Home() {
         .filter(Boolean)
         .map((id: any) => String(id));
 
+      const friendswhoSparked = await getFriendSparkPreviews(
+        session.user,
+        statusIds,
+        eventIds,
+      );
+
       const statusSparkedIds = statusIds.length
         ? await getStatusSparks(statusIds, session.user)
         : [];
@@ -127,10 +134,22 @@ export default function Home() {
 
       const hydratedItems: FeedItem[] = items.map((it: any) => {
         const sid = it?.target?.status?.sourceId;
-        if (sid) return { ...it, hasSparked: statusSet.has(String(sid)) };
+        if (sid)
+          return {
+            ...it,
+            hasSparked: statusSet.has(String(sid)),
+            friendSparkPreviewUsers:
+              friendswhoSparked.status?.[String(sid)] ?? [],
+          };
 
         const eid = it?.target?.eventId ?? it?.actor?.eventId;
-        if (eid) return { ...it, hasSparked: eventSet.has(String(eid)) };
+        if (eid)
+          return {
+            ...it,
+            hasSparked: eventSet.has(String(eid)),
+            friendSparkPreviewUsers:
+              friendswhoSparked.event?.[String(eid)] ?? [],
+          };
 
         return { ...it, hasSparked: false };
       });

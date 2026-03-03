@@ -36,39 +36,27 @@ export async function POST(
   if (!status)
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
 
-  if (!userHasStatusSparked) {
-    await statusSparkDetails.updateOne(
-      {
+  const updatedRes = await statusSparkDetails.updateOne(
+    {
+      statusId: new ObjectId(statusId),
+      sparkerId: new ObjectId(viewerId._id),
+    },
+    {
+      $set: {
         statusId: new ObjectId(statusId),
         sparkerId: new ObjectId(viewerId._id),
+        authorId: status.userId,
+        lastViewedAt: new Date(),
+        createdAt: new Date(),
       },
-      {
-        $set: {
-          statusId: new ObjectId(statusId),
-          sparkerId: new ObjectId(viewerId._id),
-          authorId: status.userId,
-          lastViewedAt: new Date(),
-          createdAt: new Date(),
-        },
-      },
-      { upsert: true },
-    );
-    await statusCollection.updateOne(
-      {
-        _id: status._id,
-      },
-      {
-        $addToSet: { sparks: new ObjectId(viewerId._id) },
-      },
-    );
-  } else {
-    await statusCollection.updateOne(
-      {
-        _id: status._id,
-      },
-      {
-        $pull: { sparks: new ObjectId(viewerId._id) },
-      },
+    },
+    { upsert: true },
+  );
+
+  if (updatedRes.upsertedCount !== 1) {
+    return NextResponse.json(
+      { error: "Unable to send spark" },
+      { status: 500 },
     );
   }
 

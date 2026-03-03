@@ -198,37 +198,39 @@ export async function generateUserFeed(
         eventLocation: event.location?.name,
       };
 
-      if (host) {
-        console.log("[HOSTED_EVENT] attempting", {
-          viewer: user.username,
-          actor: actorUser.username,
-          eventId: String(event._id),
-          title: event.title,
-          host: String(event.host),
-        });
-        await logFeedItem({
-          userId: user._id!,
-          sourceId: `${event._id?.toString()}:hosted_event`,
-          type: "hosted_event",
-          actor,
-          target: {
-            eventId: event._id,
-            title: event.title,
-            snippet: event.description,
-            startingDate: new Date(event.date).toISOString(),
-            location: event.location
-              ? {
-                  name: event.location.name,
-                  lat: event.location.lat ?? evLat!,
-                  lng: event.location.lng ?? evLng!,
-                }
-              : undefined,
-            distanceMiles: distMiles ?? undefined,
-            attachments: event.attachments,
-          },
-          timestamp: nowIso,
-        });
-      }
+      //TODO: Commented this out for double posting. Delete later
+
+      // if (host) {
+      //   console.log("[HOSTED_EVENT] attempting", {
+      //     viewer: user.username,
+      //     actor: actorUser.username,
+      //     eventId: String(event._id),
+      //     title: event.title,
+      //     host: String(event.host),
+      //   });
+      //   await logFeedItem({
+      //     userId: user._id!,
+      //     sourceId: `${event._id?.toString()}:hosted_event`,
+      //     type: "hosted_event",
+      //     actor,
+      //     target: {
+      //       eventId: event._id,
+      //       title: event.title,
+      //       snippet: event.description,
+      //       startingDate: new Date(event.date).toISOString(),
+      //       location: event.location
+      //         ? {
+      //             name: event.location.name,
+      //             lat: event.location.lat ?? evLat!,
+      //             lng: event.location.lng ?? evLng!,
+      //           }
+      //         : undefined,
+      //       distanceMiles: distMiles ?? undefined,
+      //       attachments: event.attachments,
+      //     },
+      //     timestamp: nowIso,
+      //   });
+      // }
     }
 
     // Profile updates

@@ -1,6 +1,7 @@
 import { Availability } from "@/lib/models/User";
 import { ObjectId } from "mongodb";
 import { Avatar } from "@/lib/models/User";
+import { PreviewUser } from "@/app/api/users/[id]/metadata/interests/friend-spark-preview/route";
 
 /**
  * All possible feed item types supported.
@@ -45,6 +46,11 @@ export interface FeedUserActor {
   eventAttachments?: Attachment[];
   distanceFromEvent?: number;
   eventLocation?: string;
+  friendSparkPreviewUsers?: Array<{
+    id: string;
+    firstName: string;
+    avatar?: string;
+  }>;
 }
 
 export type AttachmentType = "image" | "video" | undefined;
@@ -77,6 +83,11 @@ export interface FeedEventActor {
   avatar?: string;
   totalAttendance?: number;
   startingDate?: string;
+  friendSparkPreviewUsers?: Array<{
+    id: string;
+    firstName: string;
+    avatar?: string;
+  }>;
 }
 
 /**
@@ -136,6 +147,11 @@ export interface FeedTarget {
   likes?: number;
   orbiters?: number;
   status?: UserStatus;
+  friendSparkPreviewUsers?: Array<{
+    id: string;
+    firstName: string;
+    avatar?: string;
+  }>;
 }
 
 /**
@@ -144,6 +160,7 @@ export interface FeedTarget {
 export interface FeedItemUser {
   id: string; // feed item id, not the actor id
   type: FeedItemType;
+  friendSparkPreviewUsers?: PreviewUser[];
   actor: FeedUserActor;
   target?: FeedTarget;
   avatar?: string;

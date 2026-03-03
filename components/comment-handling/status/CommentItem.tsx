@@ -19,7 +19,12 @@ import {
   FireIcon,
   HandThumbUpIcon,
 } from "@heroicons/react/24/outline";
-import { StarIcon } from "@heroicons/react/24/solid";
+import {
+  PaperAirplaneIcon,
+  PaperClipIcon,
+  StarIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/solid";
 import { CommentDoc } from "@/lib/models/Comment";
 import CommentActions from "./CommentActions";
 import { useToast } from "@/app/providers/ToastProvider";
@@ -30,11 +35,11 @@ type Props = {
   onReply: (parentId: string, text: string) => void;
   depth?: number;
   parentUser?: string;
-  isHost?: boolean;
-  eventHost?: string;
-  hostId?: string;
-  eventId?: string;
-  isHostCommenting?: boolean;
+  isAuthor?: boolean;
+  author?: string;
+  authorId?: string;
+  statusId?: string;
+  isAuthorCommenting?: boolean;
   isCommentOwner?: boolean;
   isCommentPinned?: boolean;
   userId?: string;
@@ -45,11 +50,11 @@ export default function CommentItem({
   onReply,
   depth = 0,
   parentUser,
-  isHost,
-  hostId,
-  eventId,
-  eventHost,
-  isHostCommenting,
+  isAuthor,
+  authorId,
+  statusId,
+  author,
+  isAuthorCommenting,
   isCommentOwner,
   isCommentPinned,
   userId,
@@ -65,11 +70,11 @@ export default function CommentItem({
   const { notify } = useToast();
   const router = useRouter();
 
-  console.log("Event: ", eventId);
+  console.log("Event: ", statusId);
 
   const deleteComment = async (commentId: string) => {
     try {
-      const res = await fetch(`/api/events/${eventId}/delete-comment`, {
+      const res = await fetch(`/api/status/${statusId}/delete-comment`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -94,7 +99,7 @@ export default function CommentItem({
   const editComment = async (commentId: string) => {
     const oldText = comment.text;
     try {
-      const res = await fetch(`/api/events/${eventId}/edit-comment`, {
+      const res = await fetch(`/api/status/${statusId}/edit-comment`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -119,7 +124,7 @@ export default function CommentItem({
 
   const pinComment = async (commentId: string) => {
     try {
-      const res = await fetch(`/api/events/${eventId}/handle-comment-pin`, {
+      const res = await fetch(`/api/status/${statusId}/handle-comment-pin`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -148,52 +153,46 @@ export default function CommentItem({
   return (
     <div className={`${depth === 0 ? "pl-3 mt-6" : ""} my-1 `}>
       {/* badge here */}
-      <div className={`flex items-start gap-2 bg-concrete`}>
-        <Badge
-          isInvisible={!isHostCommenting}
-          content={<StarIcon width={9} />}
-          classNames={{
-            badge: "text-concrete bg-primary p-0.5 border-concrete mt-1",
-          }}
-          placement="top-left"
-        >
-          <Avatar
-            src={comment.commenter.avatar}
-            size="md"
-            isBordered
-            color="primary"
-            className="mr-1"
-            onClick={() =>
-              router.push(`/dashboard/profile/${comment.commenter.userId}`)
-            }
-          />
-        </Badge>
+      <div
+        className={`flex items-start gap-2 bg-transparent backdrop-blur-2xl text-secondary`}
+      >
+        <Avatar
+          src={comment.commenter.avatar}
+          size="md"
+          isBordered
+          color="primary"
+          className="mr-1"
+          onClick={() =>
+            router.push(`/dashboard/profile/${comment.commenter.userId}`)
+          }
+        />
+
         <div className="flex-1">
           {/* Row 1: header */}
           <div className={`flex justify-between items-start`}>
             <div className="flex flex-col">
-              <p className="font-medium text-primary text-sm">
+              <p className="font-medium text-secondary text-sm">
                 @{comment.commenter.username}{" "}
-                <span className="text-xs tracking-tight font-light ml-1 text-gray-400">
+                <span className="text-xs tracking-tight font-light ml-1 text-white/70">
                   {formatDistanceToNow(new Date(comment.timestamp))} ago
                 </span>
               </p>
               {/* Row 2: text */}
-              <div className="text-xs text-primary mt-1">
+              <div className="text-xs text-secondary mt-1">
                 {depth !== 0 && parentUser && (
                   <span className="text-orchid font-extrabold mr-1">
                     @{parentUser}
                   </span>
                 )}
                 {isDeleted ? (
-                  <span className="italic text-gray-400">
+                  <span className="italic text-secondary/80">
                     This comment was deleted
                   </span>
                 ) : !isEditing ? (
                   <p>
                     {comment.text}{" "}
                     {comment.editedAt && (
-                      <span className="italic text-gray-400">(edited)</span>
+                      <span className="italic text-secondary/60">(edited)</span>
                     )}
                   </p>
                 ) : (
@@ -212,9 +211,17 @@ export default function CommentItem({
                           defaultValue={textToInsertOnEdit}
                           value={textToInsertOnEdit}
                           onValueChange={setTextToInsertOnEdit}
+                          placeholder={comment.text}
                           classNames={{
-                            input: "text-sm ",
+                            input: "text-sm text-secondary",
                             innerWrapper: "p-0",
+                            base: "text-secondary",
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              editComment(String(comment._id));
+                            }
                           }}
                         ></Input>
 
@@ -226,16 +233,18 @@ export default function CommentItem({
                           }}
                           className={`transition-opacity ${!commentIsDirty ? "opacity-50 cursor-not-allowed" : ""}`}
                         >
-                          <Lottie
-                            lottieRef={lottieRef}
-                            animationData={send}
-                            onComplete={() => {
-                              lottieRef.current?.goToAndStop(0, true);
-                            }}
-                            loop={false}
-                            autoplay={false}
-                            style={{ width: "2.4rem" }}
+                          <PaperAirplaneIcon
+                            width={20}
+                            className="text-secondary"
                           />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setIsEditing(false);
+                          }}
+                        >
+                          <XMarkIcon width={25} className="text-secondary" />
                         </button>
                       </div>
                     </Form>
@@ -255,7 +264,7 @@ export default function CommentItem({
                   setCommentPinned((p) => !p);
                   pinComment(String(comment._id));
                 }}
-                isHost={isHost!}
+                isAuthor={isAuthor!}
                 isCommentOwner={isCommentOwner!}
                 isCommentPinned={!!comment.pinned}
               />
@@ -265,16 +274,16 @@ export default function CommentItem({
           {/* Row 3: reactions */}
           <div className="flex flex-row gap-2 mt-2">
             <div className="flex flex-row gap-1 items-center">
-              <HandThumbUpIcon width={18} className="text-primary" />
-              <span className="text-primary text-sm">{comment.likes}</span>
+              <HandThumbUpIcon width={18} className="text-white" />
+              <span className="text-white text-sm">{comment.likes}</span>
             </div>
             <div className="flex flex-row gap-1 items-center">
-              <FireIcon width={18} className="text-primary" />
-              <span className="text-primary text-sm">{comment.sparks}</span>
+              <FireIcon width={18} className="text-white" />
+              <span className="text-white text-sm">{comment.sparks}</span>
             </div>
             <button
               hidden={comment.deleted}
-              className="text-primary text-xs ml-1"
+              className="text-white text-xs ml-1"
               onClick={() => setReplying(!replying)}
             >
               {replying ? `Cancel` : `Reply`}
@@ -282,7 +291,7 @@ export default function CommentItem({
             {commentPinned === true && (
               <div className="flex flex-row gap-2 items-center justify-center">
                 <h1 className="text-xs text-gray-400 tracking-tight italic">
-                  Pinned by {eventHost} 📌
+                  Pinned by {author} 📌
                 </h1>
               </div>
             )}
@@ -293,27 +302,25 @@ export default function CommentItem({
         <div className="flex flex-row gap-3 mt-3 justify-center items-center">
           <Input
             value={replyText}
-            color="primary"
+            color="secondary"
             variant="underlined"
             onChange={(e) => setReplyText(e.target.value)}
-            className="w-full text-primary p-2 text-sm"
+            className="w-full text-secondary p-2 text-sm"
             placeholder={`@${comment.commenter.username}`}
-          />
-          <Lottie
-            lottieRef={lottieRef}
-            animationData={send}
-            onComplete={() => {
-              lottieRef.current?.goToAndStop(0, true);
+            classNames={{
+              input: "text-white placeholder:text-white/80",
+              inputWrapper: "bg-transparent",
             }}
-            loop={false}
-            autoplay={false}
-            style={{ width: "3rem" }}
+          />
+          <button
             onClick={() => {
               onReply(String(comment._id), replyText);
               setReplyText("");
               setReplying(false);
             }}
-          ></Lottie>
+          >
+            <PaperAirplaneIcon width={25} className="text-secondary mr-6" />
+          </button>
         </div>
       )}
       {/* Recursive replies */}
@@ -323,7 +330,7 @@ export default function CommentItem({
           <Accordion
             className="ml-3"
             itemClasses={{
-              title: "text-primary",
+              title: "text-secondary",
             }}
           >
             <AccordionItem
@@ -335,30 +342,20 @@ export default function CommentItem({
               indicator={
                 <ChevronDoubleRightIcon
                   width={18}
-                  className="text-primary mt-1 transition-transform data-[open=true]:rotate-90"
+                  className="text-secondary mt-1 transition-transform data-[open=true]:rotate-90"
                 />
               }
               classNames={{
-                title: "text-primary font-medium text-xs mt-0.5",
+                title: "text-secondary font-medium text-xs mt-0.5",
                 indicator: "hidden",
               }}
               startContent={
-                <Badge
-                  isInvisible={isHostCommenting ? false : true}
-                  content={<StarIcon width={9} />}
-                  classNames={{
-                    badge:
-                      "text-concrete bg-primary p-0.5 border-concrete mr-1 mt-1",
-                  }}
-                  placement="top-left"
-                >
-                  <Avatar
-                    src={comment.replies[0].commenter.avatar}
-                    size="sm"
-                    isBordered
-                    color="primary"
-                  />
-                </Badge>
+                <Avatar
+                  src={comment.replies[0].commenter.avatar}
+                  size="sm"
+                  isBordered
+                  color="primary"
+                />
               }
             >
               <div className="flex flex-col gap-2">
@@ -369,10 +366,12 @@ export default function CommentItem({
                     onReply={onReply}
                     depth={depth + 1}
                     parentUser={comment.commenter.username}
-                    isHostCommenting={String(reply.userId) === String(hostId)}
-                    isHost={isHost!}
-                    eventId={eventId}
-                    eventHost={eventHost}
+                    isAuthorCommenting={
+                      String(reply.userId) === String(authorId)
+                    }
+                    isAuthor={isAuthor!}
+                    statusId={statusId}
+                    author={author}
                     isCommentOwner={String(reply.userId) === String(userId)}
                     isCommentPinned={isCommentPinned!}
                   />
@@ -389,9 +388,9 @@ export default function CommentItem({
                 onReply={onReply}
                 depth={depth + 1}
                 parentUser={comment.commenter.username}
-                isHost={isHost!}
-                eventId={eventId}
-                eventHost={eventHost}
+                isAuthor={isAuthor!}
+                statusId={statusId}
+                author={author}
                 isCommentOwner={String(reply.userId) === String(userId)}
                 isCommentPinned={isCommentPinned!}
               />

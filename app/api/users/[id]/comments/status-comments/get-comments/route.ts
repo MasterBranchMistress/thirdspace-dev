@@ -7,13 +7,15 @@ import { CommentDoc } from "@/lib/models/Comment";
 
 export async function GET(
   _req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
-  const eventsCollection = db.collection<EventDoc>(COLLECTIONS._EVENTS);
-  const commentsCollection = db.collection<CommentDoc>(COLLECTIONS._COMMENTS);
+  const statusCollection = db.collection<EventDoc>(COLLECTIONS._USER_STATUSES);
+  const commentsCollection = db.collection<CommentDoc>(
+    COLLECTIONS._STATUS_COMMENTS,
+  );
 
   try {
     // ✅ validate id format
@@ -22,14 +24,14 @@ export async function GET(
     }
 
     // ✅ find event
-    const event = await eventsCollection.findOne({ _id: new ObjectId(id) });
-    if (!event) {
-      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    const status = await statusCollection.findOne({ _id: new ObjectId(id) });
+    if (!status) {
+      return NextResponse.json({ error: "Status not found" }, { status: 404 });
     }
 
     // ✅ Step 2: get all comments linked to this event
     const comments = await commentsCollection
-      .find({ eventId: new ObjectId(event._id) })
+      .find({ statusId: new ObjectId(status._id) })
       .sort({ timestamp: 1 })
       .toArray();
 
@@ -50,7 +52,7 @@ export async function GET(
   } catch (error: unknown) {
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

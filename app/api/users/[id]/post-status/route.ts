@@ -7,6 +7,8 @@ import { DBS, COLLECTIONS } from "@/lib/constants";
 import { UserDoc, UserStatusDoc } from "@/lib/models/User";
 import { UserFeedDoc } from "@/lib/models/UserFeedDoc";
 import detectMediaType from "@/utils/detect-media-type/detectMediaType";
+import { authOptions } from "@/lib/authOptions";
+import { getServerSession } from "next-auth";
 
 export async function POST(
   req: NextRequest,
@@ -15,6 +17,7 @@ export async function POST(
   try {
     const { id } = await context.params;
     const { content, attachments = [] } = await req.json();
+    const session = await getServerSession(authOptions);
 
     // Basic validations
     if (!content || typeof content !== "string" || content.length > 300) {
@@ -44,17 +47,24 @@ export async function POST(
     const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
     const feedCollection = db.collection<UserFeedDoc>(COLLECTIONS._USER_FEED);
 
+    const postingUser = await userCollection.findOne({
+      _id: new ObjectId(session?.user.id),
+    });
+
+    if (!postingUser) return;
+
     const _id = new ObjectId();
 
     const newStatus: UserStatusDoc = {
       _id,
+      author: postingUser?.firstName + " " + postingUser?.lastName,
+      authorAvatar: postingUser?.avatar,
       userId: new ObjectId(id),
       sourceId: _id.toString(),
       content: content.trim(),
       createdAt: new Date(),
       attachments: parsedAttachments,
-      views: 0,
-      sparks: [],
+      comments: [],
     };
 
     const result = await statusCollection.insertOne(newStatus);

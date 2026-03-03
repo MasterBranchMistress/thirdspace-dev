@@ -43,30 +43,6 @@ export async function POST(
     { upsert: true },
   );
 
-  const userHasEventSparked = await eventCollection.findOne({
-    sparks: new ObjectId(session.user.id),
-  });
-
-  if (!userHasEventSparked) {
-    await eventCollection.updateOne(
-      {
-        _id: event._id,
-      },
-      {
-        $addToSet: { sparks: new ObjectId(session.user.id) },
-      },
-    );
-  } else {
-    await eventCollection.updateOne(
-      {
-        _id: event._id,
-      },
-      {
-        $pull: { sparks: new ObjectId(session.user.id) },
-      },
-    );
-  }
-
   return NextResponse.json(
     {
       message: `Spark Added to ${event._id}`,

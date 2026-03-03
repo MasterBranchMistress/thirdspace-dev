@@ -14,7 +14,8 @@ export const COLLECTIONS = {
   _USER_EVENT_VIEWS: "user_event_views",
   _USER_EVENT_SPARKS: "user_event_sparks",
   _USER_STATUS_SPARKS: "user_status_sparks",
-  _COMMENTS: "comments",
+  _EVENT_COMMENTS: "event_comments",
+  _STATUS_COMMENTS: "status_comments",
 };
 
 // event statuses

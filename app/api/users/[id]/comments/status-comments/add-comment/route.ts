@@ -3,19 +3,23 @@ import { ObjectId } from "mongodb";
 import clientPromise from "@/lib/mongodb";
 import { COLLECTIONS, DBS, EVENT_STATUSES } from "@/lib/constants";
 import { EventDoc } from "@/lib/models/Event";
-import { UserDoc } from "@/lib/models/User";
+import { UserDoc, UserStatusDoc } from "@/lib/models/User";
 import { CommentDoc } from "@/lib/models/Comment";
 
 export async function POST(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
-  const eventsCollection = db.collection<EventDoc>(COLLECTIONS._EVENTS);
+  const statusCollection = db.collection<UserStatusDoc>(
+    COLLECTIONS._USER_STATUSES,
+  );
   const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
-  const commentsCollection = db.collection<CommentDoc>(COLLECTIONS._COMMENTS);
+  const commentsCollection = db.collection<CommentDoc>(
+    COLLECTIONS._STATUS_COMMENTS,
+  );
 
   try {
     const body = await req.json();
@@ -32,14 +36,17 @@ export async function POST(
     if (!ObjectId.isValid(userId)) {
       return NextResponse.json(
         { error: "Invalid userId format" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // ✅ ensure event exists
-    const event = await eventsCollection.findOne({ _id: new ObjectId(id) });
-    if (!event) {
-      return NextResponse.json({ message: "Event not found" }, { status: 404 });
+    const status = await statusCollection.findOne({ _id: new ObjectId(id) });
+    if (!status) {
+      return NextResponse.json(
+        { message: "status not found" },
+        { status: 404 },
+      );
     }
 
     //check for user
@@ -50,23 +57,16 @@ export async function POST(
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
-    if (event.status === EVENT_STATUSES._CANCELED) {
-      return NextResponse.json(
-        { message: "Event is canceled" },
-        { status: 400 }
-      );
-    }
-
     if (text.length > 500) {
       return NextResponse.json(
         { message: "Message too long" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const newComment = {
       _id: new ObjectId(),
-      eventId: new ObjectId(id),
+      statusId: new ObjectId(id),
       userId: new ObjectId(String(userId)),
       commenter: {
         userId: String(user._id),
@@ -91,7 +91,7 @@ export async function POST(
   } catch (error: unknown) {
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

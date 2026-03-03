@@ -32,6 +32,7 @@ export function OrbiterList({
                 "Attendee"
               }
               className="border-2 border-background"
+              size="sm"
             />
           ))}
         </AvatarGroup>

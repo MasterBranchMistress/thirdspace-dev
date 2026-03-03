@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   Button,
   Card,
@@ -21,8 +22,12 @@ import {
   BanknotesIcon,
   CheckBadgeIcon,
   EllipsisVerticalIcon,
+  ExclamationTriangleIcon,
   FireIcon,
+  FlagIcon,
+  HandRaisedIcon,
   HandThumbUpIcon,
+  PhoneXMarkIcon,
   RocketLaunchIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
@@ -41,12 +46,18 @@ import confetti from "canvas-confetti";
 import ConfirmDialog from "@/components/confirm-delete/confirmDialog";
 import LoadingPage from "@/components/spinner/LoadingPage";
 import notFound from "@/public/lottie/user-not-found.json";
-import tip from "@/public/lottie/tip.json";
-import CommentList from "@/components/comment-handling/CommentList";
 import {
   Attendee,
   OrbiterList,
 } from "@/components/event-page-components/orbiter-list";
+import {
+  CheckIcon,
+  ExclamationCircleIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/solid";
+import CommentListForEvents from "@/components/comment-handling/event/CommentListForEvents";
+import { useEventSpark } from "@/utils/custom-hooks/useEventSpark";
+import { getEventSparks } from "@/utils/feed-item-actions/event-item-actions/sparkHandler";
 
 type Comment = {
   userId: any;
@@ -104,8 +115,14 @@ export default function EventViewPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const lottieRef = useRef<LottieRefCurrentProps>(null);
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
+  const { data: session } = useSession();
   const router = useRouter();
   const { notify } = useToast();
+
+  const { hasSparked, setHasSparked, toggleEventSpark } = useEventSpark({
+    user: session?.user,
+    initialHasSparked: false,
+  });
 
   // get session client-side
   useEffect(() => {
@@ -116,13 +133,24 @@ export default function EventViewPage() {
     fetchSession();
   }, []);
 
+  useEffect(() => {
+    if (!event?._id || !session?.user?.id) return;
+
+    const run = async () => {
+      const ids = await getEventSparks([String(event._id)], session.user);
+      setHasSparked(ids.includes(String(event._id)));
+    };
+
+    run();
+  }, [event?._id, session?.user?.id]);
+
   //fetch event details
   useEffect(() => {
     const fetchEvent = async () => {
       try {
         const [eventRes, commentRes] = await Promise.all([
           fetch(`/api/events/${id}`),
-          fetch(`/api/users/${id}/get-comments`),
+          fetch(`/api/users/${id}/comments/event-comments/get-comments`),
         ]);
 
         if (!eventRes.ok) {
@@ -375,12 +403,100 @@ export default function EventViewPage() {
                         </span>
                       ))}
                     </div>
-                    <div className="text-primary text-sm font-bold text-center tracking-tight mt-3">
-                      {event.budgetInfo &&
-                        `Orbit Goal: ${event.budgetInfo.currency === "usd" ? "$" : ""}${event.budgetInfo.estimatedCost}`}
-                    </div>
-                    <div className="flex items-center justify-center pt-3">
-                      <OrbiterList attendeeUsers={event?.attendees} />
+                    <div className="mt-3 w-full text-xs flex flex-col p-0 gap-2 justify-center items-center text-primary">
+                      <div className="mt-2 z-10 w-[90%] bg-concrete">
+                        {/* Total raised */}
+                        <div className="text-sm font-medium tracking-wider flex flex-col text-center bg-concrete text-primary">
+                          Raised $
+                          {event.donations
+                            ? event.donations.reduce(
+                                (sum: number, d: { amount: number }) =>
+                                  sum + d.amount,
+                                0,
+                              )
+                            : 7}{" "}
+                          out of ${event.budgetInfo?.estimatedCost ?? 0} to
+                          Orbit Goal!
+                        </div>
+
+                        {/* Progress bar */}
+                        <div className="w-full bg-gray-300 rounded-full h-2 mt-3">
+                          <div
+                            className="bg-primary h-2 rounded-full"
+                            style={{
+                              width: `${
+                                event.donations
+                                  ? Math.min(
+                                      (event.donations.reduce(
+                                        (sum: number, d: { amount: number }) =>
+                                          sum + d.amount,
+                                        0,
+                                      ) /
+                                        (event.budgetInfo?.estimatedCost ??
+                                          1)) *
+                                        100,
+                                      100,
+                                    )
+                                  : Math.min(
+                                      (7 /
+                                        (event.budgetInfo?.estimatedCost ??
+                                          1)) *
+                                        100,
+                                      100,
+                                    )
+                              }%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-row gap-2 mt-4 mb-2 bg-concrete">
+                        <Button
+                          endContent={<RocketLaunchIcon width={18} />}
+                          size="sm"
+                          variant="shadow"
+                          color="primary"
+                          isDisabled={!isJoined && !isHost}
+                        >
+                          Boost
+                        </Button>
+                        <Button
+                          endContent={<CheckIcon width={18} />}
+                          size="sm"
+                          variant="shadow"
+                          color="success"
+                          isDisabled={!isJoined && !isHost}
+                        >
+                          Check In
+                        </Button>
+                        {!isHost && (
+                          <Button
+                            endContent={<ExclamationCircleIcon width={18} />}
+                            size="sm"
+                            variant="shadow"
+                            color="danger"
+                            isDisabled={!isJoined}
+                          >
+                            Cancel
+                          </Button>
+                        )}
+                        <Button
+                          endContent={<FireIcon width={18} />}
+                          size="sm"
+                          variant={hasSparked ? "shadow" : "bordered"}
+                          color="primary"
+                          onPress={() =>
+                            toggleEventSpark(String(event._id), {
+                              hostName: event?.host?.firstName,
+                              title: event?.title,
+                            })
+                          }
+                        >
+                          {hasSparked ? "Unspark" : "Spark"}
+                        </Button>
+                      </div>
+                      <div className="flex items-center justify-center py-3">
+                        <OrbiterList attendeeUsers={event?.attendees} />
+                      </div>
                     </div>
                   </>
                 }
@@ -388,82 +504,24 @@ export default function EventViewPage() {
             </Card>
             {attachments && (
               <div className="flex items-center justify-center mt-[-9] bg-black/30">
-                <AttachmentSwiper attachments={attachments} />
+                <AttachmentSwiper
+                  attachments={attachments}
+                  hidePlayButton={true}
+                  controls={true}
+                  loop={false}
+                />
               </div>
             )}
-
-            <div className="mt-3 w-full text-xs flex flex-col p-0 gap-2 justify-center items-center text-primary">
-              <div className="mt-2 z-10 w-[90%] bg-concrete">
-                {/* Total raised */}
-                <div className="text-sm font-extrabold tracking-wider flex flex-col text-center bg-concrete text-primary">
-                  Raised $
-                  {event.donations
-                    ? event.donations.reduce(
-                        (sum: number, d: { amount: number }) => sum + d.amount,
-                        0,
-                      )
-                    : 7}{" "}
-                  out of ${event.budgetInfo?.estimatedCost ?? 0} to Orbit Goal!
-                </div>
-
-                {/* Progress bar */}
-                <div className="w-full bg-gray-300 rounded-full h-2 mt-3">
-                  <div
-                    className="bg-primary h-2 rounded-full"
-                    style={{
-                      width: `${
-                        event.donations
-                          ? Math.min(
-                              (event.donations.reduce(
-                                (sum: number, d: { amount: number }) =>
-                                  sum + d.amount,
-                                0,
-                              ) /
-                                (event.budgetInfo?.estimatedCost ?? 1)) *
-                                100,
-                              100,
-                            )
-                          : Math.min(
-                              (7 / (event.budgetInfo?.estimatedCost ?? 1)) *
-                                100,
-                              100,
-                            )
-                      }%`,
-                    }}
-                  />
-                </div>
-              </div>
-              <div className="flex flex-row gap-2 mt-3 bg-concrete">
-                <Button
-                  endContent={<RocketLaunchIcon width={18} />}
-                  size="sm"
-                  variant="shadow"
-                  color="primary"
-                >
-                  Boost
-                </Button>
-                <Button
-                  endContent={<FireIcon width={18} />}
-                  size="sm"
-                  variant="ghost"
-                  color="primary"
-                >
-                  Spark
-                </Button>
-              </div>
-            </div>
             {/* Comments */}
             <div className="px-3 my-6 relative">
-              {(isHost || isJoined) && (
-                <div>
-                  <CommentList
-                    eventId={event._id}
-                    isHost={isHost}
-                    hostId={event.host._id}
-                    eventHost={event.host.firstName}
-                  />
-                </div>
-              )}
+              <div>
+                <CommentListForEvents
+                  eventId={event._id}
+                  isHost={isHost}
+                  hostId={event.host._id}
+                  eventHost={event.host.firstName}
+                />
+              </div>
             </div>
           </div>
         </>

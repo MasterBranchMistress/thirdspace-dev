@@ -5,6 +5,7 @@ import { Input } from "@heroui/react";
 import Lottie from "lottie-react";
 import send from "@/public/lottie/send.json";
 import { useRef, useState } from "react";
+import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
 
 export default function CommentInput({
   onSubmit,
@@ -24,7 +25,7 @@ export default function CommentInput({
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 px-3 shadow-none mt-6">
       <Input
         value={text}
         onChange={(e) => setText(e.target.value)}
@@ -36,21 +37,16 @@ export default function CommentInput({
         }}
         placeholder={placeholder}
         variant="underlined"
-        color="primary"
-        className="flex-1 bg-transparent z-10 text-primary"
+        color="secondary"
+        className="flex-1 bg-transparent z-10 text-secondary"
         size="sm"
+        classNames={{
+          input: "text-white placeholder:text-white/80",
+          inputWrapper: "bg-transparent",
+        }}
       />
       <div onClick={handleSend} className="cursor-pointer">
-        <Lottie
-          lottieRef={lottieRef}
-          animationData={send}
-          onComplete={() => {
-            lottieRef.current?.goToAndStop(0, true);
-          }}
-          loop={false}
-          autoplay={false}
-          style={{ width: "3rem" }}
-        />
+        <PaperAirplaneIcon className="text-secondary" width={25} />
       </div>
     </div>
   );

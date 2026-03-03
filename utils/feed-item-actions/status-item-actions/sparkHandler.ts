@@ -27,12 +27,32 @@ export const sparkStatus = async ({ loggedInUser, statusId }: Props) => {
   }
 };
 
+export const unsparkStatus = async ({ loggedInUser, statusId }: Props) => {
+  try {
+    const addSpark = await fetch(
+      `/api/users/${loggedInUser?.id}/feed-item-actions/status-items/${statusId}/remove-spark`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    const addSparkRes = await addSpark.json();
+    if (!addSpark.ok) return addSparkRes.error || "unable to add spark";
+    return addSparkRes;
+  } catch (err) {
+    console.log(err as Error);
+  }
+};
+
 export const getStatusSparks = async (
   statusIds: string[],
   loggedInUser?: SessionUser,
 ) => {
   const res = await fetch(
-    `/api/users/${loggedInUser}/metadata/interests/sparked-statuses`,
+    `/api/users/${loggedInUser?.id}/metadata/interests/sparked-statuses`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },

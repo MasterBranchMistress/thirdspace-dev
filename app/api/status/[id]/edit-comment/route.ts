@@ -16,18 +16,21 @@ export async function PATCH(
   const body = await req.json();
   const { commentId, text } = body;
 
+  if (!userId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 500 });
+
   if (!commentId || !text) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
-  const comments = db.collection<CommentDoc>(COLLECTIONS._EVENT_COMMENTS);
+  const comments = db.collection<CommentDoc>(COLLECTIONS._STATUS_COMMENTS);
 
   const result = await comments.updateOne(
     {
       _id: new ObjectId(String(commentId)),
-      eventId: new ObjectId(id),
+      statusId: new ObjectId(id),
       userId: new ObjectId(userId),
     },
     { $set: { text, editedAt: new Date() } },

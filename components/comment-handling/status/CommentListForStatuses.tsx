@@ -2,23 +2,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import CommentItem from "./CommentItem";
+import CommentItem from "../status/CommentItem";
 import { useSession } from "next-auth/react";
 import { CommentDoc } from "@/lib/models/Comment";
-import CommentInput from "./CommentInput";
+import CommentInput from "../status/CommentInput";
 import Lottie from "lottie-react";
 import noComments from "@/public/lottie/make-comment.json";
 
 export default function CommentList({
-  eventId,
-  isHost,
-  hostId,
-  eventHost,
+  statusId,
+  isAuthor,
+  authorId,
+  author,
 }: {
-  eventId: string;
-  isHost: boolean;
-  hostId: string;
-  eventHost: string;
+  statusId: string;
+  isAuthor: boolean;
+  authorId: string;
+  author: string;
 }) {
   const [comments, setComments] = useState<CommentDoc[]>([]);
   const { data: session } = useSession();
@@ -28,59 +28,71 @@ export default function CommentList({
 
   useEffect(() => {
     async function fetchComments() {
-      const res = await fetch(`/api/users/${eventId}/get-comments`);
+      const res = await fetch(
+        `/api/users/${statusId}/comments/status-comments/get-comments`,
+      );
       const data = await res.json();
       setComments(data.comments);
     }
     fetchComments();
-  }, [eventId]);
+  }, [statusId]);
 
   async function handleReply(parentId: string, text: string) {
-    const res = await fetch(`/api/users/${eventId}/add-comment`, {
-      method: "POST",
-      body: JSON.stringify({
-        userId: userId, // TODO: get from session
-        text,
-        parentCommentId: parentId,
-      }),
-      headers: { "Content-Type": "application/json" },
-    });
+    const res = await fetch(
+      `/api/users/${statusId}/comments/status-comments/add-comment`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          userId: userId, // TODO: get from session
+          text,
+          parentCommentId: parentId,
+        }),
+        headers: { "Content-Type": "application/json" },
+      },
+    );
 
     if (res.ok) {
       const { comment } = await res.json();
       setComments((prev) => [comment, ...prev]);
-      const updated = await fetch(`/api/users/${eventId}/get-comments`);
+      const updated = await fetch(
+        `/api/users/${statusId}/comments/status-comments/get-comments`,
+      );
       const data = await updated.json();
       setComments(data.comments);
     }
   }
 
   async function handleAddComment(text: string) {
-    const res = await fetch(`/api/users/${eventId}/add-comment`, {
-      method: "POST",
-      body: JSON.stringify({
-        userId: userId,
-        text,
-      }),
-      headers: { "Content-Type": "application/json" },
-    });
+    const res = await fetch(
+      `/api/users/${statusId}/comments/status-comments/add-comment`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          userId: userId,
+          text,
+        }),
+        headers: { "Content-Type": "application/json" },
+      },
+    );
     if (res.ok) {
       const { comment } = await res.json();
       setComments((prev) => [comment, ...prev]);
-      const updated = await fetch(`/api/users/${eventId}/get-comments`);
+      const updated = await fetch(
+        `/api/users/${statusId}/comments/status-comments/get-comments`,
+      );
       const data = await updated.json();
       setComments(data.comments);
     }
   }
 
-  console.log("Event: ", eventId);
+  console.log("Event: ", statusId);
 
   return (
-    <>
-      <CommentInput onSubmit={handleAddComment} />
-      <h1 className="text-primary mt-3 text-center font-light">
+    <div className="h-[50vh] overflow-x-hidden animate-slide-down">
+      <h1 className="text-secondary my-2 text-center font-light">
         {comments.length} Comments
       </h1>
+      <CommentInput onSubmit={handleAddComment} />
       <div className="mt-3">
         {/*TODO: wire up isCommentPinned to show comment at the top of the comment board */}
         {comments.map((comment) => (
@@ -89,15 +101,15 @@ export default function CommentList({
             comment={comment}
             onReply={handleReply}
             parentUser={comment.commenter.username}
-            isHost={isHost}
-            isHostCommenting={
-              String(comment.userId) === String(hostId) ? true : false
+            isAuthor={isAuthor}
+            isAuthorCommenting={
+              String(comment.userId) === String(authorId) ? true : false
             }
-            hostId={hostId}
+            authorId={authorId}
             isCommentOwner={String(comment.userId) === String(userId)}
             userId={userId}
-            eventId={eventId}
-            eventHost={eventHost}
+            statusId={statusId}
+            author={author}
             isCommentPinned={!comment.pinned}
           />
         ))}
@@ -105,11 +117,11 @@ export default function CommentList({
       {comments.length === 0 && (
         <div className="flex flex-col justify-center items-center my-9">
           <Lottie animationData={noComments} style={{ width: "15rem" }} />
-          <h1 className="z-10 text-primary font-extralight tracking-tight">
+          <h1 className="z-10 text-secondary font-extralight tracking-tight">
             Be the first to comment!
           </h1>
         </div>
       )}
-    </>
+    </div>
   );
 }

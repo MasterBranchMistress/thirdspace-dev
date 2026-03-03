@@ -32,7 +32,7 @@ export const unsparkEvent = async ({ loggedInUser, eventId }: Props) => {
     const addSpark = await fetch(
       `/api/users/${loggedInUser?.id}/feed-item-actions/event-items/${eventId}/remove-spark`,
       {
-        method: "POST",
+        method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
@@ -52,7 +52,7 @@ export const getEventSparks = async (
   loggedInUser?: SessionUser,
 ) => {
   const res = await fetch(
-    `/api/users/${loggedInUser}/metadata/interests/sparked-events`,
+    `/api/users/${loggedInUser?.id}/metadata/interests/sparked-events`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -6,13 +6,25 @@ import { CommentDoc } from "./Comment";
 
 export type UserStatusDoc = {
   _id: ObjectId;
+  author: string;
+  authorAvatar?: string;
   userId: ObjectId;
   sourceId: string;
-  views: number;
-  sparks: ObjectId[];
   content: string;
   createdAt: Date;
   attachments: string[];
+  comments?: {
+    userId: ObjectId;
+    commenter: {
+      avatar?: string;
+      username: string;
+      firstName: string;
+      lastName: string;
+    };
+    text: string;
+    timestamp: Date;
+    replies: string[];
+  }[];
 };
 
 export type StatusViewDoc = {

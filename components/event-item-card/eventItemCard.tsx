@@ -28,7 +28,11 @@ export default function EventGridCard({ event, onClick }: Props) {
     }
     return (
       <div className="absolute inset-0 flex items-center justify-center overflow-hidden bg-black/30">
-        <AttachmentSwiper attachments={attachments} />
+        <AttachmentSwiper
+          muted={true}
+          controls={false}
+          attachments={attachments}
+        />
       </div>
     );
   };

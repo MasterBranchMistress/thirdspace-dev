@@ -46,11 +46,17 @@ interface FeedItemCardProps {
   item: FeedItem;
 }
 import { useToast } from "@/app/providers/ToastProvider";
-import { sparkEvent } from "@/utils/feed-item-actions/event-item-actions/sparkHandler";
+import {
+  sparkEvent,
+  unsparkEvent,
+} from "@/utils/feed-item-actions/event-item-actions/sparkHandler";
 import {
   getStatusSparks,
   sparkStatus,
+  unsparkStatus,
 } from "@/utils/feed-item-actions/status-item-actions/sparkHandler";
+import SparkMeta from "./FeedStats";
+import StatusDetailModal from "../status-view-modal/statusViewModal";
 
 export default function FeedItemCard({ item }: FeedItemCardProps) {
   const { data: session } = useSession();
@@ -58,8 +64,14 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
   const [avatarUrl, setAvatarUrl] = useState<string>();
   const [showPulse, setShowPulse] = useState(false);
   const [hasSparked, setHasSparked] = useState(false);
+  const [previewFriends, setPreviewFriends] = useState([]);
+  const [openStatusId, setOpenStatusId] = useState<string | null>(null);
   const { type, target, actor, timestamp } = item;
   const { notify } = useToast();
+  const openStatus = (id?: string) => {
+    if (!id) return;
+    setOpenStatusId(id);
+  };
   const isUserActor = (
     a: FeedUserActor | FeedEventActor | null | undefined,
   ): a is FeedUserActor => {
@@ -95,6 +107,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
 
   useEffect(() => {
     setHasSparked(Boolean((item as any).hasSparked));
+    setPreviewFriends((item as any).friendSparkPreviewUsers ?? []);
   }, [(item as any).hasSparked]);
 
   const buttonText = isUserActor(actor) ? (
@@ -111,7 +124,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
 
   const message =
     type === "event_is_popular"
-      ? `"${target?.title}" is trending 🔥`
+      ? `${target?.title} by ${actor.firstName} is trending 🔥`
       : type === "event_coming_up"
         ? `"${target?.title}" is coming up ⏰`
         : type === "profile_avatar_updated" && isUserActor(actor)
@@ -131,17 +144,22 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
 
   const handleEventSpark = async (eventId?: string) => {
     if (!eventId || !user) return;
+    const next = !hasSparked; // toggle
+    const prev = hasSparked;
 
     try {
-      setHasSparked(true); // optimistic
-      await sparkEvent({ loggedInUser: user, eventId });
-      // notify(
-      //   `You Sparked ${target?.title} hosted by ${actor.firstName} 🔥`,
-      //   ``,
-      // );
-
-      setShowPulse(true);
-      setTimeout(() => setShowPulse(false), 1000);
+      setHasSparked(next); // optimistic
+      if (next) {
+        await sparkEvent({ loggedInUser: user, eventId });
+        setShowPulse(true);
+        setTimeout(() => setShowPulse(false), 2000);
+      } else {
+        await unsparkEvent({ loggedInUser: user, eventId });
+        notify(
+          `Removed Spark from ${actor.firstName}'s event 🙅`,
+          `${target?.title} 🗓️`,
+        );
+      }
     } catch (err) {
       setHasSparked(false); // rollback
       console.error(err);
@@ -151,14 +169,22 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
 
   const handleStatusSpark = async (statusId?: string) => {
     if (!statusId || !user) return;
+
+    const next = !hasSparked; // toggle
+    const prev = hasSparked;
+
     try {
-      setHasSparked(true); // optimistic
-      await sparkStatus({ loggedInUser: user, statusId });
-      // notify(`You sparked ${actor.firstName}'s status 🚀`, ``);
-      setShowPulse(true);
-      setTimeout(() => setShowPulse(false), 1000);
+      setHasSparked(next); // optimistic
+
+      if (next) {
+        await sparkStatus({ loggedInUser: user, statusId });
+        setShowPulse(true);
+        setTimeout(() => setShowPulse(false), 2000);
+      } else {
+        await unsparkStatus({ loggedInUser: user, statusId });
+      }
     } catch (err) {
-      setHasSparked(false); // rollback
+      setHasSparked(prev); // rollback
       console.error(err);
       notify("Something went wrong", "");
     }
@@ -310,17 +336,14 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                 target.status.attachments.length > 0 && (
                   <div className="h-full">
                     <AttachmentSwiper
+                      controls={false}
+                      hidePlayButton={false}
+                      muted={true}
+                      statusId={target.status?.sourceId}
+                      onOpenStatus={() => openStatus(target.status?.sourceId)} // whatever your modal state setter is
                       attachments={target.status.attachments}
                       onDoubleTap={() =>
                         handleStatusSpark(target.status?.sourceId)
-                      }
-                      overlay={
-                        showPulse ? (
-                          <Lottie
-                            animationData={fire}
-                            style={{ width: 100, height: 100 }}
-                          />
-                        ) : null
                       }
                     />
                   </div>
@@ -346,70 +369,23 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                     {target?.title}
                   </Button>
                 </div>
-                <div className="font-light tracking-tight text-sm px-3 mt-3">
+                <div className="font-light tracking-tight text-sm px-3 my-3">
                   {target?.snippet}
                 </div>
               </div>
               {target?.attachments && target.attachments.length > 0 && (
-                <div className="relative h-full overflow-hidden">
+                <div
+                  className="relative h-full overflow-hidden"
+                  onClick={() =>
+                    router.push(`/dashboard/event/${actor.eventId}`)
+                  }
+                >
                   {/* Media */}
                   <AttachmentSwiper
                     attachments={target.attachments}
-                    onDoubleTap={() =>
-                      handleEventSpark(actor?.eventId?.toString())
-                    }
-                    overlay={
-                      showPulse ? (
-                        <Lottie
-                          animationData={fire}
-                          style={{ width: 100, height: 100 }}
-                        />
-                      ) : null
-                    }
-                  />
-                </div>
-              )}
-            </div>
-          )}
-          {type === "hosted_event" && isUserActor(actor) && (
-            <div className="mt-2 tracking-tight max-w-[100%] font-normal text-sm">
-              <div className="flex flex-col items-center justify-center text-center">
-                <div className="flex flex-row font-bold text-sm text-center mb-2 items-center">
-                  <span className="font-semibold shadow-lg shadow-primary border-1 border-primary py-1 mr-[-12] px-3 rounded-l-lg">
-                    {actor?.firstName} is hosting
-                  </span>
-                  <Button
-                    size="sm"
-                    variant="shadow"
-                    color="primary"
-                    className="text-secondary font-bold ml-2"
-                    onPress={() =>
-                      router.push(`/dashboard/event/${actor.eventId}`)
-                    }
-                  >
-                    {target?.title}
-                  </Button>
-                </div>
-                <div className="font-light tracking-tight text-sm px-3 mt-3">
-                  {target?.snippet}
-                </div>
-              </div>
-              {target?.attachments && target.attachments.length > 0 && (
-                <div className="relative h-full overflow-hidden">
-                  {/* Media */}
-                  <AttachmentSwiper
-                    attachments={target.attachments}
-                    onDoubleTap={() =>
-                      handleEventSpark(actor?.eventId?.toString())
-                    }
-                    overlay={
-                      showPulse ? (
-                        <Lottie
-                          animationData={fire}
-                          style={{ width: 100, height: 100 }}
-                        />
-                      ) : null
-                    }
+                    muted={true}
+                    controls={true}
+                    hidePlayButton={true}
                   />
                 </div>
               )}
@@ -427,10 +403,19 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           )}
           {type === "event_is_popular" && (
             <div className="font-light max-w-[100%] mt-3 tracking-tight">
-              <span className="px-3">{target?.description}</span>
+              <div className="py-1 mb-3">{target?.description}</div>
               {target?.attachments && target.attachments.length > 0 && (
-                <div className="h-full overflow-hidden">
-                  <AttachmentSwiper attachments={target.attachments} />
+                <div
+                  className="h-full overflow-hidden"
+                  onClick={() =>
+                    router.push(`/dashboard/event/${actor.eventId}`)
+                  }
+                >
+                  <AttachmentSwiper
+                    muted={true}
+                    controls={true}
+                    attachments={target.attachments}
+                  />
                 </div>
               )}
             </div>
@@ -475,8 +460,11 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                 </Button>
               </span>
 
-              <div className="font-light max-w-[100%] mt-3 tracking-tight">
-                <div className="px-3"> {target?.description}</div>
+              <div
+                className="font-light max-w-[100%] mt-3 tracking-tight"
+                onClick={() => router.push(`/dashboard/event/${actor.eventId}`)}
+              >
+                <div className="px-3 mb-2"> {target?.description}</div>
                 {target?.attachments && target.attachments.length > 0 && (
                   <div className="h-full overflow-hidden">
                     <AttachmentSwiper attachments={target.attachments} />
@@ -489,6 +477,15 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
         <span className="text-xs z-20 w-full text-primary tracking-tight font-extralight text-center mt-3">
           {formatDistanceToNow(timestamp, { addSuffix: true })}
         </span>
+        {openStatusId && (
+          <StatusDetailModal
+            isImage
+            statusId={openStatusId}
+            hasSparked={hasSparked}
+            onClose={() => setOpenStatusId(null)}
+            onSparkStatus={handleStatusSpark}
+          />
+        )}
       </CardBody>
       {/* Contemplating removing this componant altogether. Makes the feed look cleaner. Thean stats can show on-click */}
       <CardFooter className="flex gap-2 px-0 w-full z-30">
@@ -503,6 +500,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           }
           userId={target?.userId?.toString()}
           hasSparked={hasSparked}
+          friendPreviewUsers={previewFriends}
         />
       </CardFooter>
     </Card>

@@ -134,12 +134,13 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
 
     if (!location?.name?.trim()) return notify("Location is required.", "");
 
-    if (newFiles?.some((f) => f.size > 10 * 1024 * 1024))
-      return notify("One or more attachments exceed 10MB.", "");
+    //TODO: Decide how big is too big later. 10mb was just being a pain
+    if (newFiles?.some((f) => f.size > 50 * 1024 * 1024))
+      return notify("One or more attachments exceed 50MB.", "");
     if (newFiles?.some((f) => !f.type))
       return notify(
         "One or more attachments have an unsupported file type.",
-        ""
+        "",
       );
     if (eventData.budgetInfo.estimatedCost == null)
       return notify("Estimated cost is required.", "");
@@ -258,7 +259,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
                           "Event date: ",
                           eventDate,
                           "event time: ",
-                          startTime
+                          startTime,
                         );
                       }}
                     />
