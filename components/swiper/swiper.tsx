@@ -19,6 +19,8 @@ export default function AttachmentSwiper({
   overlay,
   loop,
   isImage,
+  onFeedPage,
+  onEventPage,
   commentsAreOpen,
   controls,
   muted,
@@ -26,6 +28,8 @@ export default function AttachmentSwiper({
 }: {
   controls?: boolean;
   isImage?: boolean;
+  onFeedPage?: boolean;
+  onEventPage?: boolean;
   hidePlayButton?: boolean;
   commentsAreOpen?: boolean;
   muted?: boolean;
@@ -107,7 +111,7 @@ export default function AttachmentSwiper({
                       muted={muted}
                       playsInline
                       autoPlay
-                      className={`w-full h-[${commentsAreOpen ? "50" : "100"}vh] object-${commentsAreOpen ? "fit" : "cover"} rounded-none`}
+                      className={`w-full h-[${commentsAreOpen ? "50" : "100"}vh] object-${commentsAreOpen && !onFeedPage ? "fit" : "cover"} ${onEventPage || onFeedPage ? "h-[60vh]" : ""} rounded-none`}
                     />
                     {statusId && (
                       <div
@@ -134,7 +138,7 @@ export default function AttachmentSwiper({
                     src={url}
                     width="100%"
                     alt={`Attachment ${index + 1}`}
-                    className={`w-full h-[${commentsAreOpen ? "50" : "100"}vh] object-${commentsAreOpen ? "fit" : "cover"} rounded-none`}
+                    className={`w-full h-[${commentsAreOpen ? "50" : "100"}vh] ${onEventPage || onFeedPage ? "h-[100vh]" : ""} object-${commentsAreOpen || !onFeedPage ? "fit" : "fit"} rounded-none`}
                   />
                 )}
               </SwiperSlide>

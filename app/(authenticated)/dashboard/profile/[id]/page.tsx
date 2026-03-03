@@ -68,7 +68,7 @@ export default function ProfilePage() {
         const [profileRes, eventsRes, attendingRes] = await Promise.all([
           fetch(`/api/users/${id}`),
           fetch(
-            `/api/users/${id}/get-hosted-events?viewerId=${viewer?.id}&page=1&limit=5`
+            `/api/users/${id}/get-hosted-events?viewerId=${viewer?.id}&page=1&limit=5`,
           ),
           fetch(`/api/users/${id}/attending-events`),
         ]);
@@ -201,11 +201,9 @@ export default function ProfilePage() {
               />
             ))}
           </div>
-          <div className="flex flex-col justify-center items-center py-4">
-            <Lottie animationData={endEvents} style={{ width: "10rem" }} />
-            <h1 className="text-primary font-light">
-              Looks like that's all for now!
-            </h1>
+          <div className="flex flex-col justify-center items-center py-6">
+            <Lottie animationData={endEvents} style={{ width: "8rem" }} />
+            <h1 className="text-primary font-light">That's all for now!</h1>
             <div className="flex flex-row gap-2">
               <Button
                 onPress={() => router.push("/dashboard")}
@@ -214,16 +212,7 @@ export default function ProfilePage() {
                 className="mt-4"
                 size="sm"
               >
-                Create Event
-              </Button>
-              <Button
-                onPress={() => router.push("/dashboard")}
-                variant="bordered"
-                color="primary"
-                className="mt-4"
-                size="sm"
-              >
-                Go Back
+                Back
               </Button>
             </div>
           </div>

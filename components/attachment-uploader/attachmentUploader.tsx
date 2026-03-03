@@ -61,13 +61,13 @@ export default function AttachmentUploader({
               {file.type.startsWith("image/") ? (
                 <img
                   src={file.url}
-                  className="h-60 w-auto object-cover rounded-lg border"
+                  className="h-auto w-[100vw] object-cover rounded-none border-none"
                   alt={`preview-${i}`}
                 />
               ) : file.type.startsWith("video/") ? (
                 <video
                   src={file.url}
-                  className="h-60 w-auto rounded-lg border"
+                  className="h-auto w-[100vw] rounded-none border-none"
                   controls
                 />
               ) : (

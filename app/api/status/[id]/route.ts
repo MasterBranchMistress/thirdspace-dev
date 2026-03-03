@@ -20,8 +20,8 @@ export async function GET(
   try {
     console.log("Source Id: ", id);
     const status = await statusCollection.findOne({ sourceId: id });
-    if (!status) {
-      return NextResponse.json({ error: "status not found" }, { status: 404 });
+    if (!status || status.isDeleted) {
+      return NextResponse.json({ error: "Status not found" }, { status: 404 });
     }
     const author = await userCollection.findOne({
       userId: status.userId,

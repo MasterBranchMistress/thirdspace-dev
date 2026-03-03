@@ -12,6 +12,9 @@ export type UserStatusDoc = {
   sourceId: string;
   content: string;
   createdAt: Date;
+  isDeleted?: boolean;
+  deletedAt?: Date;
+  deletedBy?: string;
   attachments: string[];
   comments?: {
     userId: ObjectId;

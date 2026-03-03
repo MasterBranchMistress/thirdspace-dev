@@ -37,9 +37,13 @@ import { useUserRelationships } from "@/app/context/UserRelationshipsContext";
 import Lottie from "lottie-react";
 import sendmessage from "@/public/lottie/comments.json";
 import {
+  ChatBubbleBottomCenterIcon,
+  ChatBubbleLeftEllipsisIcon,
   CheckCircleIcon,
   CheckIcon,
   EnvelopeIcon,
+  FireIcon,
+  PaperAirplaneIcon,
 } from "@heroicons/react/24/solid";
 
 interface FeedItemCardProps {
@@ -57,6 +61,7 @@ import {
 } from "@/utils/feed-item-actions/status-item-actions/sparkHandler";
 import SparkMeta from "./FeedStats";
 import StatusDetailModal from "../status-view-modal/statusViewModal";
+import { deleteStatus } from "@/utils/feed-item-actions/status-item-actions/deleteStatus";
 
 export default function FeedItemCard({ item }: FeedItemCardProps) {
   const { data: session } = useSession();
@@ -142,28 +147,16 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                     : isUserActor(actor) &&
                       `${actor.firstName} is doing something cool 🤔`;
 
-  const handleEventSpark = async (eventId?: string) => {
-    if (!eventId || !user) return;
-    const next = !hasSparked; // toggle
-    const prev = hasSparked;
-
+  const handleDeletePost = async (statusId?: string) => {
     try {
-      setHasSparked(next); // optimistic
-      if (next) {
-        await sparkEvent({ loggedInUser: user, eventId });
-        setShowPulse(true);
-        setTimeout(() => setShowPulse(false), 2000);
-      } else {
-        await unsparkEvent({ loggedInUser: user, eventId });
-        notify(
-          `Removed Spark from ${actor.firstName}'s event 🙅`,
-          `${target?.title} 🗓️`,
-        );
-      }
-    } catch (err) {
-      setHasSparked(false); // rollback
-      console.error(err);
-      notify("Something went wrong", "");
+      if (!statusId) return;
+      await deleteStatus(statusId);
+      notify("Your post has been deleted ❌", "");
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
+    } catch (e) {
+      return e as Error;
     }
   };
 
@@ -296,6 +289,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                   color="danger"
                   variant="solid"
                   endContent={<TrashIcon width={20} />}
+                  onClick={() => handleDeletePost(target?.status?.sourceId)}
                 >
                   Delete Post
                 </DropdownItem>
@@ -331,23 +325,65 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
 
           {type === "profile_status_updated" && isUserActor(actor) && (
             <div className="font-light tracking-tight max-w-[100%] text-center">
-              <p className="mx-1.5 text-sm mb-2">{target?.status?.content}</p>
-              {target?.status?.attachments &&
-                target.status.attachments.length > 0 && (
-                  <div className="h-full">
-                    <AttachmentSwiper
-                      controls={false}
-                      hidePlayButton={false}
-                      muted={true}
-                      statusId={target.status?.sourceId}
-                      onOpenStatus={() => openStatus(target.status?.sourceId)} // whatever your modal state setter is
-                      attachments={target.status.attachments}
-                      onDoubleTap={() =>
-                        handleStatusSpark(target.status?.sourceId)
-                      }
+              {/* Text */}
+              {target?.status?.content?.trim() ? (
+                <p className="mx-1.5 text-sm mb-2">{target.status.content}</p>
+              ) : null}
+
+              {/* Attachments */}
+              {target?.status?.attachments?.length ? (
+                <div className="h-full">
+                  <AttachmentSwiper
+                    controls={false}
+                    hidePlayButton={false}
+                    muted={true}
+                    statusId={target.status?.sourceId}
+                    onOpenStatus={() => openStatus(target.status?.sourceId)}
+                    attachments={target.status.attachments}
+                  />
+                </div>
+              ) : null}
+
+              {/* Actions (ALWAYS render if the status exists) */}
+              {target?.status?.attachments.length === 0 ? (
+                <div className="mt-3 flex justify-center gap-3 py-1">
+                  <button
+                    type="button"
+                    className="text-sm opacity-80 hover:opacity-100"
+                    onClick={() => openStatus(target.status!.sourceId)}
+                  >
+                    <ChatBubbleLeftEllipsisIcon
+                      width={25}
+                      className="text-primary"
                     />
-                  </div>
-                )}
+                  </button>
+                  <button
+                    type="button"
+                    className="text-sm opacity-80 hover:opacity-100"
+                    onClick={() => openStatus(target.status!.sourceId)}
+                  >
+                    <FireIcon width={25} className="text-primary" />
+                  </button>
+                  <button
+                    type="button"
+                    className="text-sm opacity-80 hover:opacity-100"
+                    onClick={() => openStatus(target.status!.sourceId)}
+                  >
+                    <ArrowPathRoundedSquareIcon
+                      width={25}
+                      className="text-primary"
+                    />
+                  </button>
+                  <button
+                    type="button"
+                    className="text-sm opacity-80 hover:opacity-100"
+                    onClick={() => openStatus(target.status!.sourceId)}
+                  >
+                    <PaperAirplaneIcon width={25} className="text-primary" />
+                  </button>
+                  {/* later: Spark / Share / Repost */}
+                </div>
+              ) : null}
             </div>
           )}
           {type === "hosted_event" && !isUserActor(actor) && (
@@ -386,6 +422,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                     muted={true}
                     controls={true}
                     hidePlayButton={true}
+                    onFeedPage={true}
                   />
                 </div>
               )}
@@ -483,7 +520,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
         </span>
         {openStatusId && (
           <StatusDetailModal
-            isImage
+            textOnly={!target?.status?.attachments.length}
             statusId={openStatusId}
             hasSparked={hasSparked}
             onClose={() => setOpenStatusId(null)}

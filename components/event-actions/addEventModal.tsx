@@ -113,6 +113,27 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
       budgetInfo: { estimatedCost: budget },
     };
 
+    const MAX_TOTAL_BYTES = 50 * 1024 * 1024; // 50MB total payload guard
+    const MAX_FILE_BYTES = 50 * 1024 * 1024; // optional per-file guard (keep or change)
+
+    const totalBytes = newFiles.reduce((sum, f) => sum + (f?.size ?? 0), 0);
+
+    if (totalBytes > MAX_TOTAL_BYTES) {
+      const mb = (n: number) => (n / (1024 * 1024)).toFixed(1);
+      return notify(
+        "Attachments are too large.",
+        `Total is ${mb(totalBytes)}MB. Max total is ${mb(MAX_TOTAL_BYTES)}MB.`,
+      );
+    }
+
+    if (newFiles.some((f) => f.size > MAX_FILE_BYTES)) {
+      const mb = (n: number) => (n / (1024 * 1024)).toFixed(1);
+      return notify(
+        "One attachment is too large.",
+        `Max per file is ${mb(MAX_FILE_BYTES)}MB.`,
+      );
+    }
+
     //error handling....
     if (e) e.preventDefault();
     if (!date) return console.log("Date is required!", "");

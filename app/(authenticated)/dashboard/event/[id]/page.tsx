@@ -460,26 +460,6 @@ export default function EventViewPage() {
                           Boost
                         </Button>
                         <Button
-                          endContent={<CheckIcon width={18} />}
-                          size="sm"
-                          variant="shadow"
-                          color="success"
-                          isDisabled={!isJoined && !isHost}
-                        >
-                          Check In
-                        </Button>
-                        {!isHost && (
-                          <Button
-                            endContent={<ExclamationCircleIcon width={18} />}
-                            size="sm"
-                            variant="shadow"
-                            color="danger"
-                            isDisabled={!isJoined}
-                          >
-                            Cancel
-                          </Button>
-                        )}
-                        <Button
                           endContent={<FireIcon width={18} />}
                           size="sm"
                           variant={hasSparked ? "shadow" : "bordered"}
@@ -510,6 +490,7 @@ export default function EventViewPage() {
                   controls={true}
                   loop={false}
                   muted={true}
+                  onEventPage={true}
                 />
               </div>
             )}

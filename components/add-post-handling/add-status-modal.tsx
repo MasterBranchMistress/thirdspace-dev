@@ -43,6 +43,7 @@ export default function AddStatus({ isOpen, onOpenChange }: AddStatusProps) {
     try {
       if (!user) return;
       if (!content) return;
+      // if (!newFiles) return;
 
       setLoading(true);
       await handleAddStatus({
@@ -103,7 +104,7 @@ export default function AddStatus({ isOpen, onOpenChange }: AddStatusProps) {
                     isRequired
                     variant="underlined"
                     color="secondary"
-                    placeholder="What are you up to?"
+                    placeholder="What's going on today?"
                     className="mb-3 border-b-white border-b-2 placeholder:text-white"
                     classNames={{
                       input:

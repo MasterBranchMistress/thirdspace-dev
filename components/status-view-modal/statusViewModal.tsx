@@ -22,6 +22,7 @@ import { SessionUser } from "@/types/user-session";
 type Props = {
   statusId: string;
   hasSparked: boolean;
+  textOnly: boolean;
   onClose: () => void;
   onSparkStatus: (statusId: string) => void;
 };
@@ -29,6 +30,7 @@ type Props = {
 export default function StatusDetailModal({
   statusId,
   hasSparked,
+  textOnly,
   onClose,
   onSparkStatus,
 }: Props) {
@@ -43,6 +45,9 @@ export default function StatusDetailModal({
 
   const router = useRouter();
   const session = useSession();
+  const hasText = Boolean((status as any)?.content?.trim()); // or status.content if it exists on your type
+  const hasAttachments = (status?.attachments?.length ?? 0) > 0;
+  const isTextOnly = hasText && !hasAttachments;
 
   const handleSpark = async () => {
     if (!hasSparked) {
@@ -107,96 +112,167 @@ export default function StatusDetailModal({
         ) : (
           <>
             <ModalBody className="p-0 h-[90vh] flex flex-col overflow-hidden min-h-0">
-              {/* MEDIA WRAP */}
-
-              <div
-                className={`relative w-full flex-none transition-all duration-300 ease-in-out ${
-                  showComments ? "h-[50vh]" : "h-[100vh]"
-                }`}
-              >
-                <AttachmentSwiper
-                  hidePlayButton={true}
-                  controls={true}
-                  attachments={status.attachments}
-                  commentsAreOpen={showComments}
-                  isImage={showComments}
-                />
-
-                {showSparkPulse ? (
-                  <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
-                    <FireSolid className="w-20 h-20 text-secondary animate-[pulse_1.2s_ease-in-out_1]" />
-                  </div>
-                ) : null}
-
-                {/* Author pill */}
+              {/* CONTENT AREA */}
+              {hasAttachments ? (
+                // ===== MEDIA-FIRST LAYOUT (your current) =====
                 <div
-                  className="absolute top-2 left-3 z-20 flex items-center gap-2 bg-black/40 backdrop-blur px-2 py-1 rounded-full"
-                  onClick={() =>
-                    router.push(
-                      `/dashboard/profile/${status.userId.toString()}`,
-                    )
-                  }
+                  className={`relative w-full flex-none transition-all duration-300 ease-in-out ${
+                    showComments ? "h-[50vh]" : "h-[100vh]"
+                  }`}
                 >
-                  <Avatar
-                    src={status.authorAvatar}
-                    isBordered
-                    color="primary"
-                    size="sm"
+                  {showSparkPulse && (
+                    <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
+                      <FireSolid className="w-20 h-20 text-secondary animate-[pulse_1.2s_ease-in-out_1]" />
+                    </div>
+                  )}
+                  <div
+                    className="absolute top-3 left-1 z-20 flex items-center gap-2 bg-black/40 backdrop-blur px-2 py-1 rounded-full"
+                    onClick={() =>
+                      router.push(
+                        `/dashboard/profile/${status.userId.toString()}`,
+                      )
+                    }
+                  >
+                    <Avatar
+                      src={status.authorAvatar}
+                      isBordered
+                      color="primary"
+                      size="sm"
+                    />
+                    <span className="text-sm font-medium text-white">
+                      {status.author}
+                    </span>
+                  </div>
+                  <AttachmentSwiper
+                    hidePlayButton={true}
+                    controls={true}
+                    attachments={status.attachments}
+                    commentsAreOpen={showComments}
                   />
-                  <span className="text-sm font-medium text-white">
-                    {status.author}
-                  </span>
-                  {/* badge here */}
-                </div>
+                  {/* spark pulse, author pill, action rail... keep as-is */}
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 z-20 pointer-events-none">
+                    <div className="flex flex-col gap-3 pointer-events-auto">
+                      <button
+                        className={`${!showComments ? "bg-black/40" : "bg-primary"} backdrop-blur rounded-full p-2`}
+                        onClick={() => setShowComments((v) => !v)}
+                        aria-label="Toggle comments"
+                      >
+                        <ChatBubbleLeftEllipsisIcon className="h-5 w-5 text-white" />
+                      </button>
 
-                {/* Right-side action rail */}
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 z-20 pointer-events-none">
-                  <div className="flex flex-col gap-3 pointer-events-auto">
-                    <button
-                      className={`${!showComments ? "bg-black/40" : "bg-primary"} backdrop-blur rounded-full p-2`}
-                      onClick={() => setShowComments((v) => !v)}
-                      aria-label="Toggle comments"
-                    >
-                      <ChatBubbleLeftEllipsisIcon
-                        className={`h-5 w-5 text-white`}
-                      />
-                    </button>
+                      <button
+                        className={`${hasSparked ? "bg-primary" : "bg-black/40"} backdrop-blur rounded-full p-2`}
+                        onClick={handleSpark}
+                        aria-label="Spark"
+                      >
+                        <FireSolid className="w-5 h-5 text-secondary transition-all" />
+                      </button>
 
-                    <button
-                      className={`${hasSparked ? "bg-primary" : "bg-black/40"} backdrop-blur rounded-full p-2`}
-                      onClick={handleSpark}
-                      aria-label="Spark"
-                    >
-                      <FireSolid className="w-5 h-5 text-secondary transition-all" />
-                    </button>
+                      <button
+                        className="bg-black/40 backdrop-blur rounded-full p-2"
+                        onClick={handleShare}
+                      >
+                        <PaperAirplaneIcon className="h-5 w-5 text-white" />
+                      </button>
 
-                    <button
-                      className="bg-black/40 backdrop-blur rounded-full p-2"
-                      onClick={handleShare}
-                      aria-label="Share"
-                    >
-                      <PaperAirplaneIcon className="h-5 w-5 text-white" />
-                    </button>
-                    <button
-                      className="bg-black/40 backdrop-blur rounded-full p-2"
-                      onClick={handleRepost}
-                      aria-label="Share"
-                    >
-                      <ArrowPathRoundedSquareIcon className="h-5 w-5 text-white" />
-                    </button>
-                    {isAuthor && (
                       <button
                         className="bg-black/40 backdrop-blur rounded-full p-2"
                         onClick={handleRepost}
-                        aria-label="actions"
                       >
-                        <EllipsisVerticalIcon className="h-5 w-5 text-white" />
+                        <ArrowPathRoundedSquareIcon className="h-5 w-5 text-white" />
                       </button>
-                    )}
+
+                      {isAuthor && (
+                        <button
+                          className="bg-black/40 backdrop-blur rounded-full p-2"
+                          onClick={handleRepost}
+                        >
+                          <EllipsisVerticalIcon className="h-5 w-5 text-white" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                // ===== TEXT-FIRST LAYOUT =====
+                <div className="relative w-full flex-1 min-h-0 bg-black">
+                  {showSparkPulse && (
+                    <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
+                      <FireSolid className="w-20 h-20 text-secondary animate-[pulse_1.2s_ease-in-out_1]" />
+                    </div>
+                  )}
+                  {/* Author pill (reuse the same pill) */}
+                  <div
+                    className="absolute top-3 left-1 z-20 flex items-center gap-2 bg-black/40 backdrop-blur px-2 py-1 rounded-full"
+                    onClick={() =>
+                      router.push(
+                        `/dashboard/profile/${status.userId.toString()}`,
+                      )
+                    }
+                  >
+                    <Avatar
+                      src={status.authorAvatar}
+                      isBordered
+                      color="primary"
+                      size="sm"
+                    />
+                    <span className="text-sm font-medium text-white">
+                      {status.author}
+                    </span>
+                  </div>
 
+                  {/* Text */}
+                  <div className="h-full flex flex-col justify-center px-14 pt-16 pb-6">
+                    <p className="text-white text-xl font-medium leading-relaxed text-center">
+                      {(status as any)?.content}
+                    </p>
+                  </div>
+
+                  {/* Action rail (same as your current rail) */}
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 z-20 pointer-events-none">
+                    <div className="flex flex-col gap-3 pointer-events-auto">
+                      <button
+                        className={`${!showComments ? "bg-black/40" : "bg-primary"} backdrop-blur rounded-full p-2`}
+                        onClick={() => setShowComments((v) => !v)}
+                        aria-label="Toggle comments"
+                      >
+                        <ChatBubbleLeftEllipsisIcon className="h-5 w-5 text-white" />
+                      </button>
+
+                      <button
+                        className={`${hasSparked ? "bg-primary" : "bg-black/40"} backdrop-blur rounded-full p-2`}
+                        onClick={handleSpark}
+                        aria-label="Spark"
+                      >
+                        <FireSolid className="w-5 h-5 text-secondary transition-all" />
+                      </button>
+
+                      <button
+                        className="bg-black/40 backdrop-blur rounded-full p-2"
+                        onClick={handleShare}
+                      >
+                        <PaperAirplaneIcon className="h-5 w-5 text-white" />
+                      </button>
+
+                      <button
+                        className="bg-black/40 backdrop-blur rounded-full p-2"
+                        onClick={handleRepost}
+                      >
+                        <ArrowPathRoundedSquareIcon className="h-5 w-5 text-white" />
+                      </button>
+
+                      {isAuthor && (
+                        <button
+                          className="bg-black/40 backdrop-blur rounded-full p-2"
+                          onClick={handleRepost}
+                        >
+                          <EllipsisVerticalIcon className="h-5 w-5 text-white" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
               {showComments ? (
                 <div className="flex-1 overflow-y-auto h-[100vh] bg-transparent mt-3">
                   <CommentList
