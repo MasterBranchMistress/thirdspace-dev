@@ -509,6 +509,7 @@ export default function EventViewPage() {
                   hidePlayButton={true}
                   controls={true}
                   loop={false}
+                  muted={true}
                 />
               </div>
             )}

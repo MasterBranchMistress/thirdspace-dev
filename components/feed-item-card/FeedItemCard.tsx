@@ -467,7 +467,11 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                 <div className="px-3 mb-2"> {target?.description}</div>
                 {target?.attachments && target.attachments.length > 0 && (
                   <div className="h-full overflow-hidden">
-                    <AttachmentSwiper attachments={target.attachments} />
+                    <AttachmentSwiper
+                      muted={true}
+                      controls={true}
+                      attachments={target.attachments}
+                    />
                   </div>
                 )}
               </div>
