@@ -631,3 +631,54 @@ Sparks:
 
 Designed to encourage positive engagement without creating comparison pressure.
 ![alt text](public/screenshots/spark-functionality.png)
+
+## Development Summary – 3/3/26
+
+Today focused on engagement parity, UX refinement, and comment system stability.
+
+### 🔥 Spark System Parity
+
+- Completed spark / unspark functionality for both statuses and events
+- Implemented optimistic UI updates with rollback handling
+- Added spark pulse overlay animation in status modal
+- Ensured event page spark state initializes correctly from backend
+
+### 👥 Friend Spark Previews
+
+- Built backend batching endpoint for friend spark metadata
+- Hydrated feed items with friend preview users
+- Integrated preview avatars into feed cards
+- Verified correct rendering across accounts
+
+### 📰 Feed Hydration Improvements
+
+- Refined spark metadata injection during feed load
+- Prevented duplicate hydration loops
+- Cleaned async hook logic and dependency issues
+
+### 💬 Comment System Refactor
+
+- Refactored comments for reusability
+- Separated status and event styling layers
+- Fixed modal scroll and overflow conflicts
+- Implemented Instagram-style split layout (media shrinks, comments scroll)
+- Fixed HeroUI input placeholder styling behavior
+
+### 📸 Media / Swiper Fixes
+
+- Updated AttachmentSwiper to respect parent container height
+- Resolved layout conflicts when modal resizes
+- Fixed router usage (`next/navigation` instead of `next/router`)
+- Increased attachment upload size limit from 10MB to 50MB
+
+### 🧼 Cleanup & Stability
+
+- Removed conflicting overlay behavior for videos
+- Fixed hook misuse and conditional render issues
+- Closed remaining tickets tied to spark + comment systems
+
+### Double-tap functionality moved to status detail view
+
+- Dedicated status detail view now holds spark functionality
+- base icon still shows on spark
+  ![alt text](public/screenshots/snip1.png) ![alt text](public/screenshots/snip2.png) ![alt text](public/screenshots/snip3.png)
