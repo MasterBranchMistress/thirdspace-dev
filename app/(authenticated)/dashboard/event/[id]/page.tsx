@@ -404,9 +404,9 @@ export default function EventViewPage() {
                       ))}
                     </div>
                     <div className="mt-3 w-full text-xs flex flex-col p-0 gap-2 justify-center items-center text-primary">
-                      <div className="mt-2 z-10 w-[90%] bg-concrete">
+                      {/* <div className="mt-2 z-10 w-[90%] bg-concrete">
                         {/* Total raised */}
-                        <div className="text-sm font-medium tracking-wider flex flex-col text-center bg-concrete text-primary">
+                      {/* <div className="text-sm font-medium tracking-wider flex flex-col text-center bg-concrete text-primary">
                           Raised $
                           {event.donations
                             ? event.donations.reduce(
@@ -417,10 +417,10 @@ export default function EventViewPage() {
                             : 7}{" "}
                           out of ${event.budgetInfo?.estimatedCost ?? 0} to
                           Orbit Goal!
-                        </div>
+                        </div> */}
 
-                        {/* Progress bar */}
-                        <div className="w-full bg-gray-300 rounded-full h-2 mt-3">
+                      {/* Progress bar */}
+                      {/* <div className="w-full bg-gray-300 rounded-full h-2 mt-3">
                           <div
                             className="bg-primary h-2 rounded-full"
                             style={{
@@ -447,9 +447,9 @@ export default function EventViewPage() {
                               }%`,
                             }}
                           />
-                        </div>
-                      </div>
-                      <div className="flex flex-row gap-2 mt-4 mb-2 bg-concrete">
+                        </div> 
+                      </div> */}
+                      <div className="flex flex-row gap-2 mt-2 mb-2 bg-concrete">
                         <Button
                           endContent={<RocketLaunchIcon width={18} />}
                           size="sm"
