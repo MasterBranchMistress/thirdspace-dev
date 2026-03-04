@@ -38,7 +38,7 @@ export default function CommentInput({
         placeholder={placeholder}
         variant="underlined"
         color="primary"
-        className="flex-1 bg-transparent z-10 text-secondary"
+        className="flex-1 bg-transparent z-10 text-primary"
         size="sm"
       />
       <div onClick={handleSend} className="cursor-pointer">

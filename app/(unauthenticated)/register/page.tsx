@@ -1,94 +1,301 @@
-// components/RegisterForm.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
-import NameStep from "@/components/register-forms/name";
-import EmailStep from "@/components/register-forms/email";
-import BioStep from "@/components/register-forms/bio";
+import { Form, Input, Button, Spinner, Textarea } from "@heroui/react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ParticalBackground } from "@/components/background-animations/ParticlesBackground";
-import FloatingBackButton from "@/components/navigation/floatingBackButton";
-import PasswordStep from "@/components/register-forms/password";
-import { handleRegisterUser } from "@/utils/frontend-backend-connection/handleRegisterUser";
-import { useToast } from "../../providers/ToastProvider";
+import { Image } from "@heroui/react";
 
-export default function RegisterForm() {
-  const [currentStep, setCurrentStep] = useState(0);
+import { useToast } from "@/app/providers/ToastProvider";
+import { signIn } from "next-auth/react";
+import LoadingSpinner from "@/components/spinner/spinner";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import { getVideoSrcForTimeOfDay } from "@/utils/get-time-of-day/route";
+import { handleRegisterUser } from "@/utils/frontend-backend-connection/handleRegisterUser";
+import { verifyPassword } from "@/utils/auth";
+
+export default function LoginPage() {
+  const [videoSrc, setVideoSrc] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    setVideoSrc(getVideoSrcForTimeOfDay());
+  }, []);
+  const [loading, setLoading] = useState(false);
+  const [videoError, setVideoError] = useState(false);
+  const router = useRouter();
+  const { notify } = useToast();
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isVPasswordVisible, setIsVPasswordVisible] = useState(false);
+
+  const fallbackStyle = "bg-gradient-to-br from-purple-primary to-pink-primary";
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [verifiedPassword, setVerifiedPassword] = useState("");
   const [bio, setBio] = useState("");
   const [tags, setTags] = useState<string[]>([]);
+  const [doPasswordsMatch, setDoPasswordsMatch] = useState(false);
 
-  const router = useRouter();
-  const { notify } = useToast();
+  const passwordIsValid =
+    password.length >= 8 && /[A-Z]/.test(password) && /\d/.test(password);
 
-  const goToStep = (step: number) => {
-    setCurrentStep(step);
-  };
+  const showPasswordRules = password.length > 0 && !passwordIsValid;
 
-  const onBack = (step: number) => {
-    if (step > 0) setCurrentStep(step - 1);
-    if (step === 0) router.push("/login");
-  };
+  const showMismatch =
+    verifiedPassword.length > 0 && password !== verifiedPassword;
 
-  const handleSubmit = async () => {
-    const err = await handleRegisterUser(
-      firstName,
-      lastName,
-      email,
-      password,
-      bio
-    );
+  const showMatch =
+    verifiedPassword.length > 0 && password === verifiedPassword;
 
-    if (err) {
-      notify("We couldn't sign you up 🥲", err);
-    } else {
-      router.push("/thank-you");
+  const emailIsValid =
+    email.endsWith("@gmail.com") ||
+    email.endsWith("@icloud.com") ||
+    email.endsWith("@yahoo.com");
+
+  const canSubmit =
+    firstName.trim() &&
+    lastName.trim() &&
+    email &&
+    emailIsValid &&
+    passwordIsValid &&
+    showMatch &&
+    bio.trim();
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (loading) return;
+
+    setLoading(true);
+    try {
+      const err = await handleRegisterUser(
+        firstName,
+        lastName,
+        email.toLowerCase(),
+        password,
+        bio,
+      );
+
+      if (err) notify("We couldn't sign you up 🥲", err);
+      else router.push("/thank-you");
+    } finally {
+      setLoading(false);
     }
   };
 
-  console.log({ firstName, lastName, email, bio, tags });
+  useEffect(() => {
+    setDoPasswordsMatch(password === verifiedPassword);
+  }, [password, verifiedPassword]);
+
   return (
-    <div className="relative animate-appearance-in min-h-screen w-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-pink-200 via-purple-100 to-white">
-      <ParticalBackground />
-      <FloatingBackButton onClick={() => onBack(currentStep)} />
-      {currentStep === 0 && (
-        <NameStep
-          firstName={firstName}
-          lastName={lastName}
-          setFirstName={setFirstName}
-          setLastName={setLastName}
-          onNext={() => goToStep(1)}
-        />
+    <main
+      className={`relative z-10 min-h-screen flex items-center justify-center px-4 animate-fade-in ${
+        videoError ? fallbackStyle : ""
+      }`}
+    >
+      {/* 🎥 Background video */}
+      {!videoError && videoSrc && (
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="fixed top-0 left-0 w-full h-full object-cover z-[-1]"
+          onError={() => setVideoError(true)}
+        >
+          <source src={videoSrc} type="video/mp4" />
+        </video>
       )}
 
-      {currentStep === 1 && (
-        <EmailStep
-          email={email}
-          setEmail={setEmail}
-          onNext={() => goToStep(2)}
-          onBack={() => goToStep(0)}
-        />
-      )}
+      <div className="fixed top-0 left-0 w-full h-full bg-black/30 z-0" />
+      <div className="w-full max-w-md space-y-3 z-10 flex flex-col items-center">
+        <div className="relative">
+          <Image
+            src="/third-space-logos/thirdspace-logo-3.png"
+            alt="Thirdspace Logo"
+            className="h-40 w-auto object-contain"
+          />
+        </div>
+        <Form onSubmit={handleSubmit} className="space-y-6 animation-slideIn">
+          <Input
+            name="firstName"
+            placeholder="First Name"
+            type="string"
+            onValueChange={setFirstName}
+            classNames={{
+              inputWrapper: [
+                "bg-white/10 border border-white/20 backdrop-blur-md transition-all",
+                "data-[focus=true]:bg-transparent",
+              ].join(" "),
+              input: "text-white placeholder-white",
+            }}
+            value={firstName}
+          />
+          <Input
+            name="lastName"
+            placeholder="Last Name"
+            type="string"
+            onValueChange={setLastName}
+            classNames={{
+              inputWrapper: [
+                "bg-white/10 border border-white/20 backdrop-blur-md transition-all",
+                "data-[focus=true]:bg-transparent",
+              ].join(" "),
+              input: "text-white placeholder-white",
+            }}
+            value={lastName}
+          />
+          <Input
+            name="email"
+            placeholder="Email"
+            type="email"
+            onValueChange={setEmail}
+            classNames={{
+              inputWrapper: [
+                "bg-white/10 border border-white/20 backdrop-blur-md transition-all",
+                "data-[focus=true]:bg-transparent",
+              ].join(" "),
+              input: "text-white placeholder-white",
+            }}
+          />
+          <Input
+            name="password"
+            type={isPasswordVisible ? "text" : "password"}
+            placeholder="Password"
+            value={password}
+            onValueChange={setPassword}
+            isInvalid={showPasswordRules}
+            errorMessage={
+              showPasswordRules
+                ? "Use 8+ chars with 1 uppercase letter and 1 number."
+                : undefined
+            }
+            description={
+              !showPasswordRules
+                ? "8+ characters • 1 uppercase • 1 number"
+                : undefined
+            }
+            endContent={
+              <button
+                type="button"
+                onClick={() => setIsPasswordVisible((prev) => !prev)}
+                className="focus:outline-none"
+              >
+                {isPasswordVisible ? (
+                  <EyeSlashIcon className="text-white w-5 h-5" />
+                ) : (
+                  <EyeIcon className="text-white w-5 h-5" />
+                )}
+              </button>
+            }
+            classNames={{
+              inputWrapper:
+                "bg-white/10 border border-white/20 backdrop-blur-md transition-all data-[focus=true]:bg-transparent",
+              input: "text-white placeholder-white",
+              description: "text-white/70 text-xs",
+              errorMessage: "text-red-200 text-xs",
+            }}
+          />
+          <Input
+            name="verifiedPassword"
+            type={isVPasswordVisible ? "text" : "password"}
+            placeholder="Verify Password"
+            value={verifiedPassword}
+            onValueChange={setVerifiedPassword}
+            isInvalid={showMismatch}
+            errorMessage={showMismatch ? "Passwords do not match" : undefined}
+            description={showMatch ? "✅ Passwords match" : " "}
+            endContent={
+              <div className="flex items-center gap-2">
+                {showMatch ? (
+                  <span className="text-green-200 text-xs font-semibold">
+                    ✓
+                  </span>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => setIsVPasswordVisible((prev) => !prev)}
+                  className="focus:outline-none"
+                >
+                  {isVPasswordVisible ? (
+                    <EyeSlashIcon className="text-white w-5 h-5" />
+                  ) : (
+                    <EyeIcon className="text-white w-5 h-5" />
+                  )}
+                </button>
+              </div>
+            }
+            classNames={{
+              inputWrapper:
+                "bg-white/10 border border-white/20 backdrop-blur-md transition-all data-[focus=true]:bg-transparent",
+              input: "text-white placeholder-white",
+              description: showMatch
+                ? "text-green-200 text-xs"
+                : "text-white/0 text-xs",
+              errorMessage: "text-red-200 text-xs",
+            }}
+          />
+          <Textarea
+            name="bio"
+            placeholder="Who should we connect you with?"
+            type="bio"
+            onValueChange={setBio}
+            classNames={{
+              inputWrapper: [
+                "bg-white/10 border border-white/20 backdrop-blur-md transition-all",
+                "data-[focus=true]:bg-transparent",
+              ].join(" "),
+              input: "text-white placeholder-white",
+            }}
+          />
+          <Button
+            type="submit"
+            isLoading={loading}
+            spinner={<LoadingSpinner />}
+            className="w-full flex items-center justify-center gap-2 bg-purple-primary bg-transparent text-concrete border-2 border-concrete font-bold hover:backdrop-blur-md hover:cursor-pointer"
+            isDisabled={!canSubmit}
+          >
+            {!loading && "Register"}
+          </Button>
 
-      {currentStep === 2 && (
-        <PasswordStep
-          password={password}
-          setPassword={setPassword}
-          onNext={() => goToStep(3)}
-        />
-      )}
+          <div className="flex flex-row w-full justify-center items-center gap-9 mt-2">
+            <Image
+              src="/third-space-logos/icons8-google-64.png"
+              alt="Google"
+              width={32}
+              height={32}
+            />
 
-      {currentStep === 3 && (
-        <BioStep
-          bio={bio}
-          setBio={setBio}
-          onBack={() => goToStep(1)}
-          handleSubmit={handleSubmit}
-        />
-      )}
-    </div>
+            <Image
+              src="/third-space-logos/icons8-facebook-64.png"
+              alt="Facebook"
+              width={32}
+              height={32}
+            />
+
+            <Image
+              src="/third-space-logos/icons8-twitch-50.png"
+              alt="Twitch"
+              width={32}
+              height={32}
+            />
+
+            <Image
+              src="/third-space-logos/icons8-discord-50.png"
+              alt="Discord"
+              width={32}
+              height={32}
+            />
+          </div>
+          <button
+            type="button"
+            className="w-full bg-none text-white underline text-sm hover:text-indigo cursor-pointer"
+            onClick={() => router.push("/login")}
+          >
+            Have an Account? Login here!
+          </button>
+        </Form>
+      </div>
+    </main>
   );
 }

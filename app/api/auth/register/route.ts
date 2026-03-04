@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     if (missing.length > 0) {
       return NextResponse.json(
         { error: `Missing field(s): ${missing.join(", ")}` },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -31,20 +31,20 @@ export async function POST(req: NextRequest) {
     if (existing)
       return NextResponse.json(
         { error: "User already exists" },
-        { status: 409 }
+        { status: 409 },
       );
 
     if (password.length < 8) {
       return NextResponse.json(
         { error: "Password must be at least 8 characters" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
       return NextResponse.json(
         { error: "Password must include a number and uppercase letter" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -105,6 +105,7 @@ export async function POST(req: NextRequest) {
       status: "",
       followers: [],
       following: [],
+      statusAttachments: undefined,
     };
 
     const newUser: UserDoc = {
@@ -125,12 +126,12 @@ export async function POST(req: NextRequest) {
       {
         message: `Profile ${firstName} successfuly registered!`,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error: unknown) {
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

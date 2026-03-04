@@ -39,7 +39,11 @@ export default function ThankYouPage() {
           Welcome to ThirdSpace 🎉
         </h1>
         <div className="py-4 text-concrete font-extralight z-10 text-sm tracking-tight">
-          <Typewriter
+          <h2>
+            Your account has been successfully created. You can now log in and
+            start connecting with your community.
+          </h2>
+          {/* <Typewriter
             onInit={(typewriter) => {
               typewriter
                 .pauseFor(100)
@@ -54,16 +58,15 @@ export default function ThankYouPage() {
               delay: 80,
               cursor: "",
             }}
-          />
+          /> */}
         </div>
-        {sayGoodbye && (
-          <Button
-            onPress={() => router.replace("/login")}
-            className="mt-2 px-6 py-1 text-md bg-transparent text-concrete-bold border-1 border-concrete animate-appearance-in tracking-wide hover:opacity-75"
-          >
-            Login
-          </Button>
-        )}
+
+        <Button
+          onPress={() => router.replace("/login")}
+          className="mt-2 px-6 py-1 text-md bg-transparent text-concrete-bold border-1 border-concrete animate-appearance-in tracking-wide hover:opacity-75"
+        >
+          Login
+        </Button>
       </main>
     </>
   );
