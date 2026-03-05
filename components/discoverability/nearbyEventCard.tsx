@@ -95,17 +95,17 @@ export function EventDiscoverabilityCard({ event }: Props) {
       </div>
       <div className="absolute inset-0 rounded-xl pointer-events-none"></div>
       <CardHeader className="flex justify-between items-start pb-3">
-        <div className="flex gap-4 items-center justify-start">
+        <div className="flex gap-4 shrink-0 items-center justify-start">
           <Avatar
             isBordered
             radius="full"
-            size="md"
+            size="sm"
             src={event.hostAvatar ?? "/placeholder-event.png"}
             onClick={() =>
               router.push(`/dashboard/user/${String(event.host._id)}`)
             }
           />
-          <div className="flex flex-col justify-start leading-tight">
+          <div className="flex flex-col shrink-0 justify-start leading-tight">
             <h4 className="text-xs font-semibold text-default-800">
               {event.title}
             </h4>
@@ -114,7 +114,7 @@ export function EventDiscoverabilityCard({ event }: Props) {
             </span>
           </div>
         </div>
-        <div className="flex flex-col gap-1.5 shrink-0 items-end">
+        <div className="flex flex-col gap-1.5 items-end">
           <span className="px-3 py-0.5 text-xs font-medium bg-secondary text-primary rounded-full w-fit">
             {distanceMiles} mi away 📍
           </span>
