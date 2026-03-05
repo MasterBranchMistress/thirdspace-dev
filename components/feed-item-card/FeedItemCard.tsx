@@ -13,6 +13,7 @@ import {
   Button,
   Dropdown,
   user,
+  Textarea,
 } from "@heroui/react";
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -62,6 +63,25 @@ import {
 import SparkMeta from "./FeedStats";
 import StatusDetailModal from "../status-view-modal/statusViewModal";
 import { deleteStatus } from "@/utils/feed-item-actions/status-item-actions/deleteStatus";
+import { NearbyUserCard } from "../discoverability/nearbyUserCard";
+import { UserDoc } from "@/lib/models/User";
+import { Swiper, SwiperSlide } from "swiper/react";
+import {
+  A11y,
+  EffectCards,
+  EffectCoverflow,
+  EffectFade,
+  Navigation,
+  Pagination,
+  Scrollbar,
+} from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import "swiper/css/scrollbar";
+import "swiper/css/effect-fade";
+import { EventDiscoverabilityCard } from "../discoverability/nearbyEventCard";
+import { EventDoc } from "@/lib/models/Event";
 
 export default function FeedItemCard({ item }: FeedItemCardProps) {
   const { data: session } = useSession();
@@ -73,6 +93,11 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
   const [openStatusId, setOpenStatusId] = useState<string | null>(null);
   const { type, target, actor, timestamp } = item;
   const { notify } = useToast();
+
+  if (item.type === "discover_events") {
+    console.log("DISCOVER_USERS raw item:", item);
+  }
+
   const openStatus = (id?: string) => {
     if (!id) return;
     setOpenStatusId(id);
@@ -82,9 +107,19 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
   ): a is FeedUserActor => {
     return !!a && typeof (a as any).id === "string";
   };
+
+  // if (!isUserActor(actor)) {
+  //   console.log("Feed item missing actor:", item.type, target);
+  // }
+
   useEffect(() => {
+    if (!actor) {
+      setAvatarUrl("/misc/party.jpg"); // or default avatar
+      return;
+    }
+
     if (isUserActor(actor)) {
-      setAvatarUrl(actor.avatar ?? getGravatarUrl(actor?.email ?? ""));
+      setAvatarUrl(actor.avatar ?? getGravatarUrl(actor.email ?? ""));
     } else {
       setAvatarUrl(actor.avatar ?? "/misc/party.jpg");
     }
@@ -132,18 +167,18 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
       ? `${target?.title} by ${actor.firstName} is trending 🔥`
       : type === "event_coming_up"
         ? `"${target?.title}" is coming up ⏰`
-        : type === "profile_avatar_updated" && isUserActor(actor)
-          ? `${actor.firstName} updated their look 😎`
-          : type === "hosted_event"
-            ? ""
-            : type === "joined_platform" && isUserActor(actor)
-              ? `Welcome aboard ${actor.firstName}! There's much to do 🚀`
-              : type === "profile_location_updated" && isUserActor(actor)
-                ? `${actor.firstName} moved somewhere new 📍`
-                : type === "profile_bio_updated" && isUserActor(actor)
-                  ? `${actor.firstName} updated their bio 🖊️`
-                  : type === "profile_status_updated" && isUserActor(actor)
-                    ? ``
+        : type === "hosted_event"
+          ? ""
+          : type === "joined_platform" && isUserActor(actor)
+            ? `Welcome aboard ${actor.firstName}! There's much to do 🚀`
+            : type === "profile_bio_updated" && isUserActor(actor)
+              ? `${actor.firstName} updated their bio 🖊️`
+              : type === "profile_status_updated" && isUserActor(actor)
+                ? ``
+                : type === "discover_events"
+                  ? `The Solar System ™  ☄️`
+                  : type === "discover_users"
+                    ? `The Space Station ™ 👽`
                     : isUserActor(actor) &&
                       `${actor.firstName} is doing something cool 🤔`;
 
@@ -188,116 +223,120 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
       radius="none"
       className="w-full shadow-none text-primary bg-concrete mb-7"
     >
-      <CardHeader className="flex justify-between items-center">
-        {/* Left side: avatar + user/event info */}
-        <div className="flex gap-5">
-          <button
-            onClick={() =>
-              router.push(
-                `/dashboard/profile/${isUserActor(actor) ? actor.id : target?.userId}`,
-              )
-            }
-            className="hover:cursor-pointer"
-          >
-            <Avatar
-              isBordered
-              color="primary"
-              radius="full"
-              size="md"
-              src={
-                isUserActor(actor) ? avatarUrl : avatarUrl || "/misc/party.jpg"
+      {actor && (
+        <CardHeader className="flex justify-between items-center">
+          {/* Left side: avatar + user/event info */}
+          <div className="flex gap-5">
+            <button
+              onClick={() =>
+                router.push(
+                  `/dashboard/profile/${isUserActor(actor) ? actor.id : target?.userId}`,
+                )
               }
-            />
-          </button>
-          {!isUserActor(actor) ? (
-            <div className="flex flex-col gap-0.5 items-start justify-center w-full min-w-0">
-              <h6
-                className="text-sm tracking-tighter text-primary leading-snug
+              className="hover:cursor-pointer"
+            >
+              <Avatar
+                isBordered
+                color="primary"
+                radius="full"
+                size="md"
+                src={
+                  isUserActor(actor)
+                    ? avatarUrl
+                    : avatarUrl || "/misc/party.jpg"
+                }
+              />
+            </button>
+            {!isUserActor(actor) ? (
+              <div className="flex flex-col gap-0.5 items-start justify-center w-full min-w-0">
+                <h6
+                  className="text-sm tracking-tighter text-primary leading-snug
                      whitespace-normal break-words line-clamp-1"
-              >
-                {target?.host ?? target?.hostName}'s event has an Update!
-              </h6>
-              <p
-                className="text-xs font-extralight tracking-tight text-primary leading-snug
+                >
+                  {target?.host ?? target?.hostName}'s event has an Update!
+                </h6>
+                <p
+                  className="text-xs font-extralight tracking-tight text-primary leading-snug
                      whitespace-normal break-words"
-              >
-                {eventDistance ?? 0} mi away •{" "}
-                {target?.startingDate
-                  ? format(new Date(target?.startingDate), "PPP p")
-                  : "TBD"}
-              </p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-1 items-start justify-center">
-              <h4 className="text-small font-extralight tracking-wide leading-none text-primary">
-                {`${actor?.firstName || ""} ${actor?.lastName || ""}`.trim()}
-              </h4>
-              {isUserActor(actor) && (
-                <h5 className="text-small tracking-tight text-primary">
-                  @{actor?.username}
-                </h5>
-              )}
-            </div>
-          )}
-        </div>
+                >
+                  {eventDistance ?? 0} mi away •{" "}
+                  {target?.startingDate
+                    ? format(new Date(target?.startingDate), "PPP p")
+                    : "TBD"}
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1 items-start justify-center">
+                <h4 className="text-small font-extralight tracking-wide leading-none text-primary">
+                  {`${actor?.firstName || ""} ${actor?.lastName || ""}`.trim()}
+                </h4>
+                {isUserActor(actor) && (
+                  <h5 className="text-small tracking-tight text-primary">
+                    @{actor?.username}
+                  </h5>
+                )}
+              </div>
+            )}
+          </div>
 
-        {/* Right side: Orbit button + ellipses */}
-        <div className="flex items-center shrink-0">
-          {/* {isUserActor(actor) && (
+          {/* Right side: Orbit button + ellipses */}
+          <div className="flex items-center shrink-0">
+            {/* {isUserActor(actor) && (
             <button className="p-1 text-xs rounded-full">{buttonText}</button>
           )} */}
-          <Dropdown classNames={dropDownStyle} backdrop="blur">
-            <DropdownTrigger>
-              <EllipsisVerticalIcon className="text-primary" width={24} />
-            </DropdownTrigger>
-            <DropdownMenu aria-label="Dynamic Actions">
-              <DropdownItem
-                key="share"
-                className="text-concrete"
-                color="primary"
-                variant="solid"
-                endContent={<ArrowRightStartOnRectangleIcon width={20} />}
-              >
-                Share
-              </DropdownItem>
-              <DropdownItem
-                key="repost"
-                className="text-concrete"
-                color="primary"
-                variant="solid"
-                endContent={<ArrowPathRoundedSquareIcon width={20} />}
-              >
-                Repost
-              </DropdownItem>
-              {!isSelf ? (
-                <>
+            <Dropdown classNames={dropDownStyle} backdrop="blur">
+              <DropdownTrigger>
+                <EllipsisVerticalIcon className="text-primary" width={24} />
+              </DropdownTrigger>
+              <DropdownMenu aria-label="Dynamic Actions">
+                <DropdownItem
+                  key="share"
+                  className="text-concrete"
+                  color="primary"
+                  variant="solid"
+                  endContent={<ArrowRightStartOnRectangleIcon width={20} />}
+                >
+                  Share
+                </DropdownItem>
+                <DropdownItem
+                  key="repost"
+                  className="text-concrete"
+                  color="primary"
+                  variant="solid"
+                  endContent={<ArrowPathRoundedSquareIcon width={20} />}
+                >
+                  Repost
+                </DropdownItem>
+                {!isSelf ? (
+                  <>
+                    <DropdownItem
+                      key="report"
+                      className="text-concrete bg-danger"
+                      color="danger"
+                      variant="solid"
+                      endContent={<FlagIcon width={20} />}
+                    >
+                      Report Post
+                    </DropdownItem>
+                  </>
+                ) : null}
+                {isSelf ? (
                   <DropdownItem
-                    key="report"
+                    key="delete_post"
                     className="text-concrete bg-danger"
                     color="danger"
                     variant="solid"
-                    endContent={<FlagIcon width={20} />}
+                    endContent={<TrashIcon width={20} />}
+                    onClick={() => handleDeletePost(target?.status?.sourceId)}
                   >
-                    Report Post
+                    Delete Post
                   </DropdownItem>
-                </>
-              ) : null}
-              {isSelf ? (
-                <DropdownItem
-                  key="delete_post"
-                  className="text-concrete bg-danger"
-                  color="danger"
-                  variant="solid"
-                  endContent={<TrashIcon width={20} />}
-                  onClick={() => handleDeletePost(target?.status?.sourceId)}
-                >
-                  Delete Post
-                </DropdownItem>
-              ) : null}
-            </DropdownMenu>
-          </Dropdown>
-        </div>
-      </CardHeader>
+                ) : null}
+              </DropdownMenu>
+            </Dropdown>
+          </div>
+        </CardHeader>
+      )}
 
       <CardBody className="px-0 py-0 text-small text-center tracking-tight font-light">
         <p className="font-bold text-center tracking-tighter">{message}</p>
@@ -321,6 +360,51 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             >
               Show Me Around ✨
             </Button>
+          )}
+          {item.type === "discover_users" && (item as any).data?.users && (
+            <Swiper
+              effect={"cards"}
+              grabCursor={true}
+              centeredSlides={true}
+              slidesPerView={"auto"}
+              pagination={true}
+              modules={[EffectCards]}
+              className="flex justify-center mt-3"
+              cardsEffect={{
+                slideShadows: false,
+              }}
+            >
+              {(item as any).data.users.map((u: UserDoc, index: number) => (
+                <SwiperSlide
+                  key={String(u._id) + index.toString()}
+                  className="!w-[85vw] flex justify-center"
+                >
+                  <NearbyUserCard user={u} />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          )}
+
+          {type === "discover_events" && (
+            <Swiper
+              effect={"cards"}
+              grabCursor={true}
+              centeredSlides={true}
+              slidesPerView={"auto"}
+              pagination={true}
+              modules={[EffectCards]}
+              className="flex justify-center mt-3"
+              cardsEffect={{ slideShadows: false }}
+            >
+              {(item as any).data.events.map((e: EventDoc, index: number) => (
+                <SwiperSlide
+                  key={String(e._id) + index.toString}
+                  className="!w-[85vw] flex justify-center"
+                >
+                  <EventDiscoverabilityCard event={e} />
+                </SwiperSlide>
+              ))}
+            </Swiper>
           )}
 
           {type === "profile_status_updated" && isUserActor(actor) && (

@@ -99,7 +99,7 @@ export default function ProfileSettingsModal({
   const remainingBio = Math.max(0, 150 - (form?.bio?.length ?? 0));
   const canChangeUsername = useMemo(
     () => daysSince(form?.usernameLastChangedAt) >= USERNAME_COOLDOWN_DAYS,
-    [form?.usernameLastChangedAt]
+    [form?.usernameLastChangedAt],
   );
   const { avatar, setAvatar } = useAvatar();
   const user = session?.user;
@@ -194,13 +194,13 @@ export default function ProfileSettingsModal({
                 ? [...prev.tags, t]
                 : prev.tags,
           }
-        : prev
+        : prev,
     );
   };
 
   const removeTag = (t: string) =>
     setForm((prev) =>
-      prev ? { ...prev, tags: prev.tags?.filter((x) => x !== t) } : prev
+      prev ? { ...prev, tags: prev.tags?.filter((x) => x !== t) } : prev,
     );
 
   const save = async () => {
@@ -238,7 +238,7 @@ export default function ProfileSettingsModal({
                 fileType: selectedFile.type,
               },
             }),
-          }
+          },
         );
 
         if (!avatarRes.ok) {
@@ -298,6 +298,7 @@ export default function ProfileSettingsModal({
       scrollBehavior="inside"
       backdrop="blur"
       className="bg-transparent text-concrete h-auto"
+      isDismissable={false}
     >
       <ModalContent>
         {(onClose) => (
@@ -357,7 +358,7 @@ export default function ProfileSettingsModal({
                             : `Next change in ${Math.max(
                                 0,
                                 USERNAME_COOLDOWN_DAYS -
-                                  daysSince(form.usernameLastChangedAt)
+                                  daysSince(form.usernameLastChangedAt),
                               )} days.`}
                         </span>
                       }
@@ -439,7 +440,7 @@ export default function ProfileSettingsModal({
                           setForm((f) =>
                             f
                               ? { ...f, lang: Array.from(k as Set<string>)[0] }
-                              : f
+                              : f,
                           )
                         }
                       >
@@ -478,12 +479,12 @@ export default function ProfileSettingsModal({
                           currentPassword: oldPwd,
                           newPassword: newPwd,
                         }),
-                      }
+                      },
                     );
                     const data = await res.json();
                     if (!res.ok)
                       throw new Error(
-                        data?.error || "Failed to change password"
+                        data?.error || "Failed to change password",
                       );
                   }}
                 />

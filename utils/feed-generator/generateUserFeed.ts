@@ -9,9 +9,13 @@ import { getDistFromMiles } from "../geolocation/get-distance-from-event/getDist
 import { geocodeAddress } from "../geolocation/geocode-address/geocodeAddress";
 import { canViewerSee } from "../user-privacy/canViewerSee";
 import { UserStatusDoc } from "@/lib/models/UserStatusDoc";
+import { getNearbyUsers } from "../discoverability/get-nearby-users/getNearbyUsers";
+import { getNearbyEvents } from "../discoverability/get-nearby-events/getNearbyEvents";
+import { SessionUser } from "@/types/user-session";
+import { insertFeedItemAt } from "../discoverability/feed-injection-logic/feedInjection";
 
 function resolveAvatar(user: UserDoc): string {
-  return user.avatar ?? getGravatarUrl(user.email);
+  return user.avatar ?? getGravatarUrl(user.email!);
 }
 
 export async function generateUserFeed(
@@ -25,9 +29,6 @@ export async function generateUserFeed(
   const feedCollection = db.collection<UserFeedDoc>(COLLECTIONS._USER_FEED);
   const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
   const eventCollection = db.collection<EventDoc>(COLLECTIONS._EVENTS);
-  const statusCollection = db.collection<UserStatusDoc>(
-    COLLECTIONS._USER_STATUSES,
-  );
 
   async function logFeedItem(
     item: Omit<UserFeedDoc, "_id"> & { sourceId: string },
@@ -69,16 +70,8 @@ export async function generateUserFeed(
   const ALLOWED_TYPES = [
     "joined_platform",
     "hosted_event",
-    "profile_avatar_updated",
-    "profile_bio_updated",
     "profile_status_updated",
   ];
-
-  const radiusMiles =
-    (user as any)?.settings?.nearbyRadiusMiles &&
-    Number.isFinite((user as any).settings.nearbyRadiusMiles)
-      ? Number((user as any).settings.nearbyRadiusMiles)
-      : 40;
 
   await logFeedItem({
     userId: user._id!,
@@ -148,123 +141,7 @@ export async function generateUserFeed(
         const d = getDistFromMiles(viewerLat, viewerLng, evLat!, evLng!);
         distMiles = typeof d === "number" ? Number(d.toFixed(1)) : null;
       }
-
-      //TODO: DECIDE TO THROW AWAY DISTANCE LOGIC IN LUIE OF RELEVANCE ALGO MAYBE??
-
-      // const isFriend = friends.some((friend) => {
-      //   String(friend._id) === String(user._id);
-      // });
-
-      // console.log("friends.length", friends?.length);
-      // console.log(
-      //   "friends sample",
-      //   friends
-      //     ?.slice(0, 3)
-      //     ?.map((f) => ({ _id: f?._id, username: (f as any)?.username })),
-      // );
-
-      // const passesDistance = isFriend
-      //   ? true
-      //   : viewerHasCoords
-      //     ? distMiles !== null && distMiles <= radiusMiles
-      //     : true;
-
-      // if (!passesDistance) {
-      //   console.log(
-      //     "[SKIP] distance",
-      //     event.title,
-      //     "distMiles=",
-      //     distMiles,
-      //     "radius=",
-      //     radiusMiles,
-      //     "viewerHasCoords=",
-      //     viewerHasCoords,
-      //   );
-      //   continue;
-      // }
-
-      const actor = {
-        id: actorUser._id!.toString(),
-        email: actorUser.email,
-        firstName: actorUser.firstName,
-        lastName: actorUser.lastName,
-        username: actorUser.username,
-        avatar: resolveAvatar(actorUser),
-        eventStatus: event.status,
-        eventId: event._id,
-        eventSnippet: event.description,
-        eventAttachments: event.attachments,
-        distanceFromEvent: distMiles ?? 0,
-        eventLocation: event.location?.name,
-      };
-
-      //TODO: Commented this out for double posting. Delete later
-
-      // if (host) {
-      //   console.log("[HOSTED_EVENT] attempting", {
-      //     viewer: user.username,
-      //     actor: actorUser.username,
-      //     eventId: String(event._id),
-      //     title: event.title,
-      //     host: String(event.host),
-      //   });
-      //   await logFeedItem({
-      //     userId: user._id!,
-      //     sourceId: `${event._id?.toString()}:hosted_event`,
-      //     type: "hosted_event",
-      //     actor,
-      //     target: {
-      //       eventId: event._id,
-      //       title: event.title,
-      //       snippet: event.description,
-      //       startingDate: new Date(event.date).toISOString(),
-      //       location: event.location
-      //         ? {
-      //             name: event.location.name,
-      //             lat: event.location.lat ?? evLat!,
-      //             lng: event.location.lng ?? evLng!,
-      //           }
-      //         : undefined,
-      //       distanceMiles: distMiles ?? undefined,
-      //       attachments: event.attachments,
-      //     },
-      //     timestamp: nowIso,
-      //   });
-      // }
     }
-
-    // Profile updates
-    // await logFeedItem({
-    //   userId: user._id!,
-    //   sourceId: `${user._id?.toString()}:profile_avatar_updated`,
-    //   type: "profile_avatar_updated",
-    //   actor: {
-    //     id: actorUser._id!.toString(),
-    //     firstName: actorUser.firstName,
-    //     lastName: actorUser.lastName,
-    //     username: actorUser.username,
-    //     avatar: actorUser.avatar,
-    //   },
-    //   target: { userId: actorUser._id!, snippet: actorUser.avatar },
-    //   timestamp: nowIso,
-    // });
-
-    // if (actorUser.location && actorUser.shareLocation === true) {
-    //   await logFeedItem({
-    //     userId: user._id!,
-    //     sourceId: `${user._id?.toString()}:profile_location_updated`,
-    //     type: "profile_location_updated",
-    //     actor: {
-    //       id: actorUser._id!.toString(),
-    //       firstName: actorUser.firstName,
-    //       lastName: actorUser.lastName,
-    //       username: actorUser.username,
-    //       avatar: resolveAvatar(actorUser),
-    //     },
-    //     target: { userId: actorUser._id!, snippet: actorUser.location.name },
-    //     timestamp: nowIso,
-    //   });
-    // }
 
     const userStatuses = statuses.filter(
       (s) => String(s.userId) === String(actorUser._id!),

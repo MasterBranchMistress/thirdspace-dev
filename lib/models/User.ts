@@ -15,6 +15,8 @@ export type UserStatusDoc = {
   isDeleted?: boolean;
   deletedAt?: Date;
   deletedBy?: string;
+  sparks: ObjectId[]; // or SparkDoc[] etc
+  views: number;
   attachments: string[];
   comments?: {
     userId: ObjectId;
@@ -98,15 +100,18 @@ export interface Avatar {
 type VisibilityLevel = "off" | "friends" | "followers" | "public";
 
 export interface UserDoc {
-  statusAttachments: (string | Attachment)[] | undefined;
-  status: string | undefined;
+  sharedTags: any;
+  distanceMeters?: number;
+  id?: string;
+  statusAttachments?: (string | Attachment)[] | undefined;
+  status?: string | undefined;
   _id?: ObjectId;
   firstName: string;
   lastName: string;
   username: string;
-  usernameLastChangedAt: Date;
-  email: string;
-  passwordHash: string;
+  usernameLastChangedAt?: Date;
+  email?: string;
+  passwordHash?: string;
   avatar?: string;
   avatarMetaData?: Avatar;
   interests?: string[];
@@ -116,7 +121,7 @@ export interface UserDoc {
   provider?: string;
   friends?: ObjectId[];
   blocked?: ObjectId[];
-  pendingFriendRequests: [];
+  pendingFriendRequests?: [];
   pendingFriendRequestsIncoming?: ObjectId[];
   pendingFriendRequestsOutgoing?: ObjectId[];
   createdAt?: Date;
@@ -129,7 +134,7 @@ export interface UserDoc {
   joinedEventDate?: Date;
   acceptedFriendDate?: Date;
   addedEventDate?: Date;
-  notifications: Notification[];
+  notifications?: Notification[];
   isAdmin?: boolean;
   karmaScore?: number;
   qualityBadge?: "bronze" | "silver" | "gold" | "platinum";

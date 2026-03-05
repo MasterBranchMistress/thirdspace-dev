@@ -6,7 +6,7 @@ import { ObjectId } from "mongodb";
 
 export async function POST(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
     const userId = (await context.params).id;
@@ -27,10 +27,15 @@ export async function POST(
     userCollection.createIndex({ "location.geo": "2dsphere" });
     userCollection.createIndex({ tags: 1 });
 
+    const idx = await userCollection.indexes();
+    if (!idx.some((i) => i.key?.["location.geo"] === "2dsphere")) {
+      await userCollection.createIndex({ "location.geo": "2dsphere" });
+    }
+
     // 1) Load requester’s location + tags
     const me = await userCollection.findOne(
       { _id: new ObjectId(String(userId)) },
-      { projection: { "location.geo": 1, tags: 1, blocked: 1 } }
+      { projection: { "location.geo": 1, tags: 1, blocked: 1 } },
     );
 
     const myPoint = me?.location?.geo;
@@ -42,56 +47,73 @@ export async function POST(
     if (!myPoint?.type || !Array.isArray(myPoint.coordinates)) {
       return NextResponse.json(
         { error: "User location not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
-    // 2) Build pipeline
+    const excludeIds = [new ObjectId(userId), ...blockedIds];
+    const maxDistanceMeters = radiusKm * 1000;
+    const effectiveMinShared = myTags.length === 0 ? 0 : minShared;
+
     const pipeline: any[] = [
-      // Must be first for geo queries
       {
         $geoNear: {
-          near: myPoint, // { type: "Point", coordinates: [lng, lat] }
+          near: myPoint,
           distanceField: "distanceMeters",
           spherical: true,
-          maxDistance: radiusKm * 1000,
+          maxDistance: maxDistanceMeters,
           query: {
-            _id: { $ne: new ObjectId(userId), $nin: blockedIds }, // exclude self & blocked
+            _id: { $nin: excludeIds },
             "location.geo": { $exists: true },
           },
         },
       },
-      // Compute overlap with my tags
       {
         $addFields: {
           sharedTags: { $setIntersection: ["$tags", myTags] },
           sharedCount: {
-            $size: {
-              $ifNull: [{ $setIntersection: ["$tags", myTags] }, []],
-            },
+            $size: { $ifNull: [{ $setIntersection: ["$tags", myTags] }, []] },
           },
-        },
-      },
-      // Filter by minimum overlap
-      { $match: { sharedCount: { $gte: minShared } } },
-      // Simple scoring (more shared tags + closer distance is better)
-      {
-        $addFields: {
-          // Example score:  weight tags higher than distance
-          matchScore: {
-            $add: [
-              { $multiply: ["$sharedCount", 10] }, // 10 pts per shared tag
+          distanceScore: {
+            $max: [
+              0,
               {
-                $multiply: [
-                  { $divide: [1, { $add: ["$distanceMeters", 1] }] },
-                  5000,
+                $subtract: [
+                  1,
+                  { $divide: ["$distanceMeters", maxDistanceMeters] },
                 ],
-              }, // inverse distance
+              },
             ],
           },
         },
       },
-      // Project only what you need
+      { $match: { sharedCount: { $gte: effectiveMinShared } } },
+
+      // base: tags dominate, distance supports
+      {
+        $addFields: {
+          baseScore: {
+            $add: [
+              { $multiply: ["$sharedCount", 10] },
+              { $multiply: ["$distanceScore", 3] },
+            ],
+          },
+          karma01: { $divide: [{ $ifNull: ["$karmaScore", 0] }, 100] },
+          karmaBoost: { $add: [1, { $multiply: ["$karma01", 0.15] }] },
+        },
+      },
+      {
+        $addFields: {
+          matchScore: {
+            $cond: [
+              { $gt: ["$sharedCount", 0] },
+              { $multiply: ["$baseScore", "$karmaBoost"] },
+              "$baseScore",
+            ],
+          },
+        },
+      },
+
       {
         $project: {
           firstName: 1,
@@ -99,14 +121,17 @@ export async function POST(
           username: 1,
           avatar: 1,
           tags: 1,
+          bio: 1,
+          followers: 1,
+          following: 1,
           location: 1,
-          sharedTags: 1,
+          sharedTags: { $slice: ["$sharedTags", 3] },
           sharedCount: 1,
           distanceMeters: 1,
           matchScore: 1,
+          karmaScore: 1,
         },
       },
-      // Sort by your score, then distance as tiebreaker
       { $sort: { matchScore: -1, distanceMeters: 1 } },
       { $limit: Math.max(1, Math.min(limit, 100)) },
     ];
@@ -124,20 +149,21 @@ export async function POST(
         lastName: u.lastName,
         username: u.username,
         avatar: u.avatar,
+        followers: u.followers,
+        following: u.following,
         tags: u.tags ?? [],
+        bio: u.bio,
+        location: u.location,
+        distanceMeters: u.distanceMeters,
         sharedTags: u.sharedTags ?? [],
         sharedCount: u.sharedCount ?? 0,
-        distanceMiles: u.distanceMeters
-          ? +(u.distanceMeters / 1609.344).toFixed(1)
-          : null,
-        locationName: u.location?.name ?? null,
       })),
     });
   } catch (e: any) {
     console.error("Nearby users error:", e);
     return NextResponse.json(
       { error: "Failed to fetch nearby users" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

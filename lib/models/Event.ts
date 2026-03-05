@@ -19,6 +19,9 @@ type EventDonation = {
 };
 
 export interface EventDoc {
+  hostName?: string;
+  popularity?: number;
+  distanceMeters?: number;
   coverImage?: string;
   _id?: ObjectId;
   sourceId: string;
@@ -39,6 +42,7 @@ export interface EventDoc {
     };
   };
   host: ObjectId;
+  hostAvatar?: string;
   attendees: ObjectId[];
   tags?: string[];
   comments?: {

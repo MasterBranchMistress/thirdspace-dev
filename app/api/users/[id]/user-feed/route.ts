@@ -7,11 +7,11 @@ import { EventDoc } from "@/lib/models/Event";
 import { generateEventFeed } from "@/utils/feed-generator/generateEventFeed";
 import { generateUserFeed } from "@/utils/feed-generator/generateUserFeed";
 import { FeedItem } from "@/types/user-feed";
-import { shuffleFeed } from "@/utils/shuffle-feed/shuffleFeed";
+import { upsertAtAnchor } from "@/utils/discoverability/feed-injection-logic/upsertAtAnchor";
 
 export async function GET(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
   const client = await clientPromise;
@@ -20,7 +20,7 @@ export async function GET(
   const eventsCollection = db.collection<EventDoc>(COLLECTIONS._EVENTS);
   const feedCollection = db.collection<FeedItem>(COLLECTIONS._USER_FEED);
   const statusCollection = db.collection<UserStatusDoc>(
-    COLLECTIONS._USER_STATUSES
+    COLLECTIONS._USER_STATUSES,
   );
 
   try {
@@ -74,14 +74,14 @@ export async function GET(
         .toArray(),
     ]);
 
-    console.log("friends", Array.isArray(friends), friends.length);
-    console.log("events", Array.isArray(events), events.length);
-    console.log(
-      "statuses",
-      Array.isArray(statuses),
-      statuses?.length,
-      statuses
-    );
+    // console.log("friends", Array.isArray(friends), friends.length);
+    // console.log("events", Array.isArray(events), events.length);
+    // console.log(
+    //   "statuses",
+    //   Array.isArray(statuses),
+    //   statuses?.length,
+    //   statuses
+    // );
 
     const feedQuery: any = { userId: user._id };
     if (sinceDate) {
@@ -98,18 +98,89 @@ export async function GET(
       user,
       friends,
       events,
-      statuses
+      statuses,
     );
     const generatedEventFeed = await generateEventFeed(user, events, friends);
     const combined = [...generatedUserFeed, ...generatedEventFeed];
+
+    const [nearbyUsersRes, nearbyEventsRes] = await Promise.all([
+      fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/users/${id}/get-nearby-users`,
+        { method: "POST" },
+      ),
+      fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/users/${id}/get-nearby-events`,
+        { method: "POST" },
+      ),
+    ]);
+
+    const nearbyUsersData = await nearbyUsersRes.json();
+    const nearbyEventsData = await nearbyEventsRes.json();
+
+    const nearbyUsers = nearbyUsersData.users ?? [];
+    const nearbyEvents = nearbyEventsData.events ?? [];
+
+    let mergedFeed: any[] = [...combined];
+
+    const discoverEventsId = `discover_events:${id}`;
+    const discoverUsersId = `discover_users:${id}`;
+
+    // Filter out friends + self from nearby users
+    const friendSet = new Set(friendsIds.map(String));
+    const filteredUsers = nearbyUsers.filter((u: any) => {
+      const uid = String(u.id ?? u._id);
+      return uid !== String(id) && !friendSet.has(uid);
+    });
+
+    // Filter out events already in feed (optional but nice)
+    const feedEventIds = new Set(
+      combined
+        .map((x: any) => x.actor?.eventId)
+        .filter(Boolean)
+        .map((eid: any) => String(eid)),
+    );
+    const filteredEvents = nearbyEvents.filter((e: any) => {
+      const eid = String(e.id ?? e._id);
+      return !feedEventIds.has(eid);
+    });
+
+    if (filteredEvents.length > 0) {
+      mergedFeed = upsertAtAnchor(
+        mergedFeed,
+        {
+          id: discoverEventsId,
+          type: "discover_events",
+          timestamp: new Date().toISOString(),
+          data: {
+            title: "Events near you",
+            events: filteredEvents.slice(0, 6),
+          },
+        } as any,
+        7,
+      );
+    }
+
+    if (filteredUsers.length > 0) {
+      mergedFeed = upsertAtAnchor(
+        mergedFeed,
+        {
+          id: discoverUsersId,
+          type: "discover_users",
+          timestamp: new Date().toISOString(),
+          data: {
+            title: "People you may know",
+            users: filteredUsers,
+          },
+        } as any,
+        3,
+      );
+    }
 
     if (combined.length > 0) {
       await feedCollection.insertMany(combined);
     }
 
     userFeed = combined;
-
-    const mergedFeed: FeedItem[] = userFeed; // Already sorted
 
     const total = mergedFeed.length;
     const paginatedFeed = mergedFeed.slice(skip, skip + limit);
@@ -129,7 +200,7 @@ export async function GET(
   } catch (err: unknown) {
     return NextResponse.json(
       { error: (err as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

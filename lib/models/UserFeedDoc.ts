@@ -1,5 +1,7 @@
 import { ObjectId } from "mongodb";
 import { FeedUserActor, FeedTarget, FeedItemType } from "@/types/user-feed";
+import { EventDoc } from "./Event";
+import { UserDoc } from "./User";
 
 export interface UserFeedDoc {
   _id?: ObjectId;

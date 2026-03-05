@@ -3,6 +3,7 @@ import clientPromise from "@/lib/mongodb";
 import { DBS, COLLECTIONS } from "@/lib/constants";
 import { ObjectId } from "mongodb";
 import { UserDoc } from "@/lib/models/User";
+import { EventDoc } from "@/lib/models/Event";
 
 function normalizeTag(t: string) {
   return t
@@ -107,11 +108,13 @@ export async function POST(
       const distanceMeters = Number(evt.distanceMeters ?? 0);
       const distanceScore = Math.max(0, 1 - distanceMeters / maxDistanceMeters);
 
+      const attendees = Number(evt.attendees.length ?? 0);
+
       // base score (tags dominate)
-      const baseScore = sharedTagCount * 10 + distanceScore * 3;
+      const baseScore = sharedTagCount * 10 + distanceScore * 3 + attendees * 5;
 
       // karma boost (host karma)
-      const hostKarma = Number(evt.host?.karmaScore ?? 0);
+      const hostKarma = Number(evt.host.karmaScore ?? 0);
       const score =
         sharedTagCount > 0 ? baseScore * karmaToBoost(hostKarma) : baseScore; // guardrail: no karma boost with zero overlap
 
@@ -122,6 +125,11 @@ export async function POST(
         distanceMeters,
         relevanceScore: score,
         hostKarma, // optional for UI
+        hostName:
+          evt.host?.firstName +
+          (evt.host?.lastName ? ` ${evt.host.lastName}` : ""),
+        hostAvatar: evt.host?.avatar ?? "/placeholder-avatar.png",
+        popularity: Number(score ?? 50),
       };
     });
 

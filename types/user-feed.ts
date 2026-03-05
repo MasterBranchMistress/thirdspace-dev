@@ -1,6 +1,5 @@
-import { Availability } from "@/lib/models/User";
+import { Availability, UserDoc } from "@/lib/models/User";
 import { ObjectId } from "mongodb";
-import { Avatar } from "@/lib/models/User";
 import { PreviewUser } from "@/app/api/users/[id]/metadata/interests/friend-spark-preview/route";
 
 /**
@@ -17,6 +16,8 @@ export type FeedItemType =
   | "profile_avatar_updated"
   | "profile_location_updated"
   | "profile_status_updated"
+  | "discover_events"
+  | "discover_users"
   | "event_is_popular"
   | "event_is_nearby"
   | "event_coming_up";
@@ -157,25 +158,22 @@ export interface FeedTarget {
 /**
  * Feed item when the actor is a user.
  */
-export interface FeedItemUser {
-  id: string; // feed item id, not the actor id
-  type: FeedItemType;
-  friendSparkPreviewUsers?: PreviewUser[];
-  actor: FeedUserActor;
-  target?: FeedTarget;
-  avatar?: string;
-  timestamp: string; // ISO string
-}
 
-/**
- * Feed item when the actor is an event.
- */
-export interface FeedItemEvent {
+type FeedItemBase = {
   id: string;
   type: FeedItemType;
+  timestamp: string;
+  friendSparkPreviewUsers?: PreviewUser[];
+};
+
+export interface FeedItemUser extends FeedItemBase {
+  actor: FeedUserActor;
+  target?: FeedTarget;
+}
+
+export interface FeedItemEvent extends FeedItemBase {
   actor: FeedEventActor;
   target?: FeedTarget;
-  timestamp: Date; // ISO string
 }
 
 /**
