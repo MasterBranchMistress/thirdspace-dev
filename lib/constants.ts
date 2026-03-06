@@ -86,3 +86,8 @@ export const FEED_BUTTON_DROPDOWN_OPTIONS = {
 export const STATUS_CONSTANT = {
   _THROTTLE_MINUTES: 2,
 };
+
+export const MEDIA_VIEW_HEIGHT = {
+  _STANDARD: "h-[60vh]",
+  _COMMENT_SECTION: "h-[100vh]",
+};

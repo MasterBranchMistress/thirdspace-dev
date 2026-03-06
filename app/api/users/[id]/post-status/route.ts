@@ -58,6 +58,7 @@ export async function POST(
     const newStatus: UserStatusDoc = {
       _id,
       author: postingUser?.firstName + " " + postingUser?.lastName,
+      authorUsername: postingUser.username,
       authorAvatar: postingUser?.avatar,
       userId: new ObjectId(id),
       sourceId: _id.toString(),

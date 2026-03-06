@@ -2,10 +2,17 @@
 
 import React, { useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Pagination } from "swiper/modules";
+import {
+  EffectCards,
+  EffectCoverflow,
+  EffectCube,
+  EffectFade,
+  EffectFlip,
+  Pagination,
+} from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
-import { Image } from "@heroui/react";
+import Image from "next/image";
 import { UserDoc } from "@/lib/models/User";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
@@ -69,9 +76,8 @@ export default function AttachmentSwiper({
         <Swiper
           modules={[Pagination]}
           spaceBetween={10}
-          slidesPerView={1}
+          slidesPerView={"auto"}
           pagination={{ dynamicBullets: true }}
-          className="w-full"
           onSlideChange={(swiper) => {
             swiper.slides.forEach((slide) => {
               const vid = slide.querySelector(
@@ -104,15 +110,41 @@ export default function AttachmentSwiper({
                 {type === "video" ||
                 url?.match(/\.(mp4|mov|avi|webm|mkv)$/i) ? (
                   <div className="relative">
-                    <video
-                      src={url}
-                      controls={controls}
-                      loop={true}
-                      muted={muted}
-                      playsInline
-                      autoPlay
-                      className={`w-full h-[${commentsAreOpen ? "50" : "100"}vh] object-${commentsAreOpen && !onFeedPage ? "fit" : "cover"} ${onEventPage || onFeedPage ? "h-[60vh]" : ""} rounded-none`}
-                    />
+                    {commentsAreOpen && !onFeedPage && (
+                      <div className="relative w-full h-[60vh] overflow-hidden">
+                        {/* Background blurred video */}
+                        <video
+                          src={url}
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          className="absolute inset-0 w-full h-full object-cover blur-lg scale-110 opacity-70"
+                        />
+                        <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+                        {/* Foreground playable video */}
+                        <video
+                          src={url}
+                          controls={controls}
+                          autoPlay
+                          loop
+                          muted={muted}
+                          playsInline
+                          className="relative z-10 w-full h-full object-contain"
+                        />
+                      </div>
+                    )}
+                    {!commentsAreOpen && !onFeedPage && (
+                      <video
+                        src={url}
+                        controls={controls}
+                        loop={true}
+                        muted={muted}
+                        playsInline
+                        autoPlay
+                        className={`w-full bg-black h-[100vh] object-cover  rounded-none`}
+                      />
+                    )}
                     {statusId && (
                       <div
                         className="absolute inset-0 flex items-center justify-center bg-black/20 cursor-pointer"
@@ -134,23 +166,30 @@ export default function AttachmentSwiper({
                     )}
                   </div>
                 ) : (
-                  <Image
-                    src={url}
-                    width="100%"
-                    alt={`Attachment ${index + 1}`}
-                    className={`w-full h-[${commentsAreOpen ? "50" : "100"}vh] ${onEventPage || onFeedPage ? "h-[100vh]" : ""} object-${commentsAreOpen || !onFeedPage ? "fit" : "fit"} rounded-none`}
-                  />
+                  <div className="relative w-full h-[60vh] overflow-hidden">
+                    {/* Blurred background */}
+                    <Image
+                      src={url}
+                      alt=""
+                      fill
+                      priority
+                      className="object-cover blur-lg scale-110 opacity-70"
+                    />
+
+                    {/* Foreground image */}
+                    <Image
+                      src={url}
+                      alt={`Attachment ${index + 1}`}
+                      fill
+                      priority
+                      className="relative z-10 object-contain"
+                    />
+                  </div>
                 )}
               </SwiperSlide>
             );
           })}
         </Swiper>
-
-        {/* {overlay ? (
-          <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
-            {overlay}
-          </div>
-        ) : null} */}
       </div>
     </div>
   );

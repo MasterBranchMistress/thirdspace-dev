@@ -7,6 +7,7 @@ import { CommentDoc } from "./Comment";
 export type UserStatusDoc = {
   _id: ObjectId;
   author: string;
+  authorUsername?: string;
   authorAvatar?: string;
   userId: ObjectId;
   sourceId: string;
@@ -15,8 +16,6 @@ export type UserStatusDoc = {
   isDeleted?: boolean;
   deletedAt?: Date;
   deletedBy?: string;
-  sparks: ObjectId[]; // or SparkDoc[] etc
-  views: number;
   attachments: string[];
   comments?: {
     userId: ObjectId;

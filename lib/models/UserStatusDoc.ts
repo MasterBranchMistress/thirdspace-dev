@@ -7,10 +7,8 @@ export interface UserStatusDoc {
   content: string;
   createdAt: Date;
   attachments?: string[];
-  sparks: ObjectId[];
   orbiters?: ObjectId[];
   reposts?: ObjectId[];
-  views: number;
 }
 
 export interface StatusViewStatDoc {

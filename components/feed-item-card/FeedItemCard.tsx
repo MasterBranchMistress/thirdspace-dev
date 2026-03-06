@@ -16,6 +16,8 @@ import {
   Textarea,
 } from "@heroui/react";
 
+import Image from "next/image";
+
 import React, { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import FeedCardFooter from "./FeedCardFooter";
@@ -38,6 +40,7 @@ import { useUserRelationships } from "@/app/context/UserRelationshipsContext";
 import Lottie from "lottie-react";
 import sendmessage from "@/public/lottie/comments.json";
 import {
+  BookmarkSlashIcon,
   ChatBubbleBottomCenterIcon,
   ChatBubbleLeftEllipsisIcon,
   CheckCircleIcon,
@@ -45,6 +48,7 @@ import {
   EnvelopeIcon,
   FireIcon,
   PaperAirplaneIcon,
+  SpeakerXMarkIcon,
 } from "@heroicons/react/24/solid";
 
 interface FeedItemCardProps {
@@ -82,6 +86,7 @@ import "swiper/css/scrollbar";
 import "swiper/css/effect-fade";
 import { EventDiscoverabilityCard } from "../discoverability/nearbyEventCard";
 import { EventDoc } from "@/lib/models/Event";
+import FeedAttachmentSwiper from "../discoverability/feedCard";
 
 export default function FeedItemCard({ item }: FeedItemCardProps) {
   const { data: session } = useSession();
@@ -164,9 +169,9 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
 
   const message =
     type === "event_is_popular"
-      ? `${target?.title} by ${actor.firstName} is trending 🔥`
+      ? `Orbit Breaker™ 🔥`
       : type === "event_coming_up"
-        ? `"${target?.title}" is coming up ⏰`
+        ? `Touching Down™  ⏰`
         : type === "hosted_event"
           ? ""
           : type === "joined_platform" && isUserActor(actor)
@@ -176,7 +181,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
               : type === "profile_status_updated" && isUserActor(actor)
                 ? ``
                 : type === "discover_events"
-                  ? `The Solar System ™  ☄️`
+                  ? `The Solar System ™   ☄️`
                   : type === "discover_users"
                     ? `The Space Station ™ 👽`
                     : isUserActor(actor) &&
@@ -416,16 +421,43 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
 
               {/* Attachments */}
               {target?.status?.attachments?.length ? (
-                <div className="h-full">
-                  <AttachmentSwiper
-                    controls={false}
-                    hidePlayButton={false}
-                    muted={true}
+                <Swiper
+                  effect={"cards"}
+                  grabCursor={true}
+                  centeredSlides={true}
+                  slidesPerView={"auto"}
+                  pagination={true}
+                  modules={[EffectCards]}
+                  className="flex justify-center mt-3"
+                  cardsEffect={{ slideShadows: false }}
+                >
+                  {target.status.attachments?.map((a, i) => {
+                    return (
+                      <SwiperSlide
+                        key={i}
+                        className={`${target.status?.attachments?.length && target.status?.attachments?.length > 1 ? `!w-[85vw]` : `h-auto`} flex justify-center`}
+                      >
+                        <FeedAttachmentSwiper
+                          statusId={target.status?.sourceId}
+                          onOpenStatus={() =>
+                            openStatus(target.status?.sourceId)
+                          }
+                          attachments={target.status?.attachments}
+                          attachment={a as any}
+                          controls={true}
+                          muted={true}
+                        />
+                      </SwiperSlide>
+                    );
+                  })}
+
+                  {/* <FeedAttachmentSwiper
                     statusId={target.status?.sourceId}
                     onOpenStatus={() => openStatus(target.status?.sourceId)}
                     attachments={target.status.attachments}
-                  />
-                </div>
+                    controls={false}
+                  /> */}
+                </Swiper>
               ) : null}
 
               {/* Actions (ALWAYS render if the status exists) */}
@@ -489,109 +521,288 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                     {target?.title}
                   </Button>
                 </div>
-                <div className="font-light tracking-tight text-sm px-3 my-3">
+                <div className="font-light tracking-tight text-sm px-3 mt-3">
                   {target?.snippet}
                 </div>
               </div>
-              {target?.attachments && target.attachments.length > 0 && (
+              {target?.attachments && target.attachments.length > 0 ? (
                 <div
-                  className="relative h-full overflow-hidden"
+                  className="relative overflow-hidden"
+                  onClick={() =>
+                    router.push(`/dashboard/event/${String(actor.eventId)}`)
+                  }
+                >
+                  <Swiper
+                    effect={"cards"}
+                    grabCursor={true}
+                    centeredSlides={true}
+                    slidesPerView={"auto"}
+                    pagination={true}
+                    modules={[EffectCards]}
+                    className="flex justify-center mt-3"
+                    cardsEffect={{ slideShadows: false }}
+                    onClick={() =>
+                      router.push(`/dashboard/event/${actor.eventId}`)
+                    }
+                  >
+                    {target.attachments.map((a, i) => {
+                      return (
+                        <SwiperSlide
+                          key={i}
+                          className={`flex ${target.attachments?.length && target.attachments?.length > 1 ? `!w-[85vw]` : `h-auto`} justify-center`}
+                        >
+                          <FeedAttachmentSwiper
+                            key={i}
+                            attachment={a as any}
+                            attachments={target.attachments}
+                          />
+                        </SwiperSlide>
+                      );
+                    })}
+                  </Swiper>
+                </div>
+              ) : (
+                <div
+                  className="relative w-[100vw] h-[60vh] overflow-hidden mt-3 cursor-pointer"
                   onClick={() =>
                     router.push(`/dashboard/event/${actor.eventId}`)
                   }
                 >
-                  {/* Media */}
-                  <AttachmentSwiper
-                    attachments={target.attachments}
-                    muted={true}
-                    controls={true}
-                    hidePlayButton={true}
-                    onFeedPage={true}
+                  <Image
+                    src={"/third-space-logos/thirdspace-logo-6.png"}
+                    alt={`thirdspace-logo`}
+                    fill
+                    priority
+                    className="relative z-10 object-cover"
                   />
-                </div>
-              )}
-            </div>
-          )}
-          {type === "profile_location_updated" && (
-            <div className="mt-2 tracking-tight font-bold max-w-[100%]">
-              {target?.snippet}
-              {target?.attachments && target.attachments.length > 0 && (
-                <div className="h-full overflow-hidden">
-                  <AttachmentSwiper attachments={target.attachments} />
                 </div>
               )}
             </div>
           )}
           {type === "event_is_popular" && (
-            <div className="font-light max-w-[100%] mt-3 tracking-tight">
-              <div className="py-1 mb-3">{target?.description}</div>
-              {target?.attachments && target.attachments.length > 0 && (
-                <div
-                  className="h-full overflow-hidden"
-                  onClick={() =>
+            <div className="font-light max-w-[100%] mt-2 tracking-tight">
+              <div className="flex flex-row font-bold text-sm text-center mb-2 items-center">
+                <span className="font-semibold shadow-lg shadow-primary border-1 border-primary py-1 mr-[-12] px-3 rounded-l-lg">
+                  {actor.firstName} is hosting
+                </span>
+                <Button
+                  size="sm"
+                  variant="shadow"
+                  color="primary"
+                  className="text-secondary font-bold ml-2"
+                  onPress={() =>
                     router.push(`/dashboard/event/${actor.eventId}`)
                   }
                 >
-                  <AttachmentSwiper
-                    muted={true}
-                    controls={true}
-                    attachments={target.attachments}
-                  />
+                  {target?.title}
+                </Button>
+              </div>
+              <div className="py-1 mt-3">{target?.description}</div>
+              {target?.attachments && target.attachments.length > 0 && (
+                <div
+                  className="relative overflow-hidden"
+                  onClick={() =>
+                    router.push(`/dashboard/event/${String(actor.eventId)}`)
+                  }
+                >
+                  <Swiper
+                    effect={"cards"}
+                    grabCursor={true}
+                    centeredSlides={true}
+                    slidesPerView={"auto"}
+                    pagination={true}
+                    modules={[EffectCards]}
+                    className="flex justify-center"
+                    cardsEffect={{ slideShadows: false }}
+                    onClick={() =>
+                      router.push(`/dashboard/event/${actor.eventId}`)
+                    }
+                  >
+                    {target?.attachments && target.attachments.length > 0 ? (
+                      <div
+                        className="relative overflow-hidden"
+                        onClick={() =>
+                          router.push(
+                            `/dashboard/event/${String(actor.eventId)}`,
+                          )
+                        }
+                      >
+                        <Swiper
+                          effect={"cards"}
+                          grabCursor={true}
+                          centeredSlides={true}
+                          slidesPerView={"auto"}
+                          pagination={true}
+                          modules={[EffectCards]}
+                          className="flex justify-center mt-3"
+                          cardsEffect={{ slideShadows: false }}
+                          onClick={() =>
+                            router.push(`/dashboard/event/${actor.eventId}`)
+                          }
+                        >
+                          {target.attachments.map((a, i) => {
+                            return (
+                              <SwiperSlide
+                                key={i}
+                                className={`flex ${target.attachments?.length && target.attachments?.length > 1 ? `!w-[85vw]` : `h-auto`} justify-center`}
+                              >
+                                <FeedAttachmentSwiper
+                                  key={i}
+                                  attachment={a as any}
+                                  attachments={target.attachments}
+                                />
+                              </SwiperSlide>
+                            );
+                          })}
+                        </Swiper>
+                      </div>
+                    ) : (
+                      <div
+                        className="relative w-[100vw] h-[60vh] overflow-hidden mt-3 cursor-pointer"
+                        onClick={() =>
+                          router.push(`/dashboard/event/${actor.eventId}`)
+                        }
+                      >
+                        <Image
+                          src={"/third-space-logos/thirdspace-logo-6.png"}
+                          alt={`thirdspace-logo`}
+                          fill
+                          priority
+                          className="relative z-10 object-cover"
+                        />
+                      </div>
+                    )}
+                  </Swiper>
                 </div>
               )}
             </div>
           )}
           {type === "event_coming_up" && (
             <>
-              <span className="mt-1">
-                <Button
-                  endContent={
-                    <CheckCircleIcon
-                      color="secondary"
-                      width={20}
-                      className="p-0 m-0"
-                    />
-                  }
-                  size="sm"
-                  variant="shadow"
-                  color="success"
-                  className="text-secondary font-bold"
-                  onPress={() =>
-                    router.push(`/dashboard/event/${actor.eventId}`)
-                  }
-                >
-                  Check In
-                </Button>
-                <Button
-                  endContent={
-                    <EnvelopeIcon
-                      color="primary"
-                      width={20}
-                      className="p-0 m-0"
-                    />
-                  }
-                  size="sm"
-                  variant="shadow"
-                  color="primary"
-                  className="text-secondary font-bold ml-2 mt-2"
-                  onPress={() => console.log("set up modal for reason why")}
-                  //TODO: setup messaging via Twilio
-                >
-                  Message Host
-                </Button>
-              </span>
-
               <div
                 className="font-light max-w-[100%] mt-3 tracking-tight"
                 onClick={() => router.push(`/dashboard/event/${actor.eventId}`)}
               >
-                <div className="px-3 mb-2"> {target?.description}</div>
-                {target?.attachments && target.attachments.length > 0 && (
-                  <div className="h-full overflow-hidden">
-                    <AttachmentSwiper
-                      muted={true}
-                      controls={true}
-                      attachments={target.attachments}
+                <div className="w-full flex justify-center">
+                  <div className="flex flex-row font-bold text-sm text-center mb-2 items-center">
+                    <span className="font-semibold shadow-lg shadow-primary border-1 border-primary py-1 mr-[-12] px-3 rounded-l-lg">
+                      {actor.firstName} is hosting
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="shadow"
+                      color="primary"
+                      className="text-secondary font-bold ml-2"
+                      onPress={() =>
+                        router.push(`/dashboard/event/${actor.eventId}`)
+                      }
+                    >
+                      {target?.title}
+                    </Button>
+                  </div>
+                </div>
+                <span className="mt-1">
+                  <Button
+                    endContent={
+                      <CheckCircleIcon
+                        color="secondary"
+                        width={20}
+                        className="p-0 m-0"
+                      />
+                    }
+                    size="sm"
+                    variant="shadow"
+                    color="success"
+                    className="text-secondary font-bold"
+                    onPress={() =>
+                      router.push(`/dashboard/event/${actor.eventId}`)
+                    }
+                  >
+                    Check In
+                  </Button>
+                  <Button
+                    endContent={
+                      <BookmarkSlashIcon
+                        color="secondary"
+                        width={20}
+                        className="p-0 m-0"
+                      />
+                    }
+                    size="sm"
+                    variant="shadow"
+                    color="danger"
+                    className="text-secondary font-bold ml-3"
+                    onPress={() => console.log("TODO: leave event api here!!")}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    endContent={
+                      <EnvelopeIcon
+                        color="primary"
+                        width={20}
+                        className="p-0 m-0"
+                      />
+                    }
+                    size="sm"
+                    variant="shadow"
+                    color="primary"
+                    className="text-secondary font-bold ml-2 mt-2"
+                    onPress={() => console.log("set up modal for reason why")}
+                    //TODO: setup messaging via Twilio
+                  >
+                    Message Host
+                  </Button>
+                </span>
+                {target?.attachments && target.attachments.length > 0 ? (
+                  <div
+                    className="relative overflow-hidden"
+                    onClick={() =>
+                      router.push(`/dashboard/event/${String(actor.eventId)}`)
+                    }
+                  >
+                    <Swiper
+                      effect={"cards"}
+                      grabCursor={true}
+                      centeredSlides={true}
+                      slidesPerView={"auto"}
+                      pagination={true}
+                      modules={[EffectCards]}
+                      className="flex justify-center mt-3"
+                      cardsEffect={{ slideShadows: false }}
+                      onClick={() =>
+                        router.push(`/dashboard/event/${actor.eventId}`)
+                      }
+                    >
+                      {target.attachments.map((a, i) => {
+                        return (
+                          <SwiperSlide
+                            key={i}
+                            className={`flex ${target.attachments?.length && target.attachments?.length > 1 ? `!w-[85vw]` : `h-auto`} justify-center`}
+                          >
+                            <FeedAttachmentSwiper
+                              key={i}
+                              attachment={a as any}
+                              attachments={target.attachments}
+                            />
+                          </SwiperSlide>
+                        );
+                      })}
+                    </Swiper>
+                  </div>
+                ) : (
+                  <div
+                    className="relative w-[100vw] h-[60vh] overflow-hidden mt-3 cursor-pointer"
+                    onClick={() =>
+                      router.push(`/dashboard/event/${actor.eventId}`)
+                    }
+                  >
+                    <Image
+                      src={"/third-space-logos/thirdspace-logo-6.png"}
+                      alt={`thirdspace-logo`}
+                      fill
+                      priority
+                      className="relative z-10 object-cover"
                     />
                   </div>
                 )}

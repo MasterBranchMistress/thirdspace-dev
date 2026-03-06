@@ -49,7 +49,7 @@ export function ResonanceMeter({ score }: Props) {
             }`}
             style={{
               height: `${Math.random() * 8 + 8}px`, // random base height
-              animation: `pulse 1.5s ease-in-out infinite`,
+              animation: `shimmy 1.5s ease-in-out infinite`,
               animationDelay: `${i * 0.2}s`,
               background:
                 i < filledBars
@@ -64,7 +64,7 @@ export function ResonanceMeter({ score }: Props) {
       </p>
 
       <style jsx>{`
-        @keyframes pulse {
+        @keyframes shimmy {
           0%,
           100% {
             transform: scaleY(1);

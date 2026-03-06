@@ -58,6 +58,9 @@ import {
 import CommentListForEvents from "@/components/comment-handling/event/CommentListForEvents";
 import { useEventSpark } from "@/utils/custom-hooks/useEventSpark";
 import { getEventSparks } from "@/utils/feed-item-actions/event-item-actions/sparkHandler";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { EffectCards } from "swiper/modules";
+import FeedAttachmentSwiper from "@/components/discoverability/feedCard";
 
 type Comment = {
   userId: any;
@@ -420,7 +423,7 @@ export default function EventViewPage() {
                           {hasSparked ? "Unspark" : "Spark"}
                         </Button>
                       </div>
-                      <div className="flex items-center justify-center py-3">
+                      <div className="flex items-center justify-center py-1">
                         <OrbiterList attendeeUsers={event?.attendees} />
                       </div>
                     </div>
@@ -428,15 +431,44 @@ export default function EventViewPage() {
                 }
               </CardBody>
             </Card>
-            {attachments && (
-              <div className="flex items-center justify-center mt-[-9] bg-black/30">
-                <AttachmentSwiper
-                  attachments={attachments}
-                  hidePlayButton={true}
-                  controls={true}
-                  loop={false}
-                  muted={true}
-                  onEventPage={true}
+            {attachments && attachments.length > 0 ? (
+              <div className="relative overflow-hidden">
+                <Swiper
+                  effect={"cards"}
+                  grabCursor={true}
+                  centeredSlides={true}
+                  slidesPerView={"auto"}
+                  pagination={true}
+                  modules={[EffectCards]}
+                  className="flex justify-center mt-3"
+                  cardsEffect={{ slideShadows: false }}
+                >
+                  {attachments.map((a, i) => {
+                    return (
+                      <SwiperSlide
+                        key={i}
+                        className={`flex ${attachments?.length && attachments?.length > 1 ? `!w-[85vw]` : `h-auto`} justify-center`}
+                      >
+                        <FeedAttachmentSwiper
+                          key={i}
+                          attachment={a as any}
+                          attachments={attachments}
+                          controls={true}
+                          muted={true}
+                        />
+                      </SwiperSlide>
+                    );
+                  })}
+                </Swiper>
+              </div>
+            ) : (
+              <div className="relative w-[100vw] h-[60vh] overflow-hidden mt-3 cursor-pointer">
+                <Image
+                  src={"/third-space-logos/thirdspace-logo-6.png"}
+                  alt={`thirdspace-logo`}
+                  fill
+                  priority
+                  className="relative z-10 object-cover"
                 />
               </div>
             )}

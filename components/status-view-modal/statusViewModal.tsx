@@ -18,6 +18,7 @@ import CommentList from "../comment-handling/status/CommentListForStatuses";
 import { UserStatusDoc } from "@/lib/models/User";
 import { useSession } from "next-auth/react";
 import { SessionUser } from "@/types/user-session";
+import { MEDIA_VIEW_HEIGHT } from "@/lib/constants";
 
 type Props = {
   statusId: string;
@@ -45,14 +46,13 @@ export default function StatusDetailModal({
 
   const router = useRouter();
   const session = useSession();
-  const hasText = Boolean((status as any)?.content?.trim()); // or status.content if it exists on your type
+
   const hasAttachments = (status?.attachments?.length ?? 0) > 0;
-  const isTextOnly = hasText && !hasAttachments;
 
   const handleSpark = async () => {
     if (!hasSparked) {
       setShowSparkPulse(true);
-      setTimeout(() => setShowSparkPulse(false), 2000);
+      setTimeout(() => setShowSparkPulse(false), 1500);
     }
     onSparkStatus(statusId);
   };
@@ -100,7 +100,7 @@ export default function StatusDetailModal({
         body: "p-0 overflow-y-auto border-none",
         header: "p-0 border-none",
         footer: "p-0",
-        closeButton: "z-50 bg-black/80 text-secondary border-none",
+        closeButton: "z-50 bg-black/40 text-secondary border-none",
       }}
       className="animate-slide-down overflow-y-auto"
     >
@@ -117,7 +117,7 @@ export default function StatusDetailModal({
                 // ===== MEDIA-FIRST LAYOUT (your current) =====
                 <div
                   className={`relative w-full flex-none transition-all duration-300 ease-in-out ${
-                    showComments ? "h-[50vh]" : "h-[100vh]"
+                    showComments ? "h-[60vh]" : "h-[100vh]"
                   }`}
                 >
                   {showSparkPulse && (
@@ -140,7 +140,7 @@ export default function StatusDetailModal({
                       size="sm"
                     />
                     <span className="text-sm font-medium text-white">
-                      {status.author}
+                      {status.authorUsername ?? status.author}
                     </span>
                   </div>
                   <AttachmentSwiper
@@ -228,7 +228,7 @@ export default function StatusDetailModal({
                     </p>
                   </div>
 
-                  {/* Action rail (same as your current rail) */}
+                  {/* Action rail */}
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 z-20 pointer-events-none">
                     <div className="flex flex-col gap-3 pointer-events-auto">
                       <button
@@ -274,7 +274,9 @@ export default function StatusDetailModal({
                 </div>
               )}
               {showComments ? (
-                <div className="flex-1 overflow-y-auto h-[100vh] bg-transparent mt-3">
+                <div
+                  className={`flex-1 overflow-y-scroll h-[100vh] bg-transparent mt-3`}
+                >
                   <CommentList
                     statusId={String(status._id)}
                     authorId={String(status.userId)}

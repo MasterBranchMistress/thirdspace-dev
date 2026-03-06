@@ -153,7 +153,7 @@ export function EventDiscoverabilityCard({ event }: Props) {
                 }`}
                 style={{
                   height: `${Math.random() * 6 + 6}px`,
-                  animation: `pulse 1.5s ease-in-out infinite`,
+                  animation: `shimmy 1.5s ease-in-out infinite`,
                   animationDelay: `${i * 0.2}s`,
                 }}
               />
@@ -170,7 +170,7 @@ export function EventDiscoverabilityCard({ event }: Props) {
       </CardFooter>
 
       <style jsx>{`
-        @keyframes pulse {
+        @keyframes shimmy {
           0%,
           100% {
             transform: scaleY(1);
