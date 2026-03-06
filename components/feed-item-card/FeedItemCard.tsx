@@ -581,7 +581,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           )}
           {type === "event_is_popular" && (
             <div className="font-light max-w-[100%] mt-2 tracking-tight">
-              <div className="flex flex-row font-bold text-sm text-center mb-2 items-center">
+              <div className="flex flex-row font-bold text-sm text-center justify-center mb-2 items-center">
                 <span className="font-semibold shadow-lg shadow-primary border-1 border-primary py-1 mr-[-12] px-3 rounded-l-lg">
                   {actor.firstName} is hosting
                 </span>

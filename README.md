@@ -724,3 +724,123 @@ Today's focus was on improving discoverability and polish for the feed, as well 
 - Discovered a few small UX quirks that were fixed (modal behavior, top-of-feed ordering).
 
 ![alt text](public/screenshots/discover1.png) ![alt text](public/screenshots/discover2.png) ![alt text](public/screenshots/discover3.png)
+
+# Daily Update – ThirdSpace App (3/5/2026)
+
+# Development Log – Feed Media & Discoverability Improvements
+
+## Overview
+
+Today's work focused on improving how media attachments are displayed throughout the platform feed and event discovery modules. The goal was to make posts with attachments more visually engaging while keeping layouts consistent across the application.
+
+Several UI components were introduced or refactored, including a reusable attachment swiper card for feed items and improvements to event discoverability cards.
+
+---
+
+## Feed Attachment System
+
+### FeedAttachmentSwiper Card
+
+A new reusable card component was introduced for rendering attachments within feed posts.
+
+Features:
+
+- Uses **Swiper.js "cards" effect** for a stacked card browsing experience
+- Supports **images and videos**
+- Adds a **blurred background backdrop** derived from the attachment for visual depth
+- Standardized media sizing and positioning across feed contexts
+- Designed to work seamlessly within feed items that contain multiple attachments
+
+This component will serve as the base attachment renderer for:
+
+- Status posts
+- Event posts
+- Feed previews
+
+---
+
+## Event Discoverability Improvements
+
+### Event Discoverability Card
+
+Enhancements were made to the event discovery cards used in modules like:
+
+- **Events Near You**
+- **Solar System discovery module**
+
+Key improvements:
+
+- Swiper support for multiple event attachments
+- Background media preview
+- Consistent attachment handling across feed and discovery cards
+- Event popularity "hype meter"
+- Distance display (meters → miles conversion)
+
+---
+
+## Media Rendering Standardization
+
+Images and videos now share a consistent layout strategy:
+
+- `object-cover` for immersive previews
+- `object-contain` when comments or overlays are present
+- Uniform height handling across feed and event pages
+- Consistent Tailwind height logic for feed contexts
+
+This helps prevent layout shifting and keeps media visually balanced.
+
+---
+
+## Feed UI Refinements
+
+Additional improvements to the feed experience:
+
+- Improved attachment slide centering
+- Fixed Swiper layout width issues
+- Removed unexpected padding injected by Swiper defaults
+- Cleaned up attachment container rendering logic
+- Added styled description block for feed posts
+
+---
+
+## Bug Fixes
+
+### Nested Swiper Interaction Issue
+
+A nested swiper inside another swiper was unintentionally capturing click events, preventing navigation to event pages.
+
+Resolution plan:
+
+- Refactor **Solar System** and **Space Station** modules
+- Ensure swipe gestures and click navigation behave correctly
+- Prevent inner swiper elements from swallowing navigation events
+
+---
+
+## Upcoming Work
+
+### Welcome Checklist Feed Post
+
+The welcome post will be refactored into a checklist to help new users complete their profiles.
+
+Planned items include:
+
+- Add interest tags
+- Review privacy settings
+- Update username if needed
+- Enable additional security features (2FA)
+
+---
+
+## Current Status
+
+The feed system now supports:
+
+- Rich attachment browsing
+- Consistent media layouts
+- Interactive card-based swiping
+- Improved visual hierarchy for posts and events
+
+These changes lay the groundwork for more engaging feed content and smoother discovery of events and users.
+
+![alt text](public/screenshots/u1.png) ![alt text](public/screenshots/u2.png) ![alt text](public/screenshots/u3.png) ![alt text](public/screenshots/u4.png)
