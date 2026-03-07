@@ -1,3 +1,4 @@
+import { UserDoc } from "@/lib/models/User";
 import { SessionUser } from "./user-session";
 
 declare module "next-auth" {

@@ -24,8 +24,6 @@ export function NearbyUserCard({ user }: Props) {
   // const sharedTags = user.sharedTags ?? [];
   const router = useRouter();
 
-  console.log("User ID: ", user);
-
   const matches = user.sharedTags.length;
 
   return (

@@ -22,4 +22,11 @@ export type SessionUser = {
     lng?: number;
   };
   lang?: string;
+  onboarding?: {
+    exploredSolarSystem?: boolean;
+    exploredSpaceStation?: boolean;
+    reviewedPrivacy?: boolean;
+    addedInterests?: boolean;
+    completed?: boolean;
+  };
 };

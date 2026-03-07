@@ -3,7 +3,7 @@ import { UserDoc } from "@/lib/models/User";
 import { getGravatarUrl } from "../gravatar";
 import { FeedItemUser } from "@/types/user-feed";
 import clientPromise from "@/lib/mongodb";
-import { COLLECTIONS, DBS } from "@/lib/constants";
+import { COLLECTIONS, DBS, FOUNDER_WELCOME_POST } from "@/lib/constants";
 import { UserFeedDoc } from "@/lib/models/UserFeedDoc";
 import { getDistFromMiles } from "../geolocation/get-distance-from-event/getDistFromEvent";
 import { geocodeAddress } from "../geolocation/geocode-address/geocodeAddress";
@@ -13,6 +13,7 @@ import { getNearbyUsers } from "../discoverability/get-nearby-users/getNearbyUse
 import { getNearbyEvents } from "../discoverability/get-nearby-events/getNearbyEvents";
 import { SessionUser } from "@/types/user-session";
 import { insertFeedItemAt } from "../discoverability/feed-injection-logic/feedInjection";
+import { ObjectId } from "mongodb";
 
 function resolveAvatar(user: UserDoc): string {
   return user.avatar ?? getGravatarUrl(user.email!);
@@ -29,6 +30,9 @@ export async function generateUserFeed(
   const feedCollection = db.collection<UserFeedDoc>(COLLECTIONS._USER_FEED);
   const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
   const eventCollection = db.collection<EventDoc>(COLLECTIONS._EVENTS);
+  const founder = await userCollection.findOne({
+    _id: new ObjectId(process.env.FOUNDER_USER_ID),
+  });
 
   async function logFeedItem(
     item: Omit<UserFeedDoc, "_id"> & { sourceId: string },
@@ -78,23 +82,39 @@ export async function generateUserFeed(
     type: "joined_platform",
     sourceId: `${user._id?.toString()}:joined_platform`,
     actor: {
-      id: user._id!.toString(),
-      firstName: user.firstName,
-      lastName: user.lastName,
-      username: user.username,
-      avatar: resolveAvatar(user),
+      id: founder?._id!.toString(),
+      firstName: founder?.firstName,
+      lastName: founder?.lastName,
+      username: founder?.username,
+      avatar: resolveAvatar(founder!),
     },
-    target: { snippet: `${user.firstName} just joined ThirdSpace! 🚀` },
+    target: {
+      snippet: FOUNDER_WELCOME_POST._FOUNDER_GREETING,
+      firstName: user.firstName,
+      attachments: [
+        {
+          type: "video",
+          url: FOUNDER_WELCOME_POST._WELCOME_VIDEO_URL,
+        },
+      ],
+      targetTags: user.tags,
+      targetVisibility: user.visibility,
+      exploredSolarSystem: user.onboarding?.exploredSolarSystem,
+      exploredSpacestation: user.onboarding?.exploredSpaceStation,
+    },
     timestamp: new Date().toISOString(),
   });
 
   const actors: UserDoc[] = [user, ...friends];
 
   for (const actorUser of actors) {
-    console.log(`Can I see? ${!canViewerSee(actorUser, user)}`);
+    if (user.onboarded !== true) {
+      continue;
+    }
+    // console.log(`Can I see? ${!canViewerSee(actorUser, user)}`);
     if (!canViewerSee(actorUser, user)) continue;
     for (const event of events) {
-      console.log(`hello: ${event._id}`);
+      // console.log(`hello: ${event._id}`);
 
       const host = await userCollection.findOne({ _id: event.host });
       if (event.host?.toString() !== actorUser._id?.toString()) continue;

@@ -96,10 +96,10 @@ export interface Avatar {
   publicUrl?: string;
 }
 
-type VisibilityLevel = "off" | "friends" | "followers" | "public";
+type VisibilityLevel = "off" | "friends" | "followers" | "public" | "";
 
 export interface UserDoc {
-  sharedTags: any;
+  sharedTags?: any;
   distanceMeters?: number;
   id?: string;
   statusAttachments?: (string | Attachment)[] | undefined;
@@ -154,6 +154,14 @@ export interface UserDoc {
   lang?: string;
   followers?: ObjectId[];
   following?: ObjectId[];
+  onboarded?: boolean;
+  onboarding?: {
+    exploredSolarSystem?: boolean;
+    exploredSpaceStation?: boolean;
+    reviewedPrivacy?: boolean;
+    addedInterests?: boolean;
+    completed?: boolean;
+  };
 }
 
 const fullWeek = [

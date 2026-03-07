@@ -25,15 +25,20 @@ import confetti from "canvas-confetti";
 type AddStatusProps = {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  onStatusPosted?: () => void | Promise<void>;
 };
 
-export default function AddStatus({ isOpen, onOpenChange }: AddStatusProps) {
+export default function AddStatus({
+  isOpen,
+  onOpenChange,
+  onStatusPosted,
+}: AddStatusProps) {
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
   const useRefOnSubmit = useRef(false);
   const { notify } = useToast();
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const user = session?.user;
 
   const submitStatus = async () => {
@@ -43,26 +48,30 @@ export default function AddStatus({ isOpen, onOpenChange }: AddStatusProps) {
     try {
       if (!user) return;
       if (!content) return;
-      // if (!newFiles) return;
 
       setLoading(true);
+
       await handleAddStatus({
         loggedInUser: user,
         content,
         attachments: newFiles,
       });
+
+      await onStatusPosted?.();
+
+      localStorage.setItem("feedTutorialComplete", "true");
+
       setContent("");
       setNewFiles([]);
       onOpenChange(false);
-      notify("Status posted 🤝", "");
+
+      notify("Status Received 🤝", "Sit tight while your post is processed.");
+
       confetti({
         particleCount: 100,
         spread: 80,
         origin: { y: 0.6 },
       });
-      setTimeout(() => {
-        window.location.reload();
-      }, 3000);
     } finally {
       setLoading(false);
       useRefOnSubmit.current = false;

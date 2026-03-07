@@ -91,8 +91,8 @@ export function EditEventModal({
       });
       setAttachments(
         (initialData.attachments ?? []).map((a: any) =>
-          typeof a === "string" ? a : a.url
-        )
+          typeof a === "string" ? a : a.url,
+        ),
       );
       setStatus(initialData.status ?? "active");
       setBudget(initialData?.budgetInfo?.estimatedCost ?? 0);
@@ -118,8 +118,8 @@ export function EditEventModal({
           });
           setAttachments(
             (data.attachments ?? []).map((a: any) =>
-              typeof a === "string" ? a : a.url
-            )
+              typeof a === "string" ? a : a.url,
+            ),
           );
           setBudget(data.budgetInfo?.estimatedCost ?? 0);
           setIsPublic(data.public ?? false);
@@ -159,8 +159,8 @@ export function EditEventModal({
               method: "PUT",
               body: file,
               headers: { "Content-Type": file.type },
-            })
-          )
+            }),
+          ),
         );
 
         uploadedUrls = presigned.map((f: any) => f.publicUrl);
@@ -207,11 +207,8 @@ export function EditEventModal({
         const errData = await res.json().catch(() => ({}));
         throw new Error(errData.error || "Failed to update event");
       }
-      notify("Event updated ✅", "Your changes were saved successfully!");
+      notify("Event Edited 🗓️", "Sit tight while your event is processed.");
       onClose();
-      setTimeout(() => {
-        window.location.reload();
-      }, 3000);
     } catch (err) {
       notify("Couldn't save changes 😭", (err as Error).message);
     } finally {
@@ -364,7 +361,7 @@ export function EditEventModal({
                         type="button"
                         onClick={() =>
                           setAttachments((prev) =>
-                            prev.filter((_, idx) => idx !== i)
+                            prev.filter((_, idx) => idx !== i),
                           )
                         }
                         className="absolute top-3 right-3 bg-white/20 text-white rounded-full border-1 border-concrete p-0.5 shadow"

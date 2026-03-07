@@ -1,5 +1,4 @@
 import { heroui } from "@heroui/theme";
-import { keyframes } from "framer-motion";
 
 /** @type {import('tailwindcss').Config} */
 const config = {
@@ -24,11 +23,31 @@ const config = {
           "0%, 100%": { transform: "translateX(0)" },
           "50%": { transform: "translateX(6px)" },
         },
+        postGlow: {
+          "0%, 100%": {
+            boxShadow: "0 0 6px rgba(255,255,255,0.2)",
+          },
+          "50%": {
+            boxShadow: "0 0 18px rgba(255,0,200,0.6)",
+          },
+        },
+        postPulse: {
+          "0%, 100%": {
+            opacity: "0.35",
+            transform: "scale(1)",
+          },
+          "50%": {
+            opacity: "0.75",
+            transform: "scale(1.25)",
+          },
+        },
       },
       animation: {
         pointLeft: "pointLeft 1s ease-in-out infinite",
         pointRight: "pointRight 1s ease-in-out infinite",
         slideDown: "slideDown 0.8s ease-out forwards",
+        postGlow: "postGlow 2.5s ease-in-out infinite",
+        postPulse: "postPulse 2.5s ease-in-out infinite",
       },
       fontFamily: {
         sans: ["var(--font-sans)"],

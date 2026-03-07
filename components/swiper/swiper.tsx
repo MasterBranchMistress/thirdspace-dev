@@ -26,13 +26,14 @@ export default function AttachmentSwiper({
   overlay,
   loop,
   isImage,
-  onFeedPage,
+  onProfilePage,
   onEventPage,
   commentsAreOpen,
   controls,
   muted,
   hidePlayButton,
 }: {
+  onProfilePage?: boolean;
   controls?: boolean;
   isImage?: boolean;
   onFeedPage?: boolean;
@@ -44,7 +45,10 @@ export default function AttachmentSwiper({
   eventId?: string;
   statusAuthor?: UserDoc;
   attachments: (string | { url: string; type?: string })[];
-  onOpenStatus?: (statusId: string) => void;
+  onOpenStatus?: (
+    statusId: string,
+    options?: { areCommentsOpen?: boolean },
+  ) => void;
   statusId?: string;
   onDoubleTap?: () => void;
   overlay?: React.ReactNode;
@@ -110,7 +114,7 @@ export default function AttachmentSwiper({
                 {type === "video" ||
                 url?.match(/\.(mp4|mov|avi|webm|mkv)$/i) ? (
                   <div className="relative">
-                    {commentsAreOpen && !onFeedPage && (
+                    {commentsAreOpen && (
                       <div className="relative w-full h-[60vh] overflow-hidden">
                         {/* Background blurred video */}
                         <video
@@ -134,7 +138,7 @@ export default function AttachmentSwiper({
                         />
                       </div>
                     )}
-                    {!commentsAreOpen && !onFeedPage && (
+                    {!commentsAreOpen && (
                       <video
                         src={url}
                         controls={controls}
@@ -166,7 +170,9 @@ export default function AttachmentSwiper({
                     )}
                   </div>
                 ) : (
-                  <div className="relative w-full h-[60vh] overflow-hidden">
+                  <div
+                    className={`relative w-full ${commentsAreOpen ? "h-[60vh]" : "h-[100vh]"} overflow-hidden`}
+                  >
                     {/* Blurred background */}
                     <Image
                       src={url}
@@ -182,7 +188,7 @@ export default function AttachmentSwiper({
                       alt={`Attachment ${index + 1}`}
                       fill
                       priority
-                      className="relative z-10 object-contain"
+                      className={`relative ${commentsAreOpen ? "object-cover" : "object-contain"} z-10`}
                     />
                   </div>
                 )}

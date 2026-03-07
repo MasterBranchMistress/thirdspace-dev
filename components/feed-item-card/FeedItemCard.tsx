@@ -44,11 +44,9 @@ import {
   ChatBubbleBottomCenterIcon,
   ChatBubbleLeftEllipsisIcon,
   CheckCircleIcon,
-  CheckIcon,
   EnvelopeIcon,
   FireIcon,
   PaperAirplaneIcon,
-  SpeakerXMarkIcon,
 } from "@heroicons/react/24/solid";
 
 interface FeedItemCardProps {
@@ -87,35 +85,40 @@ import "swiper/css/effect-fade";
 import { EventDiscoverabilityCard } from "../discoverability/nearbyEventCard";
 import { EventDoc } from "@/lib/models/Event";
 import FeedAttachmentSwiper from "../discoverability/feedCard";
+import WelcomeBanner from "../welcome-banner/welcomeBanner";
+import MissionChecklist from "../welcome-banner/checklist/checklist";
+import { getUser } from "@/utils/frontend-backend-connection/getUserInfo";
 
 export default function FeedItemCard({ item }: FeedItemCardProps) {
   const { data: session } = useSession();
   const user = session?.user;
+  if (!user) return;
   const [avatarUrl, setAvatarUrl] = useState<string>();
   const [showPulse, setShowPulse] = useState(false);
   const [hasSparked, setHasSparked] = useState(false);
   const [previewFriends, setPreviewFriends] = useState([]);
   const [openStatusId, setOpenStatusId] = useState<string | null>(null);
+  const [activeEventIndex, setActiveEventIndex] = useState(0); //For discover events section
+  const [activeUserIndex, setActiveUserIndex] = useState(0); // for discover users section
+  const [statusPostCount, setStatusPostCount] = useState(0);
+  const [commentsOpenByDefault, setCommentsOpenByDefault] = useState(false);
+  const [statusJustPosted, setStatusJustPosted] = useState(false);
+  const [visibility, setVisibility] = useState(false);
+  const [tags, setTags] = useState(false);
+  const [userDoc, setUserDoc] = useState<UserDoc | null>(null);
   const { type, target, actor, timestamp } = item;
   const { notify } = useToast();
 
-  if (item.type === "discover_events") {
-    console.log("DISCOVER_USERS raw item:", item);
-  }
-
-  const openStatus = (id?: string) => {
+  const openStatus = (id?: string, options?: { openComments?: boolean }) => {
     if (!id) return;
     setOpenStatusId(id);
+    setCommentsOpenByDefault(!!options?.openComments);
   };
   const isUserActor = (
     a: FeedUserActor | FeedEventActor | null | undefined,
   ): a is FeedUserActor => {
     return !!a && typeof (a as any).id === "string";
   };
-
-  // if (!isUserActor(actor)) {
-  //   console.log("Feed item missing actor:", item.type, target);
-  // }
 
   useEffect(() => {
     if (!actor) {
@@ -131,7 +134,39 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
   }, [actor]);
   const { getRelationship } = useUserRelationships();
 
-  // console.log(actor); //for debugging
+  // console.log(actor, target); //for debugging
+
+  const loadUserDoc = async () => {
+    const res = await getUser(user);
+    setUserDoc(res.user);
+  };
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const res = await getUser(user);
+      setUserDoc(res.user);
+    };
+
+    loadUser();
+  }, [user]);
+
+  const handleStatusPosted = async () => {
+    console.log("handleStatusPosted fired");
+    localStorage.setItem("feedTutorialComplete", "true");
+    setStatusJustPosted(true);
+    await loadUserDoc();
+  };
+
+  const handleVisibilitySet = async () => {
+    console.log("handleVisibility set fired");
+    setVisibility(true);
+    await loadUserDoc();
+  };
+
+  const handleSetTags = async () => {
+    setTags(true);
+    await loadUserDoc();
+  };
 
   const userLocation = useBrowserLocation();
   const eventDistance = useMemo(() => {
@@ -175,7 +210,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
         : type === "hosted_event"
           ? ""
           : type === "joined_platform" && isUserActor(actor)
-            ? `Welcome aboard ${actor.firstName}! There's much to do 🚀`
+            ? ``
             : type === "profile_bio_updated" && isUserActor(actor)
               ? `${actor.firstName} updated their bio 🖊️`
               : type === "profile_status_updated" && isUserActor(actor)
@@ -352,64 +387,120 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             </span>
           )}
           {type === "joined_platform" && isUserActor(actor) && (
-            <Button
-              size="sm"
-              color="primary"
-              variant="shadow"
-              radius="md"
-              className="mt-3"
-              onPress={() => {
-                //TODO: hook up say hi action here (send friend req, DM, etc.)
-                console.log(`Said hi to ${actor.firstName}`);
-              }}
-            >
-              Show Me Around ✨
-            </Button>
+            <div className="font-light tracking-tight w-[100vw] text-center">
+              <WelcomeBanner firstName={target?.firstName ?? "Explorer"} />
+              {userDoc && (
+                <MissionChecklist
+                  handleStatusPosted={handleStatusPosted}
+                  visibilityWasSet={visibility}
+                  handleVisibilitySet={handleVisibilitySet}
+                  sessionUser={userDoc}
+                  refreshUserdoc={loadUserDoc}
+                  statusJustPosted={statusJustPosted}
+                  handleSetTags={handleSetTags}
+                  tagsWereSet={tags}
+                />
+              )}
+
+              {/* Attachments */}
+              {target?.attachments?.length ? (
+                <Swiper
+                  effect={"cards"}
+                  grabCursor={true}
+                  centeredSlides={true}
+                  slidesPerView={"auto"}
+                  pagination={true}
+                  modules={[EffectCards]}
+                  className="flex justify-center mt-3"
+                  cardsEffect={{ slideShadows: false }}
+                >
+                  {target.attachments?.map((a, i) => {
+                    return (
+                      <SwiperSlide
+                        key={i}
+                        className={`${target.attachments?.length && target.attachments?.length > 1 ? `!w-[85vw]` : `h-auto`} flex justify-center`}
+                      >
+                        <FeedAttachmentSwiper
+                          attachments={target.attachments}
+                          attachment={a as any}
+                          controls={true}
+                          muted={true}
+                        />
+                      </SwiperSlide>
+                    );
+                  })}
+                </Swiper>
+              ) : null}
+            </div>
           )}
           {item.type === "discover_users" && (item as any).data?.users && (
-            <Swiper
-              effect={"cards"}
-              grabCursor={true}
-              centeredSlides={true}
-              slidesPerView={"auto"}
-              pagination={true}
-              modules={[EffectCards]}
-              className="flex justify-center mt-3"
-              cardsEffect={{
-                slideShadows: false,
-              }}
-            >
-              {(item as any).data.users.map((u: UserDoc, index: number) => (
-                <SwiperSlide
-                  key={String(u._id) + index.toString()}
-                  className="!w-[85vw] flex justify-center"
-                >
-                  <NearbyUserCard user={u} />
-                </SwiperSlide>
-              ))}
-            </Swiper>
+            <>
+              <Swiper
+                effect={"cards"}
+                grabCursor={true}
+                centeredSlides={true}
+                slidesPerView={"auto"}
+                pagination={true}
+                modules={[EffectCards]}
+                className="flex justify-center mt-3"
+                cardsEffect={{
+                  slideShadows: false,
+                }}
+                onSlideChange={(swiper) => setActiveUserIndex(swiper.realIndex)}
+                onTap={() => {
+                  const activeUser = (item as any).data.users[activeUserIndex];
+                  if (!activeUser?.id) return;
+                  router.push(`/dashboard/profile/${String(activeUser.id)}`);
+                }}
+              >
+                {(item as any).data.users.map((u: UserDoc, index: number) => (
+                  <SwiperSlide
+                    key={String(u._id) + index.toString()}
+                    className="!w-[85vw] flex justify-center"
+                  >
+                    <NearbyUserCard user={u} />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </>
           )}
 
           {type === "discover_events" && (
-            <Swiper
-              effect={"cards"}
-              grabCursor={true}
-              centeredSlides={true}
-              slidesPerView={"auto"}
-              pagination={true}
-              modules={[EffectCards]}
-              className="flex justify-center mt-3"
-              cardsEffect={{ slideShadows: false }}
-            >
-              {(item as any).data.events.map((e: EventDoc, index: number) => (
-                <SwiperSlide
-                  key={String(e._id) + index.toString}
-                  className="!w-[85vw] flex justify-center"
-                >
-                  <EventDiscoverabilityCard event={e} />
-                </SwiperSlide>
-              ))}
-            </Swiper>
+            <>
+              <Swiper
+                effect={"cards"}
+                grabCursor={true}
+                centeredSlides={true}
+                slidesPerView={"auto"}
+                pagination={true}
+                modules={[EffectCards]}
+                className="flex justify-center mt-3"
+                cardsEffect={{ slideShadows: false }}
+                preventClicks={false}
+                preventClicksPropagation={false}
+                onSlideChange={(swiper) =>
+                  setActiveEventIndex(swiper.realIndex)
+                }
+                onTap={() => {
+                  const activeEvent = (item as any).data.events[
+                    activeEventIndex
+                  ];
+                  if (!activeEvent?._id) return;
+                  router.push(`/dashboard/event/${String(activeEvent._id)}`);
+                }}
+              >
+                {(item as any).data.events.map((e: EventDoc, index: number) => (
+                  <>
+                    <SwiperSlide
+                      key={String(e._id) + index.toString}
+                      className="!w-[85vw] flex justify-center"
+                    >
+                      <EventDiscoverabilityCard event={e} />
+                    </SwiperSlide>
+                  </>
+                ))}
+              </Swiper>
+            </>
           )}
 
           {type === "profile_status_updated" && isUserActor(actor) && (
@@ -430,6 +521,11 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                   modules={[EffectCards]}
                   className="flex justify-center mt-3"
                   cardsEffect={{ slideShadows: false }}
+                  onTap={() => {
+                    const activeStatusId = target.status?.sourceId;
+                    if (!activeStatusId) return;
+                    openStatus(activeStatusId);
+                  }}
                 >
                   {target.status.attachments?.map((a, i) => {
                     return (
@@ -439,9 +535,6 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                       >
                         <FeedAttachmentSwiper
                           statusId={target.status?.sourceId}
-                          onOpenStatus={() =>
-                            openStatus(target.status?.sourceId)
-                          }
                           attachments={target.status?.attachments}
                           attachment={a as any}
                           controls={true}
@@ -450,13 +543,6 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                       </SwiperSlide>
                     );
                   })}
-
-                  {/* <FeedAttachmentSwiper
-                    statusId={target.status?.sourceId}
-                    onOpenStatus={() => openStatus(target.status?.sourceId)}
-                    attachments={target.status.attachments}
-                    controls={false}
-                  /> */}
                 </Swiper>
               ) : null}
 
@@ -597,7 +683,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                   {target?.title}
                 </Button>
               </div>
-              <div className="py-1 mt-3">{target?.description}</div>
+              <div className="py-1 my-3">{target?.description}</div>
               {target?.attachments && target.attachments.length > 0 && (
                 <div
                   className="relative overflow-hidden"

@@ -32,6 +32,7 @@ export default function EventGridCard({ event, onClick }: Props) {
           muted={true}
           controls={false}
           attachments={attachments}
+          onProfilePage={true}
           commentsAreOpen={true}
         />
       </div>

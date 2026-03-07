@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { hashPassword, generateAnonUsername } from "@/utils/auth";
-import { COLLECTIONS, DBS } from "@/lib/constants";
+import { COLLECTIONS, DBS, FOUNDER_WELCOME_POST } from "@/lib/constants";
 import { UserDoc } from "@/lib/models/User";
 import { ObjectId } from "mongodb";
 import { getGravatarUrl } from "@/utils/gravatar";
@@ -62,11 +62,12 @@ export async function POST(req: NextRequest) {
       | "_id"
     > = {
       provider: "credentials",
+      sharedTags: [],
       avatar: getGravatarUrl(email),
       interests: [],
       favoriteLocations: [],
       availibility: [],
-      friends: [],
+      friends: [new ObjectId(process.env.FOUNDER_USER_ID)],
       blocked: [],
       pendingFriendRequests: [],
       notifications: [],
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest) {
       shareLocation: true,
       shareJoinedEvents: true,
       shareHostedEvents: true,
-      visibility: "public",
+      visibility: "",
       lang: "en",
       tags: tags ?? [],
       usernameLastChangedAt: now,
@@ -106,6 +107,11 @@ export async function POST(req: NextRequest) {
       followers: [],
       following: [],
       statusAttachments: undefined,
+      onboarded: false,
+      onboarding: {
+        exploredSolarSystem: false,
+        exploredSpaceStation: false,
+      },
     };
 
     const newUser: UserDoc = {

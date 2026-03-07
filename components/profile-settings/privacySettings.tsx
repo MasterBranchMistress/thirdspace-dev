@@ -17,12 +17,14 @@ type PrivacyProps = {
   shareJoinedEvents: boolean;
   shareHostedEvents: boolean;
   visibility: string;
+  privacyTabOpen: string[];
   onChange: (updates: Record<string, any>) => void;
 };
 
 export function Privacy({
   shareLocation,
   blockedUsers,
+  privacyTabOpen,
   unblock,
   shareJoinedEvents,
   shareHostedEvents,
@@ -50,7 +52,7 @@ export function Privacy({
     <Accordion
       variant="light"
       selectionMode="multiple"
-      defaultExpandedKeys={[]}
+      defaultExpandedKeys={privacyTabOpen ?? []}
       className="rounded-lg"
     >
       <AccordionItem
@@ -66,7 +68,7 @@ export function Privacy({
             onChange={(val) => onChange({ visibility: val })}
           />
           <div className="flex justify-between items-center mb-6">
-            <span className="text-sm">Show my location</span>
+            <span className="text-sm">Allow Geolocation</span>
             <CustomSwitch
               size="sm"
               checked={shareLocation}

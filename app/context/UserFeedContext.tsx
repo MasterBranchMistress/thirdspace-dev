@@ -63,8 +63,6 @@ export function FeedProvider({ children }: { children: ReactNode }) {
 
       const data = await res.json();
 
-      console.log("USER FEED RESPONSE:", data);
-
       if (!data) {
         return `data could not be retrieved`;
       }

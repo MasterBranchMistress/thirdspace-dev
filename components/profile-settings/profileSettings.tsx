@@ -77,9 +77,17 @@ const USERNAME_COOLDOWN_DAYS = 90;
 export default function ProfileSettingsModal({
   isOpen,
   onOpenChange,
+  accountTabsOpen,
+  onSetVisibility,
+  onSetTags,
 }: {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  accountTabsOpen?: string[];
+  setVisbility?: boolean;
+  setAccountTabOpen?: (key: string) => void;
+  onSetVisibility?: () => void;
+  onSetTags?: () => void;
 }) {
   const { notify } = useToast();
   const { data: session, update } = useSession();
@@ -226,7 +234,6 @@ export default function ProfileSettingsModal({
       if (selectedFile) {
         const imageUrl = `https://thirdspace-attachments-dev.s3.us-east-2.amazonaws.com/${form.avatar?.key}`;
         setAvatar(imageUrl);
-        update({ user: { ...session.user, avatar: imageUrl } });
         const avatarRes = await fetch(
           `/api/users/${userId}/avatar-handling/upload-avatar`,
           {
@@ -264,17 +271,25 @@ export default function ProfileSettingsModal({
         notify("Failed to load profile!", `Couldn't load profile details.`);
         throw new Error(data?.error || "Failed to save");
       }
+      if (form.visibility) {
+        console.log("visibility fired!");
+        onSetVisibility?.();
+      }
+      if (form.tags) {
+        onSetTags?.();
+      }
+
       setInitialForm(next);
       onOpenChange(false);
-      notify(`Success! 🥳`, `Profile changes saved successfully!`);
+      notify(
+        `Success! 🥳`,
+        `Profile changes saved successfully! Your changes will be reflected the next time you log in.`,
+      );
       confetti({
         particleCount: 100,
         spread: 80,
         origin: { y: 0.6 },
       });
-      setTimeout(() => {
-        router.refresh();
-      }, 2000);
     } catch (e: any) {
       notify("Something went wrong.", `${e.message}`);
       setError(e.message || "Save failed");
@@ -299,6 +314,9 @@ export default function ProfileSettingsModal({
       backdrop="blur"
       className="bg-transparent text-concrete h-auto"
       isDismissable={false}
+      classNames={{
+        closeButton: "text-secondary bg-black/20 p-1 m-2 rounded-full",
+      }}
     >
       <ModalContent>
         {(onClose) => (
@@ -324,7 +342,7 @@ export default function ProfileSettingsModal({
                 <Accordion
                   variant="light"
                   selectionMode="multiple"
-                  defaultExpandedKeys={[]}
+                  defaultExpandedKeys={accountTabsOpen ?? []}
                   className="rounded-lg"
                   isCompact={true}
                 >
@@ -452,6 +470,7 @@ export default function ProfileSettingsModal({
                   </AccordionItem>
                 </Accordion>
                 <Privacy
+                  privacyTabOpen={accountTabsOpen ?? []}
                   unblock={handleUnblock}
                   blockedUsers={blockedUsers}
                   shareLocation={form?.shareLocation ?? false}
@@ -464,6 +483,7 @@ export default function ProfileSettingsModal({
                 />
 
                 <Security
+                  securityTabOpen={accountTabsOpen ?? []}
                   twoFactorEnabled={form?.twoFactorEnabled ?? false}
                   setTwoFactorEnabled={(val) =>
                     setForm((f) => (f ? { ...f, twoFactorEnabled: val } : f))

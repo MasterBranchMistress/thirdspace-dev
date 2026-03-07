@@ -90,10 +90,11 @@ export async function POST(
       ])
       .toArray();
 
-    console.log("candidate tag field:", {
-      tags: candidates?.[0]?.tags,
-      eventTags: candidates?.[0]?.eventTags,
-    });
+    // console.log("candidate tag field:", {
+    //   tags: candidates?.[0]?.tags,
+    //   eventTags: candidates?.[0]?.eventTags,
+    //   general: candidates?.[0].host.karmaScore,
+    // });
 
     const scored = candidates.map((evt: any) => {
       const tags: string[] = Array.isArray(evt.tags) ? evt.tags : [];
@@ -114,7 +115,9 @@ export async function POST(
       const baseScore = sharedTagCount * 10 + distanceScore * 3 + attendees * 5;
 
       // karma boost (host karma)
-      const hostKarma = Number(evt.host.karmaScore ?? 0);
+      console.log(`EVENT HOSTS: ${evt.host}`);
+      const hostKarma = 100;
+      console.log("HOST KARMAL ", hostKarma);
       const score =
         sharedTagCount > 0 ? baseScore * karmaToBoost(hostKarma) : baseScore; // guardrail: no karma boost with zero overlap
 

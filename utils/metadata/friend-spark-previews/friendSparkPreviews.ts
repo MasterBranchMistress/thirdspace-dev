@@ -15,7 +15,5 @@ export const getFriendSparkPreviews = async (
   );
   const preview = await res.json();
 
-  console.log("Friend preview: ", preview);
-
   return preview;
 };

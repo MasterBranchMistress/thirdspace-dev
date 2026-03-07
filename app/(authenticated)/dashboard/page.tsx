@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { useFeed } from "@/app/context/UserFeedContext";
 import Lottie from "lottie-react";
 import { FeedBackground } from "@/components/background-animations/UserFeedBackground";
@@ -18,9 +18,10 @@ import backToTop from "@/public/lottie/back-to-top.json";
 import { useBrowserLocation } from "@/utils/geolocation/get-user-location/getUserLocation";
 import { useAvatar } from "@/app/context/AvatarContext";
 import { getStatusSparks } from "@/utils/feed-item-actions/status-item-actions/sparkHandler";
-import { UserStatusDoc } from "@/lib/models/User";
+import { UserDoc, UserStatusDoc } from "@/lib/models/User";
 import { getEventSparks } from "@/utils/feed-item-actions/event-item-actions/sparkHandler";
 import { getFriendSparkPreviews } from "@/utils/metadata/friend-spark-previews/friendSparkPreviews";
+import { getUser } from "@/utils/frontend-backend-connection/getUserInfo";
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -30,7 +31,7 @@ export default function Home() {
 
   const { items, loading, error, hasMore, loadMore, prependItems } = useFeed();
 
-  const { newItems, applyNewItems } = useSmartFeedRefresh({
+  const { newItems, hasNewItems, applyNewItems } = useSmartFeedRefresh({
     userId: session?.user.id!,
     feedItems: items,
     setFeedItems: prependItems as (items: FeedItem[]) => void,
@@ -55,11 +56,19 @@ export default function Home() {
     [loading, hasMore, loadMore],
   );
 
+  const [userInfo, setUserInfo] = useState<UserDoc | null>(null);
+  const [hideCaughtUpSection, setHideCaughtUpSection] = useState(false);
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.replace("/login");
     }
   }, [status, router]);
+
+  useEffect(() => {
+    const hidden = localStorage.getItem("feedTutorialComplete") === "true";
+    setHideCaughtUpSection(hidden);
+  }, []);
 
   useEffect(() => {
     if (
@@ -96,7 +105,7 @@ export default function Home() {
     if (session?.user?.avatar) {
       setAvatar(session.user.avatar);
     }
-  }, [session?.user?.avatar, avatar]);
+  }, [session?.user?.avatar, setAvatar]);
 
   useEffect(() => {
     if (!session?.user?.id) return;
@@ -161,6 +170,15 @@ export default function Home() {
     run().catch(console.error);
   }, [items.length, session?.user?.id]);
 
+  useEffect(() => {
+    const loadUser = async () => {
+      if (!session?.user) return;
+      const user = await getUser(session?.user);
+      setUserInfo(user);
+    };
+    loadUser();
+  }, [session?.user]);
+
   if (status === "loading" || !coords) return <LoadingPage />;
   if (error) return <p>{error}</p>;
   if ((!items || items.length === 0) && !loading)
@@ -223,11 +241,11 @@ export default function Home() {
         {loading && <LoadingPage />}
         {!hasMore && !loading && (
           <div
-            className="flex flex-col items-center justify-center gap-2 animate-appearance-in mt-7"
+            className="flex flex-col items-center justify-center gap-2 animate-appearance-in"
             style={{ marginBottom: "2rem" }}
           >
             <p className="text-primary text-center text-lg font-extralight tracking-tight mb-4">
-              Looks like you're all caught up, {session?.user.firstName} ✨
+              You're all caught up, {session?.user.firstName} ✨
             </p>
             <Lottie
               animationData={animationData}
@@ -241,11 +259,29 @@ export default function Home() {
               }}
             />
             <div className="flex flex-wrap justify-center gap-3 mb-8">
-              <button className="text-xs bg-primary text-concrete font-light rounded-md shadow-md px-4 py-2">
-                Explore Events
-              </button>
-              <button className="text-xs bg-transparent text-primary border border-primary font-light rounded-md px-4 py-2">
-                Make Friends!
+              <button
+                className="
+  text-xs
+  px-5 py-2
+  rounded-md
+  font-light
+  text-white
+  bg-gradient-to-r
+  from-indigo-500
+  via-fuchsia-500
+  to-cyan-400
+  shadow-lg
+  transition-all
+  duration-300
+  hover:scale-105
+  hover:shadow-[0_0_16px_rgba(168,85,247,0.7)]
+  active:scale-95
+"
+              >
+                Hyperdrive™{" "}
+                <span className="inline-block transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:rotate-12">
+                  🛰️
+                </span>
               </button>
             </div>
           </div>

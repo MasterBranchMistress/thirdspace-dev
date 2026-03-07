@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import {
   EffectCards,
@@ -24,6 +24,7 @@ export default function FeedAttachmentSwiper({
   statusId,
   onOpenStatus,
   attachments,
+  commentsAreOpen,
   attachment,
   controls,
   eventId,
@@ -46,9 +47,7 @@ export default function FeedAttachmentSwiper({
   onDoubleTap?: () => void;
   overlay?: React.ReactNode;
 }) {
-  const router = useRouter();
   if (!attachments || attachments.length === 0) return null;
-
   const clickTimeout = useRef<number | null>(null);
 
   const handleClick = () => {
@@ -62,8 +61,6 @@ export default function FeedAttachmentSwiper({
       clickTimeout.current = null;
     }, 200);
   };
-
-  console.log("Attachments: ", attachment);
 
   return (
     <Card
@@ -104,7 +101,13 @@ export default function FeedAttachmentSwiper({
             )}
           </div>
         ) : (
-          <div className="relative w-full h-[60vh] overflow-hidden">
+          <div
+            className="relative w-full h-[60vh] overflow-hidden"
+            onClick={() => {
+              if (!statusId) return;
+              onOpenStatus?.(statusId);
+            }}
+          >
             <Image
               src={
                 attachment?.url ?? "/third-space-logos/thirdspace-logo-6.png"

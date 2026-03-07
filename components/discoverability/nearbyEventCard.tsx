@@ -1,7 +1,14 @@
 "use client";
 
 import React from "react";
-import { Card, CardHeader, CardBody, CardFooter, Avatar } from "@heroui/react";
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  CardFooter,
+  Avatar,
+  Button,
+} from "@heroui/react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { EventDoc } from "@/lib/models/Event";
 import Image from "next/image";
@@ -37,8 +44,10 @@ export function EventDiscoverabilityCard({ event }: Props) {
   const filledBars = Math.round(
     (event.popularity ? event.popularity / 100 : 0) * totalBars,
   );
-
-  console.log("This Event: ", mediaUrl);
+  const firstAttachment = event.attachments?.[0];
+  const hasAttachments = !!event.attachments?.length;
+  const isVideo = firstAttachment?.type === "video";
+  const fallbackImage = "/third-space-logos/thirdspace-logo-6.png";
 
   return (
     <Card
@@ -54,44 +63,33 @@ export function EventDiscoverabilityCard({ event }: Props) {
       isHoverable
       onPress={() => router.push(`/dashboard/event/${String(event._id)}`)}
     >
-      <div className="absolute inset-0 z-0 overflow-hidden rounded-xl">
-        <Swiper
-          slidesPerView={1}
-          loop={event.attachments && event.attachments.length > 0}
-          pagination={{ clickable: true }}
-          className="h-full w-full"
-        >
-          {(event.attachments && event.attachments.length > 0
-            ? event.attachments
-            : [
-                {
-                  type: "image",
-                  url: "/third-space-logos/thirdspace-logo-3.png",
-                },
-              ]
-          ).map((att, i) => (
-            <SwiperSlide key={i} className="relative h-full w-full">
-              {att.type === "image" ? (
-                <Image
-                  src={att.url}
-                  alt={`Attachment ${i}`}
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              ) : att.type === "video" ? (
-                <video
-                  src={att.url}
-                  className="w-full h-full object-cover"
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                />
-              ) : null}
-            </SwiperSlide>
-          ))}
-        </Swiper>
+      <div className="absolute inset-0 z-0">
+        {!hasAttachments ? (
+          <Image
+            src={fallbackImage}
+            alt="Default event background"
+            fill
+            className="object-cover"
+            priority
+          />
+        ) : isVideo ? (
+          <video
+            src={firstAttachment.url}
+            className="w-full h-full object-cover"
+            autoPlay
+            muted
+            loop
+            playsInline
+          />
+        ) : (
+          <Image
+            src={firstAttachment!.url}
+            alt={event.title}
+            fill
+            className="object-cover"
+            priority
+          />
+        )}
       </div>
       <div className="absolute inset-0 rounded-xl pointer-events-none"></div>
       <CardHeader className="flex justify-between items-start pb-3">
@@ -168,7 +166,6 @@ export function EventDiscoverabilityCard({ event }: Props) {
           </p>
         </div>
       </CardFooter>
-
       <style jsx>{`
         @keyframes shimmy {
           0%,

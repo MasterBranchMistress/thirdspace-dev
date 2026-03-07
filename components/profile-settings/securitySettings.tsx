@@ -25,15 +25,18 @@ type SecurityProps = {
   twoFactorEnabled: boolean;
   setTwoFactorEnabled: (value: boolean) => void;
 
+  securityTabOpen: string[];
+
   // Password change
   onChangePassword: (
     oldPassword: string,
-    newPassword: string
+    newPassword: string,
   ) => Promise<void> | void;
 };
 
 export function Security({
   twoFactorEnabled,
+  securityTabOpen,
   setTwoFactorEnabled,
   onChangePassword,
 }: SecurityProps) {
@@ -92,7 +95,7 @@ export function Security({
     <Accordion
       variant="light"
       selectionMode="multiple"
-      defaultExpandedKeys={[]}
+      defaultExpandedKeys={securityTabOpen}
       className="rounded-lg"
     >
       <AccordionItem

@@ -74,15 +74,6 @@ export async function GET(
         .toArray(),
     ]);
 
-    // console.log("friends", Array.isArray(friends), friends.length);
-    // console.log("events", Array.isArray(events), events.length);
-    // console.log(
-    //   "statuses",
-    //   Array.isArray(statuses),
-    //   statuses?.length,
-    //   statuses
-    // );
-
     const feedQuery: any = { userId: user._id };
     if (sinceDate) {
       feedQuery.timestamp = { $gt: sinceDate };
@@ -143,8 +134,12 @@ export async function GET(
       const eid = String(e.id ?? e._id);
       return !feedEventIds.has(eid);
     });
+    const eventAnchor =
+      mergedFeed.length >= 7 ? 7 : Math.min(1, mergedFeed.length);
+    const userAnchor =
+      mergedFeed.length >= 3 ? 3 : Math.min(0, mergedFeed.length);
 
-    if (filteredEvents.length > 0) {
+    if (filteredEvents.length > 0 && user.onboarded) {
       mergedFeed = upsertAtAnchor(
         mergedFeed,
         {
@@ -156,11 +151,11 @@ export async function GET(
             events: filteredEvents.slice(0, 6),
           },
         } as any,
-        7,
+        eventAnchor,
       );
     }
 
-    if (filteredUsers.length > 0) {
+    if (filteredUsers.length > 0 && user.onboarded) {
       mergedFeed = upsertAtAnchor(
         mergedFeed,
         {
@@ -172,7 +167,7 @@ export async function GET(
             users: filteredUsers,
           },
         } as any,
-        3,
+        userAnchor,
       );
     }
 

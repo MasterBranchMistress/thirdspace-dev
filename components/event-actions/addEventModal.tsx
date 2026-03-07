@@ -45,7 +45,7 @@ type AddEventProps = {
 };
 
 export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const { notify } = useToast();
   const user = session?.user;
   // let [value, setValue] = React.useState(
@@ -186,11 +186,12 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
         eventPrivacy: eventData.public,
         attachments: newFiles,
       });
-      notify("Event created", "Your event is live!");
+      notify("Event created 🗓️", "Sit tight while your event is processed.");
       // confetti and gentle UX after success
       try {
         const confettiModule = (await import("canvas-confetti")).default;
         confettiModule({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+        update();
       } catch (err) {
         notify("Whoops, something went wrong here!", "");
         console.error(err);
@@ -201,7 +202,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
       onOpenChange(false);
       // optional: reload to show event in feed
       //TODO: use websocket to update
-      setTimeout(() => window.location.reload(), 800);
+      // setTimeout(() => window.location.reload(), 800);
     } catch (err: any) {
       console.error("Create event error", err);
       notify("Something went wrong here!", "Unable to create event");
@@ -325,7 +326,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
                     onSelect={(loc) => setLocation(loc)}
                   />
 
-                  <BudgetInput initialValue={budget} onChange={setBudget} />
+                  {/* <BudgetInput initialValue={budget} onChange={setBudget} /> */}
 
                   <SelectEventPrivacy
                     isPublic={isPublic}

@@ -52,6 +52,7 @@ export interface FeedUserActor {
     firstName: string;
     avatar?: string;
   }>;
+  sharedTags?: [];
 }
 
 export type AttachmentType = "image" | "video" | undefined;
@@ -95,6 +96,10 @@ export interface FeedEventActor {
  * Target data for the feed item (user, event, or other content).
  */
 export interface FeedTarget {
+  targetTags?: string[];
+  targetVisibility?: string;
+  exploredSolarSystem?: boolean;
+  exploredSpacestation?: boolean;
   eventId?: string | ObjectId;
   statusId?: string | ObjectId;
   eventStatus?: string;
@@ -104,6 +109,7 @@ export interface FeedTarget {
   snippet?: string;
   description?: string;
   host?: string;
+  firstName?: string;
   hostName?: string;
   location?: {
     name?: string;

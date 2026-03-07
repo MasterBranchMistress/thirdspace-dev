@@ -18,13 +18,17 @@ export async function DELETE() {
       COLLECTIONS._EVENTS,
       COLLECTIONS._USER_FEED,
       COLLECTIONS._USER_STATUSES,
+      COLLECTIONS._EVENT_COMMENTS,
+      COLLECTIONS._STATUS_COMMENTS,
+      COLLECTIONS._USER_EVENT_SPARKS,
+      COLLECTIONS._USER_STATUS_SPARKS,
     ];
 
     const results = await Promise.all(
       collectionsToNuke.map(async (collection) => {
         const res = await db.collection(collection).deleteMany({});
         return { collection, deletedCount: res.deletedCount };
-      })
+      }),
     );
 
     return NextResponse.json({
@@ -38,7 +42,7 @@ export async function DELETE() {
         error: "Failed to nuke collections",
         details: (error as Error).message,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

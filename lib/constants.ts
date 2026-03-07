@@ -91,3 +91,9 @@ export const MEDIA_VIEW_HEIGHT = {
   _STANDARD: "h-[60vh]",
   _COMMENT_SECTION: "h-[100vh]",
 };
+
+export const FOUNDER_WELCOME_POST = {
+  _WELCOME_VIDEO_URL: "/videos/welcome.mp4",
+  _FOUNDER_GREETING:
+    "Hey, welcome to ThirdSpace. I’m Jimmie! glad you’re here. Check out the Solar System for events and the Space Station for people nearby. Also, don't forget to finish cusomizing your profile so we can connect you with the right people. Have fun!",
+};
