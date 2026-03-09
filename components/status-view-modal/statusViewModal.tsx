@@ -1,4 +1,14 @@
-import { Modal, ModalContent, Spinner, ModalBody, Avatar } from "@heroui/react";
+import {
+  Modal,
+  ModalContent,
+  Spinner,
+  ModalBody,
+  Avatar,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
+} from "@heroui/react";
 import { useState, useEffect } from "react";
 import AttachmentSwiper from "../swiper/swiper";
 import {
@@ -8,6 +18,8 @@ import {
   ChatBubbleLeftEllipsisIcon,
   ArrowPathRoundedSquareIcon,
   EllipsisVerticalIcon,
+  TrashIcon,
+  PencilIcon,
 } from "@heroicons/react/24/solid";
 
 import { FireIcon as FireSolid } from "@heroicons/react/24/solid";
@@ -19,6 +31,8 @@ import { UserStatusDoc } from "@/lib/models/User";
 import { useSession } from "next-auth/react";
 import { SessionUser } from "@/types/user-session";
 import { MEDIA_VIEW_HEIGHT } from "@/lib/constants";
+import { useFeed } from "@/app/context/UserFeedContext";
+import { dropDownStyle } from "@/utils/get-dropdown-style/getDropDownStyle";
 
 type Props = {
   statusId: string;
@@ -26,6 +40,7 @@ type Props = {
   textOnly: boolean;
   onClose: () => void;
   onSparkStatus: (statusId: string) => void;
+  onDeletePost: () => void;
 };
 
 export default function StatusDetailModal({
@@ -34,6 +49,7 @@ export default function StatusDetailModal({
   textOnly,
   onClose,
   onSparkStatus,
+  onDeletePost,
 }: Props) {
   const [status, setStatus] = useState<UserStatusDoc | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,6 +62,7 @@ export default function StatusDetailModal({
 
   const router = useRouter();
   const session = useSession();
+  const feed = useFeed();
 
   const hasAttachments = (status?.attachments?.length ?? 0) > 0;
 
@@ -183,12 +200,39 @@ export default function StatusDetailModal({
                       </button>
 
                       {isAuthor && (
-                        <button
-                          className="bg-black/40 backdrop-blur rounded-full p-2"
-                          onClick={handleRepost}
+                        <Dropdown
+                          placement="bottom-end"
+                          classNames={dropDownStyle}
                         >
-                          <EllipsisVerticalIcon className="h-5 w-5 text-white" />
-                        </button>
+                          <DropdownTrigger>
+                            <button className="bg-black/40 backdrop-blur rounded-full p-2">
+                              <EllipsisVerticalIcon className="h-5 w-5 text-white" />
+                            </button>
+                          </DropdownTrigger>
+
+                          <DropdownMenu aria-label="Post actions">
+                            <DropdownItem
+                              key="edit"
+                              endContent={
+                                <PencilIcon width={20} color="secondary" />
+                              }
+                            >
+                              Edit Post
+                            </DropdownItem>
+
+                            <DropdownItem
+                              key="delete"
+                              className="text-danger"
+                              color="danger"
+                              onPress={onDeletePost}
+                              endContent={
+                                <TrashIcon width={20} color="danger" />
+                              }
+                            >
+                              Delete Post
+                            </DropdownItem>
+                          </DropdownMenu>
+                        </Dropdown>
                       )}
                     </div>
                   </div>
@@ -262,12 +306,39 @@ export default function StatusDetailModal({
                       </button>
 
                       {isAuthor && (
-                        <button
-                          className="bg-black/40 backdrop-blur rounded-full p-2"
-                          onClick={handleRepost}
+                        <Dropdown
+                          placement="bottom-end"
+                          classNames={dropDownStyle}
                         >
-                          <EllipsisVerticalIcon className="h-5 w-5 text-white" />
-                        </button>
+                          <DropdownTrigger>
+                            <button className="bg-black/40 backdrop-blur rounded-full p-2">
+                              <EllipsisVerticalIcon className="h-5 w-5 text-white" />
+                            </button>
+                          </DropdownTrigger>
+
+                          <DropdownMenu aria-label="Post actions">
+                            <DropdownItem
+                              key="edit"
+                              endContent={
+                                <PencilIcon width={20} color="secondary" />
+                              }
+                            >
+                              Edit Post
+                            </DropdownItem>
+
+                            <DropdownItem
+                              key="delete"
+                              className="text-danger"
+                              color="danger"
+                              onPress={onDeletePost}
+                              endContent={
+                                <TrashIcon width={20} color="danger" />
+                              }
+                            >
+                              Delete Post
+                            </DropdownItem>
+                          </DropdownMenu>
+                        </Dropdown>
                       )}
                     </div>
                   </div>

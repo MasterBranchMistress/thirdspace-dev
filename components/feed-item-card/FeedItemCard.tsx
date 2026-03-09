@@ -88,6 +88,7 @@ import FeedAttachmentSwiper from "../discoverability/feedCard";
 import WelcomeBanner from "../welcome-banner/welcomeBanner";
 import MissionChecklist from "../welcome-banner/checklist/checklist";
 import { getUser } from "@/utils/frontend-backend-connection/getUserInfo";
+import { useFeed } from "@/app/context/UserFeedContext";
 
 export default function FeedItemCard({ item }: FeedItemCardProps) {
   const { data: session } = useSession();
@@ -100,20 +101,19 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
   const [openStatusId, setOpenStatusId] = useState<string | null>(null);
   const [activeEventIndex, setActiveEventIndex] = useState(0); //For discover events section
   const [activeUserIndex, setActiveUserIndex] = useState(0); // for discover users section
-  const [statusPostCount, setStatusPostCount] = useState(0);
-  const [commentsOpenByDefault, setCommentsOpenByDefault] = useState(false);
   const [statusJustPosted, setStatusJustPosted] = useState(false);
   const [visibility, setVisibility] = useState(false);
   const [tags, setTags] = useState(false);
   const [userDoc, setUserDoc] = useState<UserDoc | null>(null);
   const { type, target, actor, timestamp } = item;
   const { notify } = useToast();
+  const feed = useFeed();
 
-  const openStatus = (id?: string, options?: { openComments?: boolean }) => {
+  const openStatus = (id?: string) => {
     if (!id) return;
     setOpenStatusId(id);
-    setCommentsOpenByDefault(!!options?.openComments);
   };
+
   const isUserActor = (
     a: FeedUserActor | FeedEventActor | null | undefined,
   ): a is FeedUserActor => {
@@ -226,10 +226,9 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
     try {
       if (!statusId) return;
       await deleteStatus(statusId);
+      setOpenStatusId(null);
       notify("Your post has been deleted ❌", "");
-      setTimeout(() => {
-        window.location.reload();
-      }, 3000);
+      feed.removeItemByStatusId(statusId);
     } catch (e) {
       return e as Error;
     }
@@ -906,6 +905,10 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             hasSparked={hasSparked}
             onClose={() => setOpenStatusId(null)}
             onSparkStatus={handleStatusSpark}
+            onDeletePost={() => {
+              const statusId = openStatusId;
+              handleDeletePost(statusId);
+            }}
           />
         )}
       </CardBody>

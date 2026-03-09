@@ -21,6 +21,7 @@ interface FeedContextType {
   refresh?: () => void;
   loadMore: () => void;
   prependItems?: (newItems: FeedItem[]) => void;
+  removeItemByStatusId: (statusId: string) => void;
 }
 
 const FeedContext = createContext<FeedContextType>({
@@ -29,7 +30,8 @@ const FeedContext = createContext<FeedContextType>({
   loading: false,
   hasMore: false,
   error: null,
-  prependItems: () => {}, // <-- add this line
+  prependItems: () => {},
+  removeItemByStatusId: () => {},
 });
 
 export function FeedProvider({ children }: { children: ReactNode }) {
@@ -43,6 +45,12 @@ export function FeedProvider({ children }: { children: ReactNode }) {
 
   const prependItems = (incoming: FeedItem[]) => {
     setItems((prev) => mergeFeedItems(prev, incoming));
+  };
+
+  const removeItemByStatusId = (statusId: string) => {
+    setItems((prev) =>
+      prev.filter((item) => item.target?.status?.sourceId !== statusId),
+    );
   };
 
   const fetchFeed = async (pageToFetch = 1, isRefresh = false) => {
@@ -123,6 +131,7 @@ export function FeedProvider({ children }: { children: ReactNode }) {
         refresh,
         loadMore,
         prependItems,
+        removeItemByStatusId,
       }}
     >
       {children}
