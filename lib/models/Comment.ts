@@ -1,4 +1,5 @@
 import { ObjectId } from "mongodb";
+import { UserRanking } from "../constants";
 
 // /models/Comment.ts
 export interface CommentDoc {
@@ -12,6 +13,13 @@ export interface CommentDoc {
     username: string;
     firstName: string;
     lastName: string;
+    qualityBadge?:
+      | "drifter"
+      | "explorer"
+      | "navigator"
+      | "connector"
+      | "pioneer"
+      | "luminary";
   };
   replies?: CommentDoc[];
   text: string;

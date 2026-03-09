@@ -1,7 +1,13 @@
 import { NextResponse, NextRequest } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { hashPassword, generateAnonUsername } from "@/utils/auth";
-import { COLLECTIONS, DBS, FOUNDER_WELCOME_POST } from "@/lib/constants";
+import {
+  COLLECTIONS,
+  DBS,
+  FOUNDER_WELCOME_POST,
+  KARMA_CAPS,
+  USER_RANKING,
+} from "@/lib/constants";
 import { UserDoc } from "@/lib/models/User";
 import { ObjectId } from "mongodb";
 import { getGravatarUrl } from "@/utils/gravatar";
@@ -72,8 +78,8 @@ export async function POST(req: NextRequest) {
       pendingFriendRequests: [],
       notifications: [],
       isAdmin: false,
-      karmaScore: 100,
-      qualityBadge: "bronze",
+      karmaScore: 0,
+      qualityBadge: USER_RANKING.DRIFTER,
       eventsAttended: 0,
       eventsHosted: 0,
       lastMinuteCancels: 0,

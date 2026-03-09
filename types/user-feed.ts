@@ -1,6 +1,7 @@
 import { Availability, UserDoc } from "@/lib/models/User";
 import { ObjectId } from "mongodb";
 import { PreviewUser } from "@/app/api/users/[id]/metadata/interests/friend-spark-preview/route";
+import { UserRanking } from "@/lib/constants";
 
 /**
  * All possible feed item types supported.
@@ -33,6 +34,13 @@ export type UserStatus = {
  * `id` can come from Mongo so we support both ObjectId and string.
  */
 export interface FeedUserActor {
+  qualityBadge?:
+    | "drifter"
+    | "explorer"
+    | "navigator"
+    | "connector"
+    | "pioneer"
+    | "luminary";
   eventId?: ObjectId;
   eventDate?: string;
   id?: string | ObjectId;
@@ -90,6 +98,13 @@ export interface FeedEventActor {
     firstName: string;
     avatar?: string;
   }>;
+  qualityBadge?:
+    | "drifter"
+    | "explorer"
+    | "navigator"
+    | "connector"
+    | "pioneer"
+    | "luminary";
 }
 
 /**
@@ -132,7 +147,13 @@ export interface FeedTarget {
   schedule?: Availability[];
   username?: string;
   profilePicture?: string;
-  badge?: "bronze" | "silver" | "gold" | "platinum";
+  qualityBadge?:
+    | "drifter"
+    | "explorer"
+    | "navigator"
+    | "connector"
+    | "pioneer"
+    | "luminary";
   tags?: string[];
   notes?: string;
   currency?: string;

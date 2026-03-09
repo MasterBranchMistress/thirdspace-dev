@@ -61,6 +61,8 @@ import { getEventSparks } from "@/utils/feed-item-actions/event-item-actions/spa
 import { Swiper, SwiperSlide } from "swiper/react";
 import { EffectCards } from "swiper/modules";
 import FeedAttachmentSwiper from "@/components/discoverability/feedCard";
+import RankBadge from "@/components/karma/rankBadge";
+import { UserRanking } from "@/lib/constants";
 
 type Comment = {
   userId: any;
@@ -82,6 +84,13 @@ type Comment = {
 type EventDetails = {
   donations: any;
   event: Comment;
+  qualityBadge?:
+    | "drifter"
+    | "explorer"
+    | "navigator"
+    | "connector"
+    | "pioneer"
+    | "luminary";
   _id: string;
   title: string;
   status: string;
@@ -97,6 +106,7 @@ type EventDetails = {
     avatar: string;
     firstName: string;
     lastName: string;
+    qualityBadge: UserRanking;
   };
   attendees: Attendee[];
   budgetInfo: {
@@ -104,6 +114,8 @@ type EventDetails = {
     currency: string;
   };
 };
+
+const imageSize = 5;
 
 export default function EventViewPage() {
   const { id } = useParams();
@@ -193,6 +205,8 @@ export default function EventViewPage() {
     if (id && userId) fetchEvent();
   }, [id, userId]);
 
+  console.log(`EVENT DATA: ${event?.qualityBadge}`);
+
   // Handlers
   const handleJoin = async () => {
     if (!userId) return;
@@ -270,8 +284,6 @@ export default function EventViewPage() {
     }
   };
 
-  console.log(event?.attendees);
-
   return (
     <>
       <div className="z-0">
@@ -311,12 +323,6 @@ export default function EventViewPage() {
                         base: "bg-none",
                         badge: "bg-transparent p-0 shadow-none border-none",
                       }}
-                      content={
-                        <CheckBadgeIcon
-                          width={18}
-                          className="bg-amber-800 border-1 border-amber-600 rounded-full mt-1 ml-1"
-                        />
-                      }
                     >
                       <Avatar
                         isBordered
@@ -339,25 +345,7 @@ export default function EventViewPage() {
 
                 <div className="flex flex-row gap-2 items-center z-10">
                   {" "}
-                  <ShieldCheckIcon
-                    width={25}
-                    className="bg-success p-0.5 shadow-2xl 
-                 text-white border border-white rounded-full"
-                  />
-                  <Image
-                    src="/icons/google-maps.png"
-                    alt="google_maps_logo"
-                    width={18}
-                    height={18}
-                    className="!min-w-5"
-                  />
-                  <Image
-                    src="/icons/waze.png"
-                    alt="waze_logo"
-                    width={18}
-                    height={18}
-                    className="!min-w-5"
-                  />
+                  <RankBadge size="sm" rank={event.qualityBadge} />
                   <EventActions
                     isHost={isHost}
                     isJoined={isJoined}

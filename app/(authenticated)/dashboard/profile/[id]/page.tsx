@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { Avatar, Button, Card, Chip, Spinner } from "@heroui/react";
+import { Avatar, Button, Card, Chip, Spinner, user } from "@heroui/react";
 import { FeedBackground } from "@/components/background-animations/UserFeedBackground";
 import Lottie from "lottie-react";
 import userNotFound from "@/public/lottie/user-not-found.json";
@@ -17,6 +17,7 @@ import EventGridCard from "@/components/event-item-card/eventItemCard";
 import endEvents from "@/public/lottie/end-events.json";
 import { useUserRelationships } from "@/app/context/UserRelationshipsContext";
 import LoadingPage from "@/components/spinner/LoadingPage";
+import { useRank } from "@/app/context/UserContext";
 
 type Profile = {
   user: UserDoc;
@@ -58,6 +59,7 @@ export default function ProfilePage() {
   const { data: session } = useSession();
   const viewer = session?.user;
   const { getRelationship, isSelf } = useUserRelationships();
+  const rank = useRank();
 
   useEffect(() => {
     const fetchData = async () => {

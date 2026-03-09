@@ -31,14 +31,6 @@ export const EVENT_STATUSES = {
   _USER_LEFT_EVENT: "user_left_event",
 };
 
-export const USER_RANKING = {
-  _BRONZE: "bronze",
-  _SILVER: "silver",
-  _GOLD: "gold",
-  _PLATINUM: "platinum",
-  _ADMIN: "admin",
-};
-
 // Example: user providers
 export const AUTH_PROVIDERS = {
   _LOCAL: "local",
@@ -97,3 +89,27 @@ export const FOUNDER_WELCOME_POST = {
   _FOUNDER_GREETING:
     "Hey, welcome to ThirdSpace. I’m Jimmie! glad you’re here. Check out the Solar System for events and the Space Station for people nearby. Also, don't forget to finish cusomizing your profile so we can connect you with the right people. Have fun!",
 };
+
+export const KARMA_CAPS = {
+  LATE_CANCEL: -3,
+  NO_SHOW: -5,
+  HOSTED_EVENT_DAILY: 10,
+  ATTENDED_EVENT_DAILY: 5,
+  COMMENT_DAILY: 3,
+  SPARK_RECEIVED_DAILY: 5,
+  SPARK_GIVEN_DAILY: 10,
+  STATUS_POST_DAILY: 3,
+  MAX_DAILY_KARMA: 25,
+};
+
+export const USER_RANKING = {
+  DRIFTER: "drifter",
+  EXPLORER: "explorer",
+  NAVIGATOR: "navigator",
+  CONNECTOR: "connector",
+  PIONEER: "pioneer",
+  LUMINARY: "luminary",
+  ADMIN: "admin",
+} as const;
+
+export type UserRanking = (typeof USER_RANKING)[keyof typeof USER_RANKING];

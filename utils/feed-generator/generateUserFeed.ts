@@ -9,10 +9,6 @@ import { getDistFromMiles } from "../geolocation/get-distance-from-event/getDist
 import { geocodeAddress } from "../geolocation/geocode-address/geocodeAddress";
 import { canViewerSee } from "../user-privacy/canViewerSee";
 import { UserStatusDoc } from "@/lib/models/UserStatusDoc";
-import { getNearbyUsers } from "../discoverability/get-nearby-users/getNearbyUsers";
-import { getNearbyEvents } from "../discoverability/get-nearby-events/getNearbyEvents";
-import { SessionUser } from "@/types/user-session";
-import { insertFeedItemAt } from "../discoverability/feed-injection-logic/feedInjection";
 import { ObjectId } from "mongodb";
 
 function resolveAvatar(user: UserDoc): string {
@@ -88,6 +84,7 @@ export async function generateUserFeed(
       lastName: founder?.lastName,
       username: founder?.username,
       avatar: resolveAvatar(founder!),
+      qualityBadge: founder?.qualityBadge,
     },
     target: {
       snippet: FOUNDER_WELCOME_POST._FOUNDER_GREETING,
@@ -179,6 +176,7 @@ export async function generateUserFeed(
           lastName: actorUser.lastName,
           username: actorUser.username,
           avatar: resolveAvatar(actorUser),
+          qualityBadge: actorUser.qualityBadge,
         },
         target: {
           userId: actorUser._id,
@@ -216,6 +214,7 @@ export async function generateUserFeed(
         eventAttachments: doc.actor.eventAttachments,
         distanceFromEvent: doc.actor.distanceFromEvent,
         eventLocation: doc.actor.eventLocation,
+        qualityBadge: doc.actor.qualityBadge,
       },
       target: {
         ...doc.target,
@@ -223,6 +222,7 @@ export async function generateUserFeed(
         username: doc.target?.username,
         snippet: doc.target?.snippet,
         attachments: doc.target?.attachments,
+        qualityBadge: doc.target?.qualityBadge,
       },
       timestamp: doc.timestamp,
     }));

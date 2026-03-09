@@ -69,6 +69,7 @@ export async function generateEventFeed(
         startingDate: new Date(event.date).toISOString(),
         attachments: event.attachments,
         avatar: resolveAvatar(hostUser),
+        qualityBadge: hostUser.qualityBadge,
       },
       target: {
         eventId: event._id!,
@@ -83,6 +84,7 @@ export async function generateEventFeed(
         tags: event.tags || [],
         startingDate: new Date(event.date).toISOString(),
         attachments: event.attachments,
+        qualityBadge: hostUser.qualityBadge,
       },
       timestamp: new Date(),
       type: "event_coming_up",
@@ -128,6 +130,7 @@ export async function generateEventFeed(
       eventId: doc.actor.eventId,
       eventName: doc.actor.eventName,
       startingDate: doc.actor.startingDate,
+      qualityBadge: doc.actor.qualityBadge,
     },
     target: {
       actorId: doc.userId.toString(),
@@ -148,6 +151,7 @@ export async function generateEventFeed(
         undefined,
       attachments: doc.target?.attachments ?? [],
       avatar: typeof doc.target?.avatar === "string" ? doc.target.avatar : "",
+      qualityBadge: doc.target.qualityBadge,
     },
     timestamp: doc.timestamp.toISOString(),
   }));

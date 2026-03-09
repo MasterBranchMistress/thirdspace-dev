@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { DBS, COLLECTIONS } from "@/lib/constants";
 import { ObjectId } from "mongodb";
+import { UserDoc } from "@/lib/models/User";
 
 export async function POST(
   req: NextRequest,
@@ -124,12 +125,14 @@ export async function POST(
           bio: 1,
           followers: 1,
           following: 1,
+          friends: 1,
           location: 1,
           sharedTags: { $slice: ["$sharedTags", 3] },
           sharedCount: 1,
           distanceMeters: 1,
           matchScore: 1,
           karmaScore: 1,
+          qualityBadge: 1,
         },
       },
       { $sort: { matchScore: -1, distanceMeters: 1 } },
@@ -144,19 +147,27 @@ export async function POST(
     return NextResponse.json({
       count: users.length,
       users: users.map((u) => ({
-        id: u._id,
+        id: String(u._id),
         firstName: u.firstName,
         lastName: u.lastName,
         username: u.username,
         avatar: u.avatar,
-        followers: u.followers,
-        following: u.following,
-        tags: u.tags ?? [],
+        followers: Array.isArray(u.followers)
+          ? u.followers.map((id: ObjectId) => String(id))
+          : [],
+        following: Array.isArray(u.following)
+          ? u.following.map((id: ObjectId) => String(id))
+          : [],
+        friends: Array.isArray(u.friends)
+          ? u.friends.map((id: ObjectId) => String(id))
+          : [],
+        tags: Array.isArray(u.tags) ? u.tags : [],
         bio: u.bio,
         location: u.location,
         distanceMeters: u.distanceMeters,
-        sharedTags: u.sharedTags ?? [],
+        sharedTags: Array.isArray(u.sharedTags) ? u.sharedTags : [],
         sharedCount: u.sharedCount ?? 0,
+        qualityBadge: u.qualityBadge,
       })),
     });
   } catch (e: any) {

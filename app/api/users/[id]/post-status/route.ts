@@ -66,6 +66,7 @@ export async function POST(
       createdAt: new Date(),
       attachments: parsedAttachments,
       comments: [],
+      qualityBadge: postingUser.qualityBadge,
     };
 
     const result = await statusCollection.insertOne(newStatus);
@@ -74,12 +75,14 @@ export async function POST(
 
     if (!user) return;
 
+    //TODO: IF THERE IS SOMETHING MISSING IN YOUR FEED, POST IT IN HERE. DUMMY :)
     const actorPayload = {
       id: user._id,
       firstName: user.firstName,
       lastName: user.lastName,
       username: user.username,
       avatar: user.avatar,
+      qualityBadge: user.qualityBadge,
     };
 
     // 1. Insert feed item for the user themselves

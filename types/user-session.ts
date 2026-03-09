@@ -10,7 +10,13 @@ export type SessionUser = {
   provider?: string;
   isAdmin?: boolean;
   karmaScore?: number;
-  qualityBadge?: "bronze" | "silver" | "gold" | "platinum";
+  qualityBadge?:
+    | "drifter"
+    | "explorer"
+    | "navigator"
+    | "connector"
+    | "pioneer"
+    | "luminary";
   eventsAttended?: number;
   eventsHosted?: number;
   lastMinuteCancels?: number;

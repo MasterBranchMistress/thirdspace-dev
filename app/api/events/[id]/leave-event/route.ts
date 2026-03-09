@@ -4,11 +4,11 @@ import { ObjectId } from "mongodb";
 import { EventDoc } from "@/lib/models/Event";
 import { COLLECTIONS, DBS, EVENT_STATUSES } from "@/lib/constants";
 import { UserDoc } from "@/lib/models/User";
-import { getUserRanking } from "@/utils/getRanking";
+import { getUserRanking } from "@/utils/karma/getRanking";
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params; // ✅ event id from URL
   const client = await clientPromise;
@@ -44,24 +44,24 @@ export async function PATCH(
         {
           message: "Event has been completed",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
     // ✅ check if user is in attendees
     const isAttending = event.attendees.some(
-      (attendeeId) => attendeeId.toString() === userId
+      (attendeeId) => attendeeId.toString() === userId,
     );
     if (!isAttending) {
       return NextResponse.json(
         { error: "User is not an attendee of this event" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // ✅ remove user from attendees
     const updateResult = await eventsCollection.updateOne(
       { _id: new ObjectId(id) },
-      { $pull: { attendees: new ObjectId(String(userId)) } }
+      { $pull: { attendees: new ObjectId(String(userId)) } },
     );
 
     //determine karma
@@ -73,17 +73,17 @@ export async function PATCH(
     if (isLastMinute) {
       const updatedUser = await userCollection.updateOne(
         { _id: new ObjectId(String(userId)) },
-        { $inc: { karmaScore: -10, lastMinuteCancels: 1 } }
+        { $inc: { karmaScore: -10, lastMinuteCancels: 1 } },
       );
       //get user ranking if breaking some threshold
       if (updatedUser.acknowledged) {
         const badge = getUserRanking(
           user.karmaScore ?? 50,
-          user.eventsAttended ?? 0
+          user.eventsAttended ?? 0,
         );
         await userCollection.updateOne(
           { _id: new ObjectId(String(userId)) },
-          { $set: { qualityBadge: badge } }
+          { $set: { qualityBadge: badge } },
         );
       }
     }
@@ -103,7 +103,7 @@ export async function PATCH(
             read: false,
           },
         },
-      }
+      },
     );
 
     if (updateResult.matchedCount === 0) {
@@ -119,7 +119,7 @@ export async function PATCH(
   } catch (error: unknown) {
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

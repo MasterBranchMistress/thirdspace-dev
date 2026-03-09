@@ -10,7 +10,11 @@ import {
   Chip,
 } from "@heroui/react";
 import { UserDoc } from "@/lib/models/User";
-import { ChatBubbleLeftRightIcon, FireIcon } from "@heroicons/react/24/outline";
+import {
+  ChatBubbleLeftRightIcon,
+  FireIcon,
+  UsersIcon,
+} from "@heroicons/react/24/outline";
 import { sendFriendRequest } from "@/utils/user-relationship-handlling/sendFriendRequest";
 import { SessionUser } from "@/types/user-session";
 import {
@@ -37,6 +41,7 @@ import {
   getUnfriendDialogConfig,
 } from "./dialogConfig";
 import ProfileSettingsModal from "../profile-settings/profileSettings";
+import RankBadge from "../karma/rankBadge";
 
 export default function ProfileHeading({
   disabled,
@@ -55,7 +60,7 @@ export default function ProfileHeading({
   const [showOverlay, setShowOverlay] = useState(false);
   const [dialogConfig, setDialogConfig] = useState<DialogConfig | null>(null);
   const [dialogAction, setDialogAction] = useState<() => Promise<void>>(
-    async () => {}
+    async () => {},
   );
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
@@ -198,11 +203,7 @@ export default function ProfileHeading({
               </p>
             </div>
             <div>
-              <button
-                className={`hover:cursor-pointer ${isSelf ? "hidden" : ""}`}
-              >
-                <ChatBubbleLeftRightIcon className="h-6 w-6 shrink-0 text-white" />
-              </button>
+              <RankBadge rank={user.qualityBadge} size="md" />
             </div>
           </div>
         </CardHeader>
@@ -247,15 +248,15 @@ export default function ProfileHeading({
 
         {/* Footer buttons */}
         <CardFooter
-          className={`justify-between backdrop-blur-xl before:bg-white/10 border-t-1 border-white/30
+          className={`justify-around backdrop-blur-lg before:bg-white/10 border-t-1 border-white/30
         overflow-hidden py-1.5 absolute rounded-none bottom-[-8] 
-        shadow-small z-20 mb-2`}
+        shadow-small p-0 z-20 mb-2`}
         >
           {!isPendingIncoming ? (
             <Button
-              className={`text-tiny ${isFriend || isPendingOutgoing ? "text-danger" : "text-concrete"} tracking-tighter bg-black/20 border-white/20 border-1`}
+              className={`text-tiny ${isFriend || isPendingOutgoing ? "text-pink-300" : "text-concrete"} tracking-tighter bg-black/20 border-white/20 border-1`}
               color="danger"
-              radius="lg"
+              radius="none"
               size="sm"
               variant="flat"
               disabled={disabled}
@@ -284,7 +285,7 @@ export default function ProfileHeading({
                 setRelationship(String(user._id), { friend: true });
                 notify(
                   "Friend request Accepted! 🤝",
-                  `${user.firstName} has been notified. Send a quick message!`
+                  `${user.firstName} has been notified. Send a quick message!`,
                 );
                 confetti({
                   particleCount: 100,
@@ -298,15 +299,19 @@ export default function ProfileHeading({
                 setRelationship(String(user._id), { friend: false });
                 notify(
                   "Friend request Rejected! ❌",
-                  `${user.firstName} will not be notified of this.`
+                  `${user.firstName} will not be notified of this.`,
                 );
               }}
             ></RespondDropdown>
           )}
           <Button
-            className={`text-tiny tracking-tighter ${!isFollowing ? `text-concrete` : `text-danger`} bg-black/20 border-white/20 border-1`}
+            className={`text-tiny p-3 tracking-tight ${
+              isSelf
+                ? "bg-gradient-to-r from-indigo-500 via-purple-500 font-semibold to-cyan-400"
+                : "bg-black/20 border-white/20 border-1"
+            } ${!isFollowing ? "text-secondary" : "text-pink-300"}`}
             color="default"
-            radius="lg"
+            radius="none"
             size="sm"
             variant="flat"
             spinner="dot"
@@ -317,21 +322,21 @@ export default function ProfileHeading({
             {secondaryActionLabel}
           </Button>
           <Button
-            className="text-tiny text-white tracking-tighter bg-black/20 border-white/20 border-1 "
+            className="text-tiny text-white tracking-tight bg-black/20 border-white/20 border-1 "
             color="default"
-            radius="lg"
+            radius="none"
             size="sm"
             variant="flat"
             onPress={() => {
               notify("Feature Coming Soon! 🤝", ``);
             }}
           >
-            <FireIcon width={17} className="shrink-0" /> Spark
+            <UsersIcon width={17} className="shrink-0" /> Orbiters
           </Button>
           <Button
-            className={`text-tiny  ${isBlocked ? `text-concrete bg-danger` : `${!isSelf ? `text-danger` : "text-concrete"} bg-black/20 border-white/20`} tracking-tighter border-1`}
+            className={`text-tiny  ${isBlocked ? `text-concrete bg-danger` : `${!isSelf ? "text-pink-300" : "text-secondary"} bg-black/20 border-white/20`} tracking-tighter border-1`}
             color="danger"
-            radius="lg"
+            radius="none"
             size="sm"
             variant="flat"
             disabled={disabled}

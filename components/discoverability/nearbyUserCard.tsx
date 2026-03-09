@@ -13,6 +13,7 @@ import { UserDoc } from "@/lib/models/User";
 import { useRouter } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { ResonanceMeter } from "./card-components/resonanceMeter";
+import RankBadge from "../karma/rankBadge";
 
 type Props = {
   user: UserDoc;
@@ -23,8 +24,6 @@ export function NearbyUserCard({ user }: Props) {
   const tags = user.tags ?? [];
   // const sharedTags = user.sharedTags ?? [];
   const router = useRouter();
-
-  const matches = user.sharedTags.length;
 
   return (
     <Card
@@ -43,11 +42,13 @@ export function NearbyUserCard({ user }: Props) {
             onClick={() => router.push(`/dashboard/profile/${user.id}`)}
           />
 
-          <div className="flex flex-col justify-start leading-tight">
+          <div className="flex flex-col justify-start items-start leading-tight">
             <h4 className="text-sm font-semibold text-default-800">
               {user.firstName} {user.lastName}
             </h4>
-            <span className="text-xs text-default-500">@{user.username}</span>
+            <span className="text-xs text-default-500 max-w-[7rem] truncate min-w-0">
+              @{user.username}
+            </span>
           </div>
         </div>
         <div className="flex flex-col gap-1.5 shrink-0 items-end">
@@ -57,6 +58,7 @@ export function NearbyUserCard({ user }: Props) {
               : 0}{" "}
             Miles Away 📍{" "}
           </span>
+          <RankBadge size="sm" rank={user.qualityBadge} />
         </div>
       </CardHeader>
 
@@ -85,14 +87,21 @@ export function NearbyUserCard({ user }: Props) {
       <CardFooter className="flex justify-center gap-3 pt-3 text-sm">
         <div className="flex gap-1">
           <span className="font-semibold">{user.following?.length ?? 0}</span>
-          <span className="text-default-500">Following</span>
+          <span className="text-default-500">Orbiting</span>
         </div>
 
         <div className="flex gap-1">
           <span className="font-semibold">{user.followers?.length ?? 0}</span>
           <span className="text-default-500">
-            Follower
-            {user.followers?.length && user?.followers?.length < 2 ? "" : "s"}
+            Orbiter
+            {user.followers?.length && user?.followers?.length === 1 ? "" : "s"}
+          </span>
+        </div>
+        <div className="flex gap-1">
+          <span className="font-semibold">{user.friends?.length ?? 0}</span>
+          <span className="text-default-500">
+            Astro
+            {user.friends?.length && user?.friends?.length === 1 ? "" : "s"}™
           </span>
         </div>
       </CardFooter>

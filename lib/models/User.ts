@@ -1,6 +1,6 @@
 import { models, model, Schema, Types } from "mongoose";
 import { ObjectId } from "mongodb";
-import { EVENT_STATUSES, REF, USER_RANKING } from "../constants";
+import { EVENT_STATUSES, REF, USER_RANKING, UserRanking } from "../constants";
 import { Attachment } from "@/types/user-feed";
 import { CommentDoc } from "./Comment";
 
@@ -29,6 +29,13 @@ export type UserStatusDoc = {
     timestamp: Date;
     replies: string[];
   }[];
+  qualityBadge?:
+    | "drifter"
+    | "explorer"
+    | "navigator"
+    | "connector"
+    | "pioneer"
+    | "luminary";
 };
 
 export type StatusViewDoc = {
@@ -136,7 +143,13 @@ export interface UserDoc {
   notifications?: Notification[];
   isAdmin?: boolean;
   karmaScore?: number;
-  qualityBadge?: "bronze" | "silver" | "gold" | "platinum";
+  qualityBadge?:
+    | "drifter"
+    | "explorer"
+    | "navigator"
+    | "connector"
+    | "pioneer"
+    | "luminary";
   eventsAttended?: number;
   eventsHosted?: number;
   lastMinuteCancels?: number;
@@ -242,16 +255,18 @@ const UserSchema = new Schema(
     phoneNumber: { type: String, required: false },
     notifications: [NotificationSchema],
     isAdmin: { type: ObjectId, ref: REF._USER },
-    karmaScore: { type: Number, default: 100 },
+    karmaScore: { type: Number, default: 0 },
     qualityBadge: {
       type: String,
       enum: [
-        USER_RANKING._BRONZE,
-        USER_RANKING._SILVER,
-        USER_RANKING._GOLD,
-        USER_RANKING._PLATINUM,
+        USER_RANKING.DRIFTER,
+        USER_RANKING.EXPLORER,
+        USER_RANKING.NAVIGATOR,
+        USER_RANKING.CONNECTOR,
+        USER_RANKING.PIONEER,
+        USER_RANKING.LUMINARY,
       ],
-      default: USER_RANKING._BRONZE,
+      default: USER_RANKING.DRIFTER,
     },
     eventsAttended: { type: Number, default: 0 },
     eventsHosted: { type: Number, default: 0 },

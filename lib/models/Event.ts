@@ -77,6 +77,13 @@ export interface EventDoc {
   orbiters?: ObjectId[];
   views: number;
   sparks: ObjectId[];
+  qualityBadge?:
+    | "drifter"
+    | "explorer"
+    | "navigator"
+    | "connector"
+    | "pioneer"
+    | "luminary";
 }
 
 const MessageSchema = new Schema(

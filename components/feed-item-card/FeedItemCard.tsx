@@ -90,6 +90,7 @@ import MissionChecklist from "../welcome-banner/checklist/checklist";
 import { getUser } from "@/utils/frontend-backend-connection/getUserInfo";
 import { useFeed } from "@/app/context/UserFeedContext";
 import { useAvatar, useUsername } from "@/app/context/UserContext";
+import RankBadge from "../karma/rankBadge";
 
 export default function FeedItemCard({ item }: FeedItemCardProps) {
   const { data: session } = useSession();
@@ -126,13 +127,13 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
     (isUserActor(actor) && String(actor.id) === String(session?.user?.id)) ||
     (!isUserActor(actor) && String(target?.userId) === String(session.user.id));
 
-  const avatarUrl = !actor
-    ? (avatar ?? "/misc/party.jpg")
-    : isUserActor(actor)
-      ? isCurrentUser
-        ? avatar || actor.avatar || getGravatarUrl(actor.email ?? "")
-        : actor.avatar || getGravatarUrl(actor.email ?? "")
-      : avatar || "/misc/party.jpg";
+  // console.log("Quality Badges: ", isUserActor(actor) && actor);
+
+  const avatarUrl = isUserActor(actor)
+    ? isCurrentUser
+      ? avatar || actor.avatar || getGravatarUrl(actor.email ?? "")
+      : actor.avatar || getGravatarUrl(actor.email ?? "")
+    : actor?.avatar || "/misc/party.jpg";
 
   const actorUsername = !actor
     ? username
@@ -165,7 +166,6 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
   };
 
   const handleVisibilitySet = async () => {
-    console.log("handleVisibility set fired");
     setVisibility(true);
     await loadUserDoc();
   };
@@ -264,6 +264,19 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
     }
   };
 
+  // console.log("RANK DEBUG", {
+  //   type,
+  //   isUserActor: isUserActor(actor),
+  //   actor,
+  //   actorQualityBadge: isUserActor(actor)
+  //     ? actor.qualityBadge
+  //     : target?.qualityBadge,
+  //   targetQualityBadge: target?.qualityBadge,
+  //   badgePassedToComponent: isUserActor(actor)
+  //     ? actor.qualityBadge
+  //     : target?.qualityBadge,
+  // });
+
   return (
     <Card
       radius="none"
@@ -299,7 +312,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                 </h6>
                 <p
                   className="text-xs font-extralight tracking-tight text-primary leading-snug
-                     whitespace-normal break-words"
+  truncate max-w-[12rem]"
                 >
                   {eventDistance ?? 0} mi away •{" "}
                   {target?.startingDate
@@ -326,6 +339,12 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             {/* {isUserActor(actor) && (
             <button className="p-1 text-xs rounded-full">{buttonText}</button>
           )} */}
+            <RankBadge
+              rank={
+                isUserActor(actor) ? actor.qualityBadge : target?.qualityBadge
+              }
+              size="sm"
+            />
             <Dropdown classNames={dropDownStyle} backdrop="blur">
               <DropdownTrigger>
                 <EllipsisVerticalIcon className="text-primary" width={24} />
@@ -509,7 +528,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             <div className="font-light tracking-tight max-w-[100%] text-center">
               {/* Text */}
               {target?.status?.content?.trim() ? (
-                <p className="mx-1.5 text-sm mb-2">{target.status.content}</p>
+                <p className="mx-3 text-sm my-2">{target.status.content}</p>
               ) : null}
 
               {/* Attachments */}
@@ -609,7 +628,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                     {target?.title}
                   </Button>
                 </div>
-                <div className="font-light tracking-tight text-sm px-3 mt-3">
+                <div className="font-light tracking-tight text-md px-3 mt-3">
                   {target?.snippet}
                 </div>
               </div>

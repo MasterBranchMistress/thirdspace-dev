@@ -1,10 +1,38 @@
 import clientPromise from "@/lib/mongodb";
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
-import { COLLECTIONS, DBS } from "@/lib/constants";
+import { COLLECTIONS, DBS, KARMA_CAPS } from "@/lib/constants";
 import { EventDoc } from "@/lib/models/Event";
 import { UserDoc } from "@/lib/models/User";
-import { getUserRanking } from "@/utils/getRanking";
+import { getUserRanking } from "@/utils/karma/getRanking";
+
+async function applyKarmaAndBadge(
+  usersCollection: ReturnType<any>,
+  userId: string,
+  increments: {
+    eventsAttended?: number;
+    eventsHosted?: number;
+    karmaScore?: number;
+  },
+) {
+  await usersCollection.updateOne(
+    { _id: new ObjectId(userId) },
+    { $inc: increments },
+  );
+
+  const user = await usersCollection.findOne({
+    _id: new ObjectId(userId),
+  });
+
+  if (!user) return;
+
+  const badge = getUserRanking(user.karmaScore ?? 0, user.eventsAttended ?? 0);
+
+  await usersCollection.updateOne(
+    { _id: new ObjectId(userId) },
+    { $set: { qualityBadge: badge } },
+  );
+}
 
 export async function PATCH() {
   const client = await clientPromise;
@@ -15,7 +43,6 @@ export async function PATCH() {
   try {
     const now = new Date();
 
-    // find all active events that are in the past
     const expiredEvents = await eventsCollection
       .find({
         status: "active",
@@ -24,66 +51,38 @@ export async function PATCH() {
       .toArray();
 
     for (const event of expiredEvents) {
-      const totalParticipants = (event.attendees?.length || 0) + 1; // include host
-      if (totalParticipants >= 2) {
-        // reward host
-        const hostUpdate = await usersCollection.updateOne(
-          { _id: new ObjectId(event.host) },
-          { $inc: { eventsAttended: 1, eventsHosted: 1, karmaScore: 2 } }
-        );
-        const host = await usersCollection.findOne({
-          _id: new ObjectId(event.host),
-        });
-        if (hostUpdate.acknowledged) {
-          const badge = getUserRanking(
-            host?.karmaScore ?? 50,
-            host?.eventsAttended ?? 0
-          );
-          await usersCollection.updateOne(
-            { _id: new ObjectId(event.host) },
-            { $set: { qualityBadge: badge } }
-          );
-        }
+      const attendeeCount = event.attendees?.length ?? 0;
+      const totalParticipants = attendeeCount + 1;
 
-        // reward each attendee
-        if (event.attendees && event.attendees.length > 0) {
-          for (const attendee of event.attendees) {
-            const updatedUser = await usersCollection.updateOne(
-              { _id: new ObjectId(attendee) },
-              { $inc: { eventsAttended: 1, karmaScore: 1 } }
-            );
-            const user = await usersCollection.findOne({
-              _id: new ObjectId(attendee),
-            });
-            if (updatedUser.acknowledged) {
-              const badge = getUserRanking(
-                user?.karmaScore ?? 100,
-                user?.eventsAttended ?? 0
-              );
-              await usersCollection.updateOne(
-                { _id: new ObjectId(attendee) },
-                { $set: { qualityBadge: badge } }
-              );
-            }
-          }
+      if (totalParticipants >= 2) {
+        await applyKarmaAndBadge(usersCollection, event.host.toString(), {
+          eventsAttended: 1,
+          eventsHosted: 1,
+          karmaScore: KARMA_CAPS.HOSTED_EVENT_DAILY,
+        });
+
+        for (const attendee of event.attendees ?? []) {
+          await applyKarmaAndBadge(usersCollection, attendee.toString(), {
+            eventsAttended: 1,
+            karmaScore: KARMA_CAPS.ATTENDED_EVENT_DAILY,
+          });
         }
       }
 
-      // finally mark event as completed
       await eventsCollection.updateOne(
-        { _id: new ObjectId(event._id) },
-        { $set: { status: "completed" } }
+        { _id: event._id },
+        { $set: { status: "completed" } },
       );
     }
 
     return NextResponse.json(
       { message: `✅ Auto-complete processed: ${expiredEvents.length} events` },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (err: unknown) {
     return NextResponse.json(
       { error: (err as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

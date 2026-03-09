@@ -92,6 +92,7 @@ export async function POST(
       },
       host: new ObjectId(user._id),
       attendees: [],
+      qualityBadge: user.qualityBadge,
       tags: data.tags || [],
       comments: [],
       status: EVENT_STATUSES._ACTIVE,
@@ -132,6 +133,7 @@ export async function POST(
         avatar: user.avatar,
         eventId: eventResult.insertedId,
         eventName: data.title,
+        qualityBadge: user.qualityBadge,
       },
       target: {
         userId: user._id,
@@ -148,6 +150,7 @@ export async function POST(
           lng,
           geo: { type: "Point", coordinates: [lng, lat] },
         },
+        qualityBadge: user.qualityBadge,
       },
       timestamp: now,
     };

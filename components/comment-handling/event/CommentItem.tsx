@@ -28,6 +28,7 @@ import { CommentDoc } from "@/lib/models/Comment";
 import CommentActions from "./CommentActions";
 import { useToast } from "@/app/providers/ToastProvider";
 import { useRouter } from "next/navigation";
+import RankBadge from "@/components/karma/rankBadge";
 
 type Props = {
   comment: CommentDoc;
@@ -182,6 +183,7 @@ export default function CommentItem({
                   {formatDistanceToNow(new Date(comment.timestamp))} ago
                 </span>
               </p>
+
               {/* Row 2: text */}
               <div className="text-xs text-primary mt-1">
                 {depth !== 0 && parentUser && (
@@ -278,6 +280,7 @@ export default function CommentItem({
               <FireIcon width={18} className="text-primary" />
               <span className="text-primary text-sm">{comment.sparks}</span>
             </div>
+
             <button
               hidden={comment.deleted}
               className="text-primary text-xs ml-1"
