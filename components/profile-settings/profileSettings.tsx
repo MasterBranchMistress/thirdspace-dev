@@ -27,7 +27,8 @@ import { useToast } from "@/app/providers/ToastProvider";
 import { useRouter } from "next/navigation";
 import confetti from "canvas-confetti";
 import AvatarUploader from "../attachment-uploader/avatarUploader";
-import { useAvatar } from "@/app/context/AvatarContext";
+import { useAvatar, useUsername } from "@/app/context/UserContext";
+import { useFeed } from "@/app/context/UserFeedContext";
 
 type UserLocation = {
   name: string;
@@ -110,6 +111,8 @@ export default function ProfileSettingsModal({
     [form?.usernameLastChangedAt],
   );
   const { avatar, setAvatar } = useAvatar();
+  const { username, setUsername } = useUsername();
+  const feed = useFeed();
   const user = session?.user;
 
   useEffect(() => {
@@ -233,7 +236,6 @@ export default function ProfileSettingsModal({
       //Check for avatar and save
       if (selectedFile) {
         const imageUrl = `https://thirdspace-attachments-dev.s3.us-east-2.amazonaws.com/${form.avatar?.key}`;
-        setAvatar(imageUrl);
         const avatarRes = await fetch(
           `/api/users/${userId}/avatar-handling/upload-avatar`,
           {
@@ -267,29 +269,48 @@ export default function ProfileSettingsModal({
         body: JSON.stringify(next),
       });
       const data = await res.json();
+
+      const updatedUserAvatar = data.avatar;
+      const newUsername = data.username;
+
+      setInitialForm(next);
+      if (form.avatar) {
+        setAvatar(updatedUserAvatar);
+        feed.updateActorAvatar(userId, updatedUserAvatar);
+        feed.updateTargetAvatar(userId, updatedUserAvatar);
+      }
+      if (form.username) {
+        setUsername(newUsername);
+        feed.updateActorUsername(userId, newUsername);
+        feed.updateTargetUsername(userId, newUsername);
+      }
+      await update({
+        ...session,
+        user: {
+          avatar: updatedUserAvatar,
+          username: newUsername,
+        },
+      });
+
+      console.log("USER UPDATES: ", newUsername);
       if (!res.ok) {
         notify("Failed to load profile!", `Couldn't load profile details.`);
         throw new Error(data?.error || "Failed to save");
       }
       if (form.visibility) {
-        console.log("visibility fired!");
         onSetVisibility?.();
       }
       if (form.tags) {
         onSetTags?.();
       }
-
-      setInitialForm(next);
       onOpenChange(false);
-      notify(
-        `Success! 🥳`,
-        `Profile changes saved successfully! Your changes will be reflected the next time you log in.`,
-      );
+      notify(`Success! 🥳`, `Profile changes saved successfully!`);
       confetti({
         particleCount: 100,
         spread: 80,
         origin: { y: 0.6 },
       });
+      // feed.refresh?.();
     } catch (e: any) {
       notify("Something went wrong.", `${e.message}`);
       setError(e.message || "Save failed");

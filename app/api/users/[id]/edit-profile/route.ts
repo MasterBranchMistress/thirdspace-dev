@@ -11,7 +11,7 @@ import { syncUserAvatar } from "@/utils/sync-user-avatar/syncAvatar";
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
   const client = await clientPromise;
@@ -43,7 +43,6 @@ export async function PATCH(
       updateFields.username = trimmed;
       changes.username = trimmed;
       updateFields.usernameLastChangedAt = new Date();
-      await syncUserUsername(String(user._id), trimmed);
     }
 
     // ✅ Bio
@@ -52,7 +51,7 @@ export async function PATCH(
       if (trimmed.length > 150) {
         return NextResponse.json(
           { error: "Bio must be 150 characters or fewer." },
-          { status: 400 }
+          { status: 400 },
         );
       }
       updateFields.bio = trimmed;
@@ -82,9 +81,8 @@ export async function PATCH(
       updateFields.avatar = trimmed;
       changes.avatar = trimmed;
       updateFields.avatarLastUpdatedAt = new Date();
-      syncUserAvatar(String(user._id), trimmed);
       feedItemsToInsert.push({
-        userId: null!,
+        userId: user._id,
         type: "profile_avatar_updated",
         actor: {
           id,
@@ -140,7 +138,7 @@ export async function PATCH(
       if (user.shareLocation === false)
         return NextResponse.json(
           { message: "User has their location privated" },
-          { status: 200 }
+          { status: 200 },
         );
 
       let attachments: string[] = [];
@@ -184,11 +182,11 @@ export async function PATCH(
       if (updates.tags.length > 5) {
         return NextResponse.json(
           { error: "You can only select up to 5 tags." },
-          { status: 400 }
+          { status: 400 },
         );
       }
       const cleanedTags = updates.tags.map((t: string) =>
-        t.trim().toLowerCase()
+        t.trim().toLowerCase(),
       );
       updateFields.tags = cleanedTags;
       changes.tags = cleanedTags;
@@ -199,14 +197,14 @@ export async function PATCH(
     if (Object.keys(updateFields).length === 0) {
       return NextResponse.json(
         { message: "No updates provided." },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
     // Save updated user profile
     await usersCollection.updateOne(
       { _id: new ObjectId(id) },
-      { $set: { ...updateFields, updatedAt: new Date() } }
+      { $set: { ...updateFields, updatedAt: new Date() } },
     );
 
     // Insert feed items for each friend
@@ -217,20 +215,36 @@ export async function PATCH(
         feedItemsToInsert.map((item) => ({
           ...item,
           userId: new ObjectId(recipientId),
-        }))
+        })),
       );
 
       await feedCollection.insertMany(feedItems);
     }
 
+    const updatedUser = {
+      ...user,
+      ...updateFields,
+      _id: user._id,
+    };
+
+    const avatar = updatedUser.avatar;
+    const username = updateFields.username;
+
     return NextResponse.json(
-      { message: "Profile updated", changes },
-      { status: 200 }
+      {
+        message: "Profile updated",
+        changes,
+        updates,
+        user: updateFields,
+        avatar,
+        username,
+      },
+      { status: 200 },
     );
   } catch (err: unknown) {
     return NextResponse.json(
       { error: (err as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

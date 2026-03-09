@@ -12,7 +12,8 @@ import { NextRequest, NextResponse } from "next/server";
 /** Always resolve a string avatar URL */
 function resolveAvatar(user?: UserDoc | null): string {
   if (!user) return "/misc/party.jpg"; // fallback
-  return user.avatar ?? getGravatarUrl(user.email);
+  if (!user.email) return "No email";
+  return user.avatar ?? getGravatarUrl(user?.email);
 }
 
 export async function generateEventFeed(
@@ -129,6 +130,7 @@ export async function generateEventFeed(
       startingDate: doc.actor.startingDate,
     },
     target: {
+      actorId: doc.userId.toString(),
       eventId: doc.target?.eventId || undefined,
       username: doc.target.username,
       title: doc.target?.title || "",
@@ -147,7 +149,7 @@ export async function generateEventFeed(
       attachments: doc.target?.attachments ?? [],
       avatar: typeof doc.target?.avatar === "string" ? doc.target.avatar : "",
     },
-    timestamp: doc.timestamp,
+    timestamp: doc.timestamp.toISOString(),
   }));
 
   return feed;

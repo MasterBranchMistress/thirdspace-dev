@@ -16,7 +16,7 @@ import { FeedItem } from "@/types/user-feed";
 import spaceman from "@/public/lottie/space-man.json";
 import backToTop from "@/public/lottie/back-to-top.json";
 import { useBrowserLocation } from "@/utils/geolocation/get-user-location/getUserLocation";
-import { useAvatar } from "@/app/context/AvatarContext";
+import { useAvatar } from "@/app/context/UserContext";
 import { getStatusSparks } from "@/utils/feed-item-actions/status-item-actions/sparkHandler";
 import { UserDoc, UserStatusDoc } from "@/lib/models/User";
 import { getEventSparks } from "@/utils/feed-item-actions/event-item-actions/sparkHandler";

@@ -38,6 +38,7 @@ import {
 import React from "react";
 import { parseZonedDate } from "@/utils/date-handling/parseCalendarZoneDateTime";
 import { handleAddEvent } from "@/utils/handle-user-posting/handleEventPost";
+import { useFeed } from "@/app/context/UserFeedContext";
 
 type AddEventProps = {
   isOpen: boolean;
@@ -48,9 +49,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
   const { data: session, update } = useSession();
   const { notify } = useToast();
   const user = session?.user;
-  // let [value, setValue] = React.useState(
-  //   parseAbsoluteToLocal("2024-04-08T18:45:22Z")
-  // );
+  const feed = useFeed();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState<ZonedDateTime | null>(null);
@@ -186,12 +185,12 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
         eventPrivacy: eventData.public,
         attachments: newFiles,
       });
-      notify("Event created 🗓️", "Sit tight while your event is processed.");
-      // confetti and gentle UX after success
       try {
+        notify("Event created 🗓️", "Sit tight while your event is processed.");
+        // confetti and gentle UX after success
         const confettiModule = (await import("canvas-confetti")).default;
         confettiModule({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-        update();
+        feed.refresh?.();
       } catch (err) {
         notify("Whoops, something went wrong here!", "");
         console.error(err);

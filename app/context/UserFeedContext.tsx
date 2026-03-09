@@ -22,6 +22,10 @@ interface FeedContextType {
   loadMore: () => void;
   prependItems?: (newItems: FeedItem[]) => void;
   removeItemByStatusId: (statusId: string) => void;
+  updateActorAvatar: (userId: string, avatar: string) => void;
+  updateTargetAvatar: (userId: string, avatar: string) => void;
+  updateActorUsername: (userId: string, username: string) => void;
+  updateTargetUsername: (userId: string, username: string) => void;
 }
 
 const FeedContext = createContext<FeedContextType>({
@@ -32,6 +36,10 @@ const FeedContext = createContext<FeedContextType>({
   error: null,
   prependItems: () => {},
   removeItemByStatusId: () => {},
+  updateActorAvatar: () => {},
+  updateTargetAvatar: () => {},
+  updateActorUsername: () => {},
+  updateTargetUsername: () => {},
 });
 
 export function FeedProvider({ children }: { children: ReactNode }) {
@@ -53,6 +61,72 @@ export function FeedProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const updateActorAvatar = (userId: string, avatar: string) => {
+    setItems((prev) =>
+      prev.map((item) => {
+        if (String(item.actor?.id) === String(userId)) {
+          return {
+            ...item,
+            actor: { ...item.actor, avatar },
+          };
+        }
+        return item;
+      }),
+    );
+  };
+
+  const updateTargetAvatar = (userId: string, avatar: string) => {
+    setItems((prev) =>
+      prev.map((item) => {
+        if (String(item.target?.userId) === String(userId)) {
+          return {
+            ...item,
+            target: { ...item.target, avatar },
+          };
+        }
+        return item;
+      }),
+    );
+  };
+
+  const updateActorUsername = (userId: string, username: string) => {
+    setItems((prev) =>
+      prev.map((item) => {
+        const isMatch = String(item.actor?.id) === String(userId);
+        if (isMatch) {
+          console.log("matched target item", item);
+        }
+        if (String(item.actor?.id) === String(userId)) {
+          const updated = {
+            ...item,
+            actor: { ...item.actor, username },
+          };
+
+          console.log("before", item);
+          console.log("after", updated);
+
+          return updated;
+        }
+
+        return item;
+      }),
+    );
+  };
+
+  const updateTargetUsername = (userId: string, username: string) => {
+    setItems((prev) =>
+      prev.map((item) => {
+        if (String(item.target?.userId) === String(userId)) {
+          return {
+            ...item,
+            target: { ...item.target, username },
+          };
+        }
+        return item;
+      }),
+    );
+  };
+
   const fetchFeed = async (pageToFetch = 1, isRefresh = false) => {
     if (!session?.user?.id) return;
 
@@ -65,14 +139,14 @@ export function FeedProvider({ children }: { children: ReactNode }) {
         `/api/users/${session.user.id}/user-feed?page=${pageToFetch}&limit=10`,
       );
 
-      if (!res) {
-        `couldn't get results`;
+      if (!res.ok) {
+        throw new Error("Couldn't get feed results");
       }
 
       const data = await res.json();
 
       if (!data) {
-        return `data could not be retrieved`;
+        throw new Error("Feed data could not be retrieved");
       }
 
       // ❌ Ignore if a newer request has already started
@@ -132,6 +206,10 @@ export function FeedProvider({ children }: { children: ReactNode }) {
         loadMore,
         prependItems,
         removeItemByStatusId,
+        updateActorAvatar,
+        updateTargetAvatar,
+        updateActorUsername,
+        updateTargetUsername,
       }}
     >
       {children}

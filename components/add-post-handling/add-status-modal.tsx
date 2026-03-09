@@ -21,6 +21,8 @@ import Lottie from "lottie-react";
 import hourglass from "@/public/lottie/hourglass.json";
 import { useToast } from "@/app/providers/ToastProvider";
 import confetti from "canvas-confetti";
+import { useFeed } from "@/app/context/UserFeedContext";
+import { FeedItem } from "@/types/user-feed";
 
 type AddStatusProps = {
   isOpen: boolean;
@@ -40,6 +42,7 @@ export default function AddStatus({
   const { notify } = useToast();
   const { data: session, update } = useSession();
   const user = session?.user;
+  const feed = useFeed();
 
   const submitStatus = async () => {
     if (useRefOnSubmit.current) return;
@@ -65,7 +68,9 @@ export default function AddStatus({
       setNewFiles([]);
       onOpenChange(false);
 
-      notify("Status Received 🤝", "Sit tight while your post is processed.");
+      notify("Status Posted 🤝", "");
+
+      feed.refresh?.();
 
       confetti({
         particleCount: 100,

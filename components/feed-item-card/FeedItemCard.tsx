@@ -89,12 +89,14 @@ import WelcomeBanner from "../welcome-banner/welcomeBanner";
 import MissionChecklist from "../welcome-banner/checklist/checklist";
 import { getUser } from "@/utils/frontend-backend-connection/getUserInfo";
 import { useFeed } from "@/app/context/UserFeedContext";
+import { useAvatar, useUsername } from "@/app/context/UserContext";
 
 export default function FeedItemCard({ item }: FeedItemCardProps) {
   const { data: session } = useSession();
   const user = session?.user;
+  const { avatar } = useAvatar();
+  const { username } = useUsername();
   if (!user) return;
-  const [avatarUrl, setAvatarUrl] = useState<string>();
   const [showPulse, setShowPulse] = useState(false);
   const [hasSparked, setHasSparked] = useState(false);
   const [previewFriends, setPreviewFriends] = useState([]);
@@ -120,21 +122,27 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
     return !!a && typeof (a as any).id === "string";
   };
 
-  useEffect(() => {
-    if (!actor) {
-      setAvatarUrl("/misc/party.jpg"); // or default avatar
-      return;
-    }
+  const isCurrentUser =
+    (isUserActor(actor) && String(actor.id) === String(session?.user?.id)) ||
+    (!isUserActor(actor) && String(target?.userId) === String(session.user.id));
 
-    if (isUserActor(actor)) {
-      setAvatarUrl(actor.avatar ?? getGravatarUrl(actor.email ?? ""));
-    } else {
-      setAvatarUrl(actor.avatar ?? "/misc/party.jpg");
-    }
-  }, [actor]);
+  const avatarUrl = !actor
+    ? (avatar ?? "/misc/party.jpg")
+    : isUserActor(actor)
+      ? isCurrentUser
+        ? avatar || actor.avatar || getGravatarUrl(actor.email ?? "")
+        : actor.avatar || getGravatarUrl(actor.email ?? "")
+      : avatar || "/misc/party.jpg";
+
+  const actorUsername = !actor
+    ? username
+    : isUserActor(actor)
+      ? isCurrentUser
+        ? username
+        : actor.username
+      : username;
+
   const { getRelationship } = useUserRelationships();
-
-  // console.log(actor, target); //for debugging
 
   const loadUserDoc = async () => {
     const res = await getUser(user);
@@ -151,7 +159,6 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
   }, [user]);
 
   const handleStatusPosted = async () => {
-    console.log("handleStatusPosted fired");
     localStorage.setItem("feedTutorialComplete", "true");
     setStatusJustPosted(true);
     await loadUserDoc();
@@ -279,11 +286,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                 color="primary"
                 radius="full"
                 size="md"
-                src={
-                  isUserActor(actor)
-                    ? avatarUrl
-                    : avatarUrl || "/misc/party.jpg"
-                }
+                src={avatarUrl}
               />
             </button>
             {!isUserActor(actor) ? (
@@ -311,7 +314,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                 </h4>
                 {isUserActor(actor) && (
                   <h5 className="text-small tracking-tight text-primary">
-                    @{actor?.username}
+                    @{actorUsername}
                   </h5>
                 )}
               </div>

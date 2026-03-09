@@ -10,7 +10,7 @@ import { ToastProvider } from "@/app/providers/ToastProvider";
 import { SessionProvider } from "next-auth/react";
 import { FeedProvider } from "@/app/context/UserFeedContext";
 import { NotificationsProvider } from "@/app/context/NotificationContext";
-import { AvatarProvider } from "@/app/context/AvatarContext";
+import { UserInfoProvider } from "@/app/context/UserContext";
 import { UserRelationshipsProvider } from "@/app/context/UserRelationshipsContext";
 
 export interface ProvidersProps {
@@ -32,7 +32,7 @@ export function Providers({ children, themeProps }: ProvidersProps) {
   return (
     <SessionProvider>
       <UserRelationshipsProvider>
-        <AvatarProvider>
+        <UserInfoProvider>
           <ToastProvider>
             <FeedProvider>
               <HeroUIProvider navigate={router.push}>
@@ -42,7 +42,7 @@ export function Providers({ children, themeProps }: ProvidersProps) {
               </HeroUIProvider>
             </FeedProvider>
           </ToastProvider>
-        </AvatarProvider>
+        </UserInfoProvider>
       </UserRelationshipsProvider>
     </SessionProvider>
   );

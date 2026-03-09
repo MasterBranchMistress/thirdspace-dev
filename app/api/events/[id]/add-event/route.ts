@@ -135,6 +135,7 @@ export async function POST(
       },
       target: {
         userId: user._id,
+        username: user.username,
         host: user.firstName!,
         title: data.title,
         snippet: data.description,
@@ -229,7 +230,11 @@ export async function POST(
     }
 
     return NextResponse.json(
-      { message: "✅ Event created", eventId: eventResult.insertedId },
+      {
+        message: "✅ Event created",
+        eventId: eventResult.insertedId,
+        eventResult,
+      },
       { status: 201 },
     );
   } catch (error: any) {

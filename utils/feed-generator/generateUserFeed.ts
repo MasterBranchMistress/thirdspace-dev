@@ -75,6 +75,7 @@ export async function generateUserFeed(
     "joined_platform",
     "hosted_event",
     "profile_status_updated",
+    "profile_avatar_updated",
   ];
 
   await logFeedItem({
@@ -218,6 +219,8 @@ export async function generateUserFeed(
       },
       target: {
         ...doc.target,
+        userId: doc.target?.userId?.toString(),
+        username: doc.target?.username,
         snippet: doc.target?.snippet,
         attachments: doc.target?.attachments,
       },
