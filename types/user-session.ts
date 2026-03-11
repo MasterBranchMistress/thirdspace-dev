@@ -28,6 +28,7 @@ export type SessionUser = {
     lng?: number;
   };
   lang?: string;
+  onboarded: boolean;
   onboarding?: {
     exploredSolarSystem?: boolean;
     exploredSpaceStation?: boolean;

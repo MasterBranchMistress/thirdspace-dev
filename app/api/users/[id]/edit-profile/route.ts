@@ -8,6 +8,7 @@ import { isAuthorized } from "@/utils/auth";
 import { getLocationImage } from "@/utils/get-location-images/getLocationImages";
 import { syncUserUsername } from "@/utils/sync-user-username/syncUsername";
 import { syncUserAvatar } from "@/utils/sync-user-avatar/syncAvatar";
+import { awardKarma } from "@/utils/karma/awardKarma";
 
 export async function PATCH(
   req: NextRequest,
@@ -66,6 +67,7 @@ export async function PATCH(
           lastName: user.lastName,
           username: user.username,
           avatar: user.avatar!,
+          karmaScore: user.karmaScore,
         },
         target: { snippet: trimmed },
         timestamp,
@@ -90,6 +92,7 @@ export async function PATCH(
           lastName: user.lastName,
           username: user.username,
           avatar: trimmed,
+          karmaScore: user.karmaScore,
         },
         target: { snippet: trimmed },
         timestamp,
@@ -125,7 +128,7 @@ export async function PATCH(
     //Location
     let locationName;
     if (
-      typeof updates.location.name === "string" &&
+      typeof updates.location?.name === "string" &&
       updates.location.name.trim() !== user.location?.name
     ) {
       const trimmedLocation = updates.location.name.trim();
@@ -154,24 +157,6 @@ export async function PATCH(
       } catch (err) {
         console.error("Unable to get photo: ", err);
       }
-
-      feedItemsToInsert.push({
-        userId: null!,
-        type: "profile_location_updated",
-        actor: {
-          id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          username: user.username,
-          avatar: user.avatar!,
-        },
-        target: {
-          snippet: locationName,
-          attachments,
-          photoCredit,
-        },
-        timestamp,
-      });
     }
 
     // ✅ Tags
@@ -228,7 +213,7 @@ export async function PATCH(
     };
 
     const avatar = updatedUser.avatar;
-    const username = updateFields.username;
+    const username = updatedUser.username;
 
     return NextResponse.json(
       {

@@ -5,7 +5,7 @@ import { UserDoc } from "./User";
 
 export interface UserFeedDoc {
   _id?: ObjectId;
-  userId: ObjectId;
+  userId?: ObjectId;
   sourceId?: string;
   type: Extract<
     FeedItemType,
@@ -14,13 +14,11 @@ export interface UserFeedDoc {
     | "hosted_event"
     | "status_posted"
     | "created_event"
-    | "profile_bio_updated"
     | "profile_avatar_updated"
-    | "profile_location_updated"
-    | "profile_username_updated"
-    | "profile_tags_updated"
     | "profile_status_updated"
+    | "profile_bio_updated"
     | "joined_platform"
+    | "user_promoted"
   >;
   actor: FeedUserActor;
   target?: FeedTarget;

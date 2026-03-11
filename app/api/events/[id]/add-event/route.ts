@@ -93,6 +93,7 @@ export async function POST(
       host: new ObjectId(user._id),
       attendees: [],
       qualityBadge: user.qualityBadge,
+      karmaScore: user.karmaScore,
       tags: data.tags || [],
       comments: [],
       status: EVENT_STATUSES._ACTIVE,
@@ -134,6 +135,7 @@ export async function POST(
         eventId: eventResult.insertedId,
         eventName: data.title,
         qualityBadge: user.qualityBadge,
+        karmaScore: user.karmaScore,
       },
       target: {
         userId: user._id,
@@ -151,6 +153,7 @@ export async function POST(
           geo: { type: "Point", coordinates: [lng, lat] },
         },
         qualityBadge: user.qualityBadge,
+        karmaScore: user.karmaScore,
       },
       timestamp: now,
     };

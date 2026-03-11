@@ -118,6 +118,12 @@ export async function POST(req: NextRequest) {
         exploredSolarSystem: false,
         exploredSpaceStation: false,
       },
+      dailyKarma: {
+        date: now.toISOString(),
+        earned: 0,
+        comments: 0,
+        statuses: 0,
+      },
     };
 
     const newUser: UserDoc = {

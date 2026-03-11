@@ -24,7 +24,7 @@ export function NearbyUserCard({ user }: Props) {
   const tags = user.tags ?? [];
   // const sharedTags = user.sharedTags ?? [];
   const router = useRouter();
-
+  // console.log(`PASSED IN USER TO NEABRY USER, ${user.karmaScore}`);
   return (
     <Card
       className="w-full bg-primary/80 mt-3 shadow-none animate-slide-down rounded-2xl"
@@ -58,7 +58,7 @@ export function NearbyUserCard({ user }: Props) {
               : 0}{" "}
             Miles Away 📍{" "}
           </span>
-          <RankBadge size="sm" rank={user.qualityBadge} />
+          <RankBadge size="sm" karmaScore={user.karmaScore} />
         </div>
       </CardHeader>
 

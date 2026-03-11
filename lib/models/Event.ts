@@ -42,6 +42,7 @@ export interface EventDoc {
     };
   };
   host: ObjectId;
+  karmaScore?: number;
   hostAvatar?: string;
   attendees: ObjectId[];
   tags?: string[];

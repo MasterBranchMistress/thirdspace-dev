@@ -115,7 +115,7 @@ export default function AttachmentSwiper({
                 url?.match(/\.(mp4|mov|avi|webm|mkv)$/i) ? (
                   <div className="relative">
                     {commentsAreOpen && (
-                      <div className="relative w-full h-[60vh] overflow-hidden">
+                      <div className="relative w-full h-[50vh] overflow-hidden">
                         {/* Background blurred video */}
                         <video
                           src={url}
@@ -171,7 +171,7 @@ export default function AttachmentSwiper({
                   </div>
                 ) : (
                   <div
-                    className={`relative w-full ${commentsAreOpen ? "h-[60vh]" : "h-[100vh]"} overflow-hidden`}
+                    className={`relative w-full ${commentsAreOpen ? "h-[50vh]" : "h-[100vh]"} overflow-hidden`}
                   >
                     {/* Blurred background */}
                     <Image

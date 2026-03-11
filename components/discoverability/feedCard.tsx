@@ -64,7 +64,7 @@ export default function FeedAttachmentSwiper({
 
   return (
     <Card
-      className={`${attachments.length > 1 ? `w-full rounded-xl h-[60vh]` : `w-[100vw] rounded-none h-auto`} flex-col p-0 m-0 bg-transparent shadow-none animate-slide-down relative`}
+      className={`${attachments.length > 1 ? `w-full rounded-xl h-[60vh]` : `w-[100vw] rounded-none h-auto`} flex-col p-0 m-0 bg-transparent shadow-none animate-appearance-in relative`}
       isBlurred={false} // disable blurred background
       isPressable
       isHoverable

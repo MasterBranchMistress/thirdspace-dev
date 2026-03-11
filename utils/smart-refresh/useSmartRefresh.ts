@@ -39,7 +39,7 @@ export function useSmartFeedRefresh({
 
       if (isHidden) return 60000; // 60s when tab hidden
       if (secondsSinceMount < 30) return 5000; // 5s for first 30s
-      return 10000; // 10s normally
+      return 20000; // 20s normally
     };
 
     const checkForUpdates = async () => {

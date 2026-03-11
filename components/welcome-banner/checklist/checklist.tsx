@@ -34,17 +34,17 @@ type Props = {
 const MISSIONS: MissionItem[] = [
   {
     value: "account",
-    label: "Add a few hobbies and interests ✨",
+    label: "Add hobbies and interests ✨",
     description: "Help improve your recommendations.",
   },
   {
     value: "privacy",
-    label: "Review your privacy settings 🔒",
-    description: "Make sure your visibility is set how you want it.",
+    label: "Review privacy settings 🔒",
+    description: "Change who can see your content.",
   },
   {
     value: "status",
-    label: "Make your first ThirdSpace™ post 📝",
+    label: "Make a post on ThirdSpace™ 📝",
     description: "Let the world know that you've landed.",
   },
 ];
@@ -137,7 +137,7 @@ export default function MissionChecklist({
           {allComplete ? (
             <div className="flex flex-col items-center justify-center text-center py-4">
               <h3 className="text-sm font-semibold text-white mb-2">
-                Mission Complete 🚀
+                Mission Complete <span className="animate-spin">🌟</span>
               </h3>
               <p className="text-xs text-white/75 max-w-sm">
                 You’re cleared for orbit. Explore the Solar System and dock at
@@ -148,7 +148,7 @@ export default function MissionChecklist({
             <>
               <div className="mb-4 flex justify-center flex-col items-center">
                 <h3 className="text-sm font-semibold text-white">
-                  Mission Objectives 🚀
+                  Mission Objectives 🧑‍🚀
                 </h3>
                 <p className="text-xs text-white/75">{progressLabel}</p>
               </div>

@@ -27,7 +27,7 @@ import { useToast } from "@/app/providers/ToastProvider";
 import { useRouter } from "next/navigation";
 import confetti from "canvas-confetti";
 import AvatarUploader from "../attachment-uploader/avatarUploader";
-import { useAvatar, useUsername } from "@/app/context/UserContext";
+import { useUserInfo } from "@/app/context/UserContext";
 import { useFeed } from "@/app/context/UserFeedContext";
 
 type UserLocation = {
@@ -110,8 +110,9 @@ export default function ProfileSettingsModal({
     () => daysSince(form?.usernameLastChangedAt) >= USERNAME_COOLDOWN_DAYS,
     [form?.usernameLastChangedAt],
   );
-  const { avatar, setAvatar } = useAvatar();
-  const { username, setUsername } = useUsername();
+
+  const { avatar, username, setUsername, setAvatar, rank, karmaScore } =
+    useUserInfo();
   const feed = useFeed();
   const user = session?.user;
 
@@ -274,19 +275,19 @@ export default function ProfileSettingsModal({
       const newUsername = data.username;
 
       setInitialForm(next);
-      if (form.avatar) {
+      if (updatedUserAvatar) {
         setAvatar(updatedUserAvatar);
         feed.updateActorAvatar(userId, updatedUserAvatar);
         feed.updateTargetAvatar(userId, updatedUserAvatar);
       }
-      if (form.username) {
+      if (newUsername && newUsername !== username) {
         setUsername(newUsername);
         feed.updateActorUsername(userId, newUsername);
         feed.updateTargetUsername(userId, newUsername);
       }
       await update({
-        ...session,
         user: {
+          ...session?.user,
           avatar: updatedUserAvatar,
           username: newUsername,
         },

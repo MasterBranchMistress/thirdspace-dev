@@ -17,7 +17,13 @@ import EventGridCard from "@/components/event-item-card/eventItemCard";
 import endEvents from "@/public/lottie/end-events.json";
 import { useUserRelationships } from "@/app/context/UserRelationshipsContext";
 import LoadingPage from "@/components/spinner/LoadingPage";
-import { useRank } from "@/app/context/UserContext";
+import { useUserInfo } from "@/app/context/UserContext";
+import {
+  CalendarDaysIcon,
+  ChatBubbleLeftRightIcon,
+  LightBulbIcon,
+  RocketLaunchIcon,
+} from "@heroicons/react/24/solid";
 
 type Profile = {
   user: UserDoc;
@@ -59,7 +65,7 @@ export default function ProfilePage() {
   const { data: session } = useSession();
   const viewer = session?.user;
   const { getRelationship, isSelf } = useUserRelationships();
-  const rank = useRank();
+  const { avatar, username, rank, setRank, karmaScore } = useUserInfo();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -206,15 +212,50 @@ export default function ProfilePage() {
           <div className="flex flex-col justify-center items-center py-6">
             <Lottie animationData={endEvents} style={{ width: "8rem" }} />
             <h1 className="text-primary font-light">That's all for now!</h1>
-            <div className="flex flex-row gap-2">
+            <div className="flex flex-row gap-2 mt-4">
               <Button
                 onPress={() => router.push("/dashboard")}
                 variant="shadow"
                 color="primary"
-                className="mt-4"
+                size="sm"
+                startContent={
+                  <ChatBubbleLeftRightIcon width={20} color="secondary" />
+                }
+              >
+                Message
+              </Button>
+              <Button
+                onPress={() => router.push("/dashboard")}
+                variant="bordered"
+                color="primary"
                 size="sm"
               >
                 Back
+              </Button>
+              <Button
+                className="
+  text-xs
+  rounded-md
+  font-light
+  text-white
+  bg-gradient-to-r
+  from-indigo-500
+  via-fuchsia-500
+  to-cyan-400
+  shadow-2xl
+  transition-all
+  duration-300
+  hover:scale-105
+  hover:shadow-[0_0_16px_rgba(168,85,247,0.7)]
+  active:scale-95
+"
+                onPress={() => router.push("/dashboard")}
+                variant="shadow"
+                color="primary"
+                size="sm"
+                startContent={<RocketLaunchIcon width={20} color="secondary" />}
+              >
+                Hyperdrive™
               </Button>
             </div>
           </div>
@@ -227,15 +268,52 @@ export default function ProfilePage() {
             <span className="font-medium">{profile?.user.firstName}</span>{" "}
             hasn’t attended any events yet. Maybe they need some ideas? ✨
           </p>
-          <Button
-            onPress={() => router.push("/dashboard")}
-            variant="shadow"
-            color="primary"
-            className="mt-4"
-            size="sm"
-          >
-            Go Back
-          </Button>
+          <div className="flex flex-row gap-2 justify-center items-center mt-4">
+            <Button
+              onPress={() => router.push("/dashboard")}
+              variant="shadow"
+              color="primary"
+              size="sm"
+              startContent={
+                <ChatBubbleLeftRightIcon width={20} color="secondary" />
+              }
+            >
+              Message
+            </Button>
+            <Button
+              onPress={() => router.push("/dashboard")}
+              variant="bordered"
+              color="primary"
+              size="sm"
+            >
+              Back
+            </Button>
+            <Button
+              className="
+  text-xs
+  rounded-md
+  font-light
+  text-white
+  bg-gradient-to-r
+  from-indigo-500
+  via-fuchsia-500
+  to-cyan-400
+  shadow-2xl
+  transition-all
+  duration-300
+  hover:scale-105
+  hover:shadow-[0_0_16px_rgba(168,85,247,0.7)]
+  active:scale-95
+"
+              onPress={() => router.push("/dashboard")}
+              variant="shadow"
+              color="primary"
+              size="sm"
+              startContent={<RocketLaunchIcon width={20} color="secondary" />}
+            >
+              Hyperdrive™
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center text-center h-full mx-3 my-auto p-3">
@@ -249,6 +327,7 @@ export default function ProfilePage() {
               variant="shadow"
               color="primary"
               size="sm"
+              startContent={<CalendarDaysIcon width={20} color="secondary" />}
             >
               Create Event
             </Button>
@@ -258,7 +337,33 @@ export default function ProfilePage() {
               color="primary"
               size="sm"
             >
-              Explore Events
+              Back
+            </Button>
+            <Button
+              className="
+  text-xs
+  px-5 py-2
+  rounded-md
+  font-light
+  text-white
+  bg-gradient-to-r
+  from-indigo-500
+  via-fuchsia-500
+  to-cyan-400
+  shadow-2xl
+  transition-all
+  duration-300
+  hover:scale-105
+  hover:shadow-[0_0_16px_rgba(168,85,247,0.7)]
+  active:scale-95
+"
+              onPress={() => router.push("/dashboard")}
+              variant="shadow"
+              color="primary"
+              size="sm"
+              startContent={<RocketLaunchIcon width={20} color="secondary" />}
+            >
+              Hyperdrive™
             </Button>
           </div>
         </div>

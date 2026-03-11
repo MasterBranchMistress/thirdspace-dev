@@ -53,7 +53,7 @@ export async function POST(
     const viewerTags: string[] = Array.isArray(viewer.tags) ? viewer.tags : [];
     const viewerTagSet = new Set(viewerTags.map(normalizeTag));
 
-    console.log("Viewer Tag Set: ", viewerTags);
+    // console.log("Viewer Tag Set: ", viewerTags);
 
     await db
       .collection(COLLECTIONS._EVENTS)
@@ -96,6 +96,8 @@ export async function POST(
     //   general: candidates?.[0].host.karmaScore,
     // });
 
+    // console.log(`Candidates: `, candidates[0]);
+
     const scored = candidates.map((evt: any) => {
       const tags: string[] = Array.isArray(evt.tags) ? evt.tags : [];
       const normalizedEventTags = tags.map(normalizeTag);
@@ -115,9 +117,9 @@ export async function POST(
       const baseScore = sharedTagCount * 10 + distanceScore * 3 + attendees * 5;
 
       // karma boost (host karma)
-      console.log(`EVENT HOSTS: ${evt.host}`);
-      const hostKarma = 100;
-      console.log("HOST KARMAL ", hostKarma);
+      // console.log(`EVENT HOSTS: ${evt.host}`);
+      const hostKarma = evt.karmaScore;
+      // console.log("HOST KARMAL ", hostKarma);
       const score =
         sharedTagCount > 0 ? baseScore * karmaToBoost(hostKarma) : baseScore; // guardrail: no karma boost with zero overlap
 

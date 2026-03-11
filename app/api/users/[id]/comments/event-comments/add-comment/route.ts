@@ -5,6 +5,7 @@ import { COLLECTIONS, DBS, EVENT_STATUSES } from "@/lib/constants";
 import { EventDoc } from "@/lib/models/Event";
 import { UserDoc } from "@/lib/models/User";
 import { CommentDoc } from "@/lib/models/Comment";
+import { awardKarma } from "@/utils/karma/awardKarma";
 
 export async function POST(
   req: NextRequest,
@@ -76,6 +77,7 @@ export async function POST(
         username: user.username,
         firstName: user.firstName,
         lastName: user.lastName,
+        qualityBadge: user.qualityBadge,
       },
       text,
       timestamp: new Date(),
@@ -87,9 +89,13 @@ export async function POST(
     };
 
     await commentsCollection.insertOne(newComment);
+    const rewardKarma = await awardKarma(String(user._id), "comment");
 
     // ✅ Return only the new comment
-    return NextResponse.json({ comment: newComment }, { status: 201 });
+    return NextResponse.json(
+      { comment: newComment, rewardKarma: rewardKarma.awarded },
+      { status: 201 },
+    );
   } catch (error: unknown) {
     return NextResponse.json(
       { error: (error as Error).message },

@@ -41,6 +41,17 @@ const config = {
             transform: "scale(1.25)",
           },
         },
+        nebulaShift: {
+          "0%": {
+            backgroundPosition: "0% 50%",
+          },
+          "50%": {
+            backgroundPosition: "100% 50%",
+          },
+          "100%": {
+            backgroundPosition: "0% 50%",
+          },
+        },
       },
       animation: {
         pointLeft: "pointLeft 1s ease-in-out infinite",

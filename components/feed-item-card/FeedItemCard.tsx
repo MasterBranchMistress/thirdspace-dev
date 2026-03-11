@@ -89,14 +89,16 @@ import WelcomeBanner from "../welcome-banner/welcomeBanner";
 import MissionChecklist from "../welcome-banner/checklist/checklist";
 import { getUser } from "@/utils/frontend-backend-connection/getUserInfo";
 import { useFeed } from "@/app/context/UserFeedContext";
-import { useAvatar, useUsername } from "@/app/context/UserContext";
+
 import RankBadge from "../karma/rankBadge";
+import PromotionFeedItem from "../karma/promotion-card-map";
+import { getUserRanking } from "@/utils/karma/getRanking";
+import { useUserInfo } from "@/app/context/UserContext";
 
 export default function FeedItemCard({ item }: FeedItemCardProps) {
   const { data: session } = useSession();
   const user = session?.user;
-  const { avatar } = useAvatar();
-  const { username } = useUsername();
+  const { avatar, username, rank, karmaScore, setKarmaScore } = useUserInfo();
   if (!user) return;
   const [showPulse, setShowPulse] = useState(false);
   const [hasSparked, setHasSparked] = useState(false);
@@ -127,8 +129,6 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
     (isUserActor(actor) && String(actor.id) === String(session?.user?.id)) ||
     (!isUserActor(actor) && String(target?.userId) === String(session.user.id));
 
-  // console.log("Quality Badges: ", isUserActor(actor) && actor);
-
   const avatarUrl = isUserActor(actor)
     ? isCurrentUser
       ? avatar || actor.avatar || getGravatarUrl(actor.email ?? "")
@@ -142,6 +142,10 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
         ? username
         : actor.username
       : username;
+
+  const promotionKarmaScore = target?.promotion?.karmaScore;
+
+  const actorKarmaScore = isCurrentUser ? karmaScore : actor?.karmaScore;
 
   const { getRelationship } = useUserRelationships();
 
@@ -209,6 +213,10 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
     ? String(user?.id) === String(actor.id)
     : String(user?.id) === String(target?.userId);
 
+  console.log(
+    `PROMOTION INFO: ${isUserActor(actor) && type === "user_promoted" ? getUserRanking(target?.promotion?.karmaScore) : null}`,
+  );
+
   const message =
     type === "event_is_popular"
       ? `Orbit Breaker™ 🔥`
@@ -226,8 +234,10 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                   ? `The Solar System ™   ☄️`
                   : type === "discover_users"
                     ? `The Space Station ™ 👽`
-                    : isUserActor(actor) &&
-                      `${actor.firstName} is doing something cool 🤔`;
+                    : type === "user_promoted"
+                      ? `Ascension™  🚀`
+                      : isUserActor(actor) &&
+                        `${actor.firstName} is doing something cool 🤔`;
 
   const handleDeletePost = async (statusId?: string) => {
     try {
@@ -263,19 +273,6 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
       notify("Something went wrong", "");
     }
   };
-
-  // console.log("RANK DEBUG", {
-  //   type,
-  //   isUserActor: isUserActor(actor),
-  //   actor,
-  //   actorQualityBadge: isUserActor(actor)
-  //     ? actor.qualityBadge
-  //     : target?.qualityBadge,
-  //   targetQualityBadge: target?.qualityBadge,
-  //   badgePassedToComponent: isUserActor(actor)
-  //     ? actor.qualityBadge
-  //     : target?.qualityBadge,
-  // });
 
   return (
     <Card
@@ -336,15 +333,8 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
 
           {/* Right side: Orbit button + ellipses */}
           <div className="flex items-center shrink-0">
-            {/* {isUserActor(actor) && (
-            <button className="p-1 text-xs rounded-full">{buttonText}</button>
-          )} */}
-            <RankBadge
-              rank={
-                isUserActor(actor) ? actor.qualityBadge : target?.qualityBadge
-              }
-              size="sm"
-            />
+            <RankBadge karmaScore={actorKarmaScore} size="sm" />
+
             <Dropdown classNames={dropDownStyle} backdrop="blur">
               <DropdownTrigger>
                 <EllipsisVerticalIcon className="text-primary" width={24} />
@@ -403,9 +393,17 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
         <p className="font-bold text-center tracking-tighter">{message}</p>
         <div className="flex flex-col justify-center items-center">
           {type === "profile_bio_updated" && target?.snippet && (
-            <span className="font-light mx-2 my-2 max-w-[100%]">
+            <span className="font-light text-center px-4 mx-2 my-2 max-w-[100%]">
               {target.snippet}
             </span>
+          )}
+          {type === "user_promoted" && isUserActor(actor) && (
+            <PromotionFeedItem
+              actor={actor}
+              target={target}
+              timestamp={target?.timeOfPromotion ?? new Date()}
+              newRank={getUserRanking(target?.promotion?.karmaScore)}
+            />
           )}
           {type === "joined_platform" && isUserActor(actor) && (
             <div className="font-light tracking-tight w-[100vw] text-center">

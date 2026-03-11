@@ -134,7 +134,7 @@ export default function StatusDetailModal({
                 // ===== MEDIA-FIRST LAYOUT (your current) =====
                 <div
                   className={`relative w-full flex-none transition-all duration-300 ease-in-out ${
-                    showComments ? "h-[60vh]" : "h-[100vh]"
+                    showComments ? "h-[50vh]" : "h-[100vh]"
                   }`}
                 >
                   {showSparkPulse && (
@@ -143,7 +143,7 @@ export default function StatusDetailModal({
                     </div>
                   )}
                   <div
-                    className="absolute top-3 left-1 z-20 flex items-center gap-2 bg-black/40 backdrop-blur px-2 py-1 rounded-full"
+                    className="absolute ml-1  top-3 left-1 z-20 flex items-center gap-2 bg-black/40 backdrop-blur px-2 py-1 rounded-full"
                     onClick={() =>
                       router.push(
                         `/dashboard/profile/${status.userId.toString()}`,
@@ -156,8 +156,8 @@ export default function StatusDetailModal({
                       color="primary"
                       size="sm"
                     />
-                    <span className="text-sm font-medium text-white">
-                      {status.authorUsername ?? status.author}
+                    <span className="text-tiny font-medium text-white">
+                      @{status.authorUsername ?? status.author}
                     </span>
                   </div>
                   <AttachmentSwiper
@@ -247,7 +247,13 @@ export default function StatusDetailModal({
                   )}
                   {/* Author pill (reuse the same pill) */}
                   <div
-                    className="absolute top-3 left-1 z-20 flex items-center gap-2 bg-black/40 backdrop-blur px-2 py-1 rounded-full"
+                    className="absolute top-3 ml-2 left-1 z-20 flex items-center gap-2
+ rounded-full text-white px-2 py-1 text-tiny
+bg-[linear-gradient(120deg,#6366f1,#a855f7,#06b6d4,#6366f1)]
+bg-[length:200%_200%]
+animate-post-glow
+backdrop-blur-md border-non
+shadow-[0_0_12px_rgba(168,85,247,0.35)]"
                     onClick={() =>
                       router.push(
                         `/dashboard/profile/${status.userId.toString()}`,
@@ -260,8 +266,8 @@ export default function StatusDetailModal({
                       color="primary"
                       size="sm"
                     />
-                    <span className="text-sm font-medium text-white">
-                      {status.author}
+                    <span className="text-tiny font-medium text-white">
+                      @{status.authorUsername ?? status.author}
                     </span>
                   </div>
 

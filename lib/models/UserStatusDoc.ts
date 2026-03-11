@@ -9,6 +9,7 @@ export interface UserStatusDoc {
   attachments?: string[];
   orbiters?: ObjectId[];
   reposts?: ObjectId[];
+  promoted?: boolean;
 }
 
 export interface StatusViewStatDoc {

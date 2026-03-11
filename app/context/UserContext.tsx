@@ -1,83 +1,119 @@
 "use client";
+
 import {
   createContext,
   useContext,
+  useEffect,
   useState,
   ReactNode,
-  useEffect,
+  useCallback,
+  useMemo,
 } from "react";
 import { useSession } from "next-auth/react";
 import { UserRanking } from "@/lib/constants";
 
-type AvatarContextType = {
-  avatar: string | undefined;
-  setAvatar: (url: string) => void;
+type UserInfoState = {
+  avatar?: string;
+  username?: string;
+  rank?: UserRanking;
+  karmaScore?: number;
 };
 
-type UsernameContextType = {
-  username: string | undefined;
-  setUsername: (input: string) => void;
+type UserInfoContextType = UserInfoState & {
+  setAvatar: (avatar: string) => void;
+  setUsername: (username: string) => void;
+  setRank: (rank: UserRanking) => void;
+  setKarmaScore: (score: number) => void;
+  setUserInfo: (updates: Partial<UserInfoState>) => void;
 };
 
-type RankContextType = {
-  rank: UserRanking | undefined;
-  setRank: (input: UserRanking) => void;
-};
-
-const AvatarContext = createContext<AvatarContextType | undefined>(undefined);
-const UsernameContext = createContext<UsernameContextType | undefined>(
+const UserInfoContext = createContext<UserInfoContextType | undefined>(
   undefined,
 );
-const RankContext = createContext<RankContextType | undefined>(undefined);
 
 export const UserInfoProvider = ({ children }: { children: ReactNode }) => {
   const { data: session } = useSession();
-  const [avatar, setAvatar] = useState<string | undefined>(undefined);
-  const [username, setUsername] = useState<string | undefined>(undefined);
-  const [rank, setRank] = useState<UserRanking | undefined>(undefined);
+
+  const [userInfo, setUserInfoState] = useState<UserInfoState>({
+    avatar: undefined,
+    username: undefined,
+    rank: undefined,
+    karmaScore: undefined,
+  });
 
   useEffect(() => {
-    if (session?.user?.avatar) {
-      setAvatar(session.user.avatar);
-    }
+    const nextAvatar = session?.user?.avatar;
+    const nextUsername = session?.user?.username;
+    const nextRank = session?.user?.qualityBadge;
+    const nextKarmaScore = session?.user?.karmaScore;
 
-    if (session?.user?.username) {
-      setUsername(session.user.username);
-    }
-    if (session?.user?.qualityBadge) {
-      setRank(session.user.qualityBadge);
-    }
+    setUserInfoState((prev) => {
+      if (
+        prev.avatar === nextAvatar &&
+        prev.username === nextUsername &&
+        prev.rank === nextRank &&
+        prev.karmaScore === nextKarmaScore
+      ) {
+        return prev;
+      }
+
+      return {
+        avatar: nextAvatar,
+        username: nextUsername,
+        rank: nextRank,
+        karmaScore: nextKarmaScore,
+      };
+    });
   }, [
     session?.user?.avatar,
     session?.user?.username,
     session?.user?.qualityBadge,
+    session?.user?.karmaScore,
   ]);
 
+  const setAvatar = useCallback((avatar: string) => {
+    setUserInfoState((prev) => ({ ...prev, avatar }));
+  }, []);
+
+  const setUsername = useCallback((username: string) => {
+    setUserInfoState((prev) => ({ ...prev, username }));
+  }, []);
+
+  const setRank = useCallback((rank: UserRanking) => {
+    setUserInfoState((prev) => ({ ...prev, rank }));
+  }, []);
+
+  const setKarmaScore = useCallback((score: number) => {
+    setUserInfoState((prev) => ({ ...prev, karmaScore: score }));
+  }, []);
+
+  const setUserInfo = useCallback((updates: Partial<UserInfoState>) => {
+    setUserInfoState((prev) => ({ ...prev, ...updates }));
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      ...userInfo,
+      setAvatar,
+      setUsername,
+      setRank,
+      setKarmaScore,
+      setUserInfo,
+    }),
+    [userInfo, setAvatar, setUsername, setRank, setKarmaScore, setUserInfo],
+  );
+
   return (
-    <AvatarContext.Provider value={{ avatar, setAvatar }}>
-      <UsernameContext.Provider value={{ username, setUsername }}>
-        <RankContext.Provider value={{ rank, setRank }}>
-          {children}
-        </RankContext.Provider>
-      </UsernameContext.Provider>
-    </AvatarContext.Provider>
+    <UserInfoContext.Provider value={value}>
+      {children}
+    </UserInfoContext.Provider>
   );
 };
 
-export const useAvatar = () => {
-  const ctx = useContext(AvatarContext);
-  if (!ctx) throw new Error("useAvatar must be used within UserInfoProvider");
-  return ctx;
-};
-
-export const useUsername = () => {
-  const ctx = useContext(UsernameContext);
-  if (!ctx) throw new Error("useUsername must be used within UserInfoProvider");
-  return ctx;
-};
-
-export const useRank = () => {
-  const ctx = useContext(RankContext);
-  if (!ctx) throw new Error("useRank must be used within UserInfoProvider");
+export const useUserInfo = () => {
+  const ctx = useContext(UserInfoContext);
+  if (!ctx) {
+    throw new Error("useUserInfo must be used within UserInfoProvider");
+  }
   return ctx;
 };

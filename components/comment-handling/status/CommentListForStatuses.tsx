@@ -8,6 +8,9 @@ import { CommentDoc } from "@/lib/models/Comment";
 import CommentInput from "../status/CommentInput";
 import Lottie from "lottie-react";
 import noComments from "@/public/lottie/make-comment.json";
+import KarmaRewardToast from "@/components/karma/KarmaRewardToast";
+import { useUserInfo } from "@/app/context/UserContext";
+import { useFeed } from "@/app/context/UserFeedContext";
 
 export default function CommentList({
   statusId,
@@ -23,8 +26,14 @@ export default function CommentList({
   const [comments, setComments] = useState<CommentDoc[]>([]);
   const { data: session } = useSession();
   const userId = session?.user.id;
+  const { setKarmaScore, setRank } = useUserInfo();
+  const feed = useFeed();
 
   //we can determine isCommentOwner from here
+  const [karmaReward, setKarmaReward] = useState<{
+    label: string;
+    amount: number;
+  } | null>(null);
 
   useEffect(() => {
     async function fetchComments() {
@@ -75,17 +84,31 @@ export default function CommentList({
       },
     );
     if (res.ok) {
-      const { comment } = await res.json();
-      setComments((prev) => [comment, ...prev]);
+      const { rewardKarma, promotion } = await res.json();
+
+      if (promotion) {
+        console.log(`Promoted!!`);
+        setKarmaScore(promotion.karmaScore);
+        setRank(promotion.newRank);
+      }
+
+      if (rewardKarma > 0) {
+        setKarmaReward({
+          label: "Added Comment!",
+          amount: rewardKarma,
+        });
+      }
+
       const updated = await fetch(
         `/api/users/${statusId}/comments/status-comments/get-comments`,
       );
       const data = await updated.json();
       setComments(data.comments);
+      // feed.refresh?.();
     }
   }
 
-  console.log("Event: ", statusId);
+  // console.log("Event: ", statusId);
 
   return (
     <div className="h-[50vh] overflow-x-hidden animate-slide-down">
@@ -122,6 +145,12 @@ export default function CommentList({
           </h1>
         </div>
       )}
+      <KarmaRewardToast
+        open={!!karmaReward}
+        label={karmaReward?.label ?? ""}
+        amount={karmaReward?.amount ?? 0}
+        onDone={() => setKarmaReward(null)}
+      />
     </div>
   );
 }

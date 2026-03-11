@@ -32,7 +32,7 @@ import { useRouter } from "next/navigation";
 import ProfileSettingsModal from "../profile-settings/profileSettings";
 import NotificationsModal from "../notification-page/notificationPage";
 import { dropDownStyle } from "@/utils/get-dropdown-style/getDropDownStyle";
-import { useAvatar } from "@/app/context/UserContext";
+import { useUserInfo } from "@/app/context/UserContext";
 
 export default function NavBar() {
   const { data: session, update } = useSession();
@@ -42,7 +42,7 @@ export default function NavBar() {
   const { notificationCount } = useNotifications();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const { avatar, setAvatar } = useAvatar();
+  const { avatar, username, rank, karmaScore } = useUserInfo();
 
   return (
     <>

@@ -109,7 +109,6 @@ export const USER_RANKING = {
   CONNECTOR: "connector",
   PIONEER: "pioneer",
   LUMINARY: "luminary",
-  ADMIN: "admin",
 } as const;
 
 export type UserRanking = (typeof USER_RANKING)[keyof typeof USER_RANKING];

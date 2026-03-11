@@ -62,7 +62,7 @@ export function getSecondaryActionConfig({
   if (isSelf)
     return {
       label: "Hyperdrive™",
-      icon: <GlobeAmericasIcon width={iconSize} className="shrink-0" />,
+      icon: <RocketLaunchIcon width={iconSize} className="shrink-0" />,
     };
   if (isFollowing)
     return {

@@ -36,7 +36,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     data-[state=open]:animate-appearance-in
     data-[state=closed]:animate-appearance-out
     text-center
-    ${status === "authenticated" ? "text-concrete bg-primary" : "text-white bg-white/20 backdrop-blur-md border-none border-white/25"}
+    ${status === "authenticated" ? "text-concrete bg-primary/80" : "text-white bg-white/20 backdrop-blur-md border-none border-white/25"}
   `}
         >
           <div className="flex items-center">

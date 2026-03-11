@@ -21,7 +21,8 @@ export type FeedItemType =
   | "discover_users"
   | "event_is_popular"
   | "event_is_nearby"
-  | "event_coming_up";
+  | "event_coming_up"
+  | "user_promoted";
 
 export type UserStatus = {
   content: string;
@@ -61,6 +62,9 @@ export interface FeedUserActor {
     avatar?: string;
   }>;
   sharedTags?: [];
+  karmaScore?: number;
+  oldRank?: UserRanking;
+  newRank?: UserRanking;
 }
 
 export type AttachmentType = "image" | "video" | undefined;
@@ -105,6 +109,7 @@ export interface FeedEventActor {
     | "connector"
     | "pioneer"
     | "luminary";
+  karmaScore?: number;
 }
 
 /**
@@ -154,6 +159,7 @@ export interface FeedTarget {
     | "connector"
     | "pioneer"
     | "luminary";
+  karmaScore?: number;
   tags?: string[];
   notes?: string;
   currency?: string;
@@ -180,6 +186,13 @@ export interface FeedTarget {
     firstName: string;
     avatar?: string;
   }>;
+  oldRank?: UserRanking;
+  newRank?: UserRanking;
+  timeOfPromotion?: Date;
+  promotion?: {
+    newRank: UserRanking;
+    karmaScore?: number;
+  };
 }
 
 /**

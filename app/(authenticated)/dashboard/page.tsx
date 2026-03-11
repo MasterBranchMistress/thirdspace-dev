@@ -16,18 +16,20 @@ import { FeedItem } from "@/types/user-feed";
 import spaceman from "@/public/lottie/space-man.json";
 import backToTop from "@/public/lottie/back-to-top.json";
 import { useBrowserLocation } from "@/utils/geolocation/get-user-location/getUserLocation";
-import { useAvatar } from "@/app/context/UserContext";
+import { useUserInfo } from "@/app/context/UserContext";
 import { getStatusSparks } from "@/utils/feed-item-actions/status-item-actions/sparkHandler";
 import { UserDoc, UserStatusDoc } from "@/lib/models/User";
 import { getEventSparks } from "@/utils/feed-item-actions/event-item-actions/sparkHandler";
 import { getFriendSparkPreviews } from "@/utils/metadata/friend-spark-previews/friendSparkPreviews";
 import { getUser } from "@/utils/frontend-backend-connection/getUserInfo";
+import { Button } from "@heroui/button";
+import { RocketLaunchIcon } from "@heroicons/react/24/solid";
 
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { status: locStatus, coords } = useBrowserLocation();
-  const { avatar, setAvatar } = useAvatar();
+  const { avatar, username, setAvatar, rank, karmaScore } = useUserInfo();
 
   const { items, loading, error, hasMore, loadMore, prependItems } = useFeed();
 
@@ -259,7 +261,8 @@ export default function Home() {
               }}
             />
             <div className="flex flex-wrap justify-center gap-3 mb-8">
-              <button
+              <Button
+                size="sm"
                 className="
   text-xs
   px-5 py-2
@@ -277,12 +280,10 @@ export default function Home() {
   hover:shadow-[0_0_16px_rgba(168,85,247,0.7)]
   active:scale-95
 "
+                startContent={<RocketLaunchIcon width={20} color="secondary" />}
               >
                 Hyperdrive™{" "}
-                <span className="inline-block transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:rotate-12">
-                  🛰️
-                </span>
-              </button>
+              </Button>
             </div>
           </div>
         )}

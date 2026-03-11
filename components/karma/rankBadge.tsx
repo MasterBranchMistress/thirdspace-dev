@@ -1,10 +1,13 @@
 "use client";
 
 import { UserRanking } from "@/lib/constants";
+import { UserDoc } from "@/lib/models/User";
 import { getRankMeta } from "@/utils/karma/getRankIcon";
+import { getUserRanking } from "@/utils/karma/getRanking";
 import Image from "next/image";
 
 type RankBadgeProps = {
+  karmaScore?: number;
   rank?: UserRanking;
   size?: "sm" | "md";
   showIcon?: boolean;
@@ -12,14 +15,14 @@ type RankBadgeProps = {
 };
 
 export default function RankBadge({
-  rank,
+  karmaScore,
   size = "sm",
   showIcon = true,
   className = "",
 }: RankBadgeProps) {
-  const meta = getRankMeta(rank);
-
-  console.log("rank prop", rank);
+  const derivedRank = getUserRanking(karmaScore);
+  // console.log(`DERIVED RANK ${derivedRank}: ${karmaScore}`);
+  const meta = getRankMeta(derivedRank);
 
   const sizeClasses =
     size === "md"

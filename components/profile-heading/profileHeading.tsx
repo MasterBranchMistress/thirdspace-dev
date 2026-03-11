@@ -202,8 +202,8 @@ export default function ProfileHeading({
                 @{user.username}
               </p>
             </div>
-            <div>
-              <RankBadge rank={user.qualityBadge} size="md" />
+            <div className="mt-2">
+              <RankBadge karmaScore={user.karmaScore} size="sm" />
             </div>
           </div>
         </CardHeader>

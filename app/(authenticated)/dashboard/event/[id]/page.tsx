@@ -51,6 +51,7 @@ import {
   OrbiterList,
 } from "@/components/event-page-components/orbiter-list";
 import {
+  ChatBubbleLeftRightIcon,
   CheckIcon,
   ExclamationCircleIcon,
   XMarkIcon,
@@ -91,6 +92,7 @@ type EventDetails = {
     | "connector"
     | "pioneer"
     | "luminary";
+  karmaScore: number;
   _id: string;
   title: string;
   status: string;
@@ -190,7 +192,6 @@ export default function EventViewPage() {
             (attendee: any) => String(attendee._id) === String(userId),
           );
           setIsJoined(joined);
-          console.log("Joined: ", joined);
         }
 
         setAttachments(eventData.attachments);
@@ -204,8 +205,6 @@ export default function EventViewPage() {
 
     if (id && userId) fetchEvent();
   }, [id, userId]);
-
-  console.log(`EVENT DATA: ${event?.qualityBadge}`);
 
   // Handlers
   const handleJoin = async () => {
@@ -345,7 +344,7 @@ export default function EventViewPage() {
 
                 <div className="flex flex-row gap-2 items-center z-10">
                   {" "}
-                  <RankBadge size="sm" rank={event.qualityBadge} />
+                  <RankBadge size="sm" karmaScore={event.karmaScore} />
                   <EventActions
                     isHost={isHost}
                     isJoined={isJoined}
@@ -395,7 +394,21 @@ export default function EventViewPage() {
                       ))}
                     </div>
                     <div className="mt-3 w-full text-xs flex flex-col p-0 gap-2 justify-center items-center text-primary">
-                      <div className="flex flex-row gap-2 mt-2 mb-2 bg-concrete">
+                      <div className="flex flex-row gap-2 my-2 bg-concrete">
+                        <Button
+                          onPress={() => router.push("/dashboard")}
+                          variant="shadow"
+                          color="primary"
+                          size="sm"
+                          startContent={
+                            <ChatBubbleLeftRightIcon
+                              width={20}
+                              color="secondary"
+                            />
+                          }
+                        >
+                          Message
+                        </Button>
                         <Button
                           endContent={<FireIcon width={18} />}
                           size="sm"

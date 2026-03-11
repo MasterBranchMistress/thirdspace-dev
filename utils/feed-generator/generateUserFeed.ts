@@ -10,6 +10,9 @@ import { geocodeAddress } from "../geolocation/geocode-address/geocodeAddress";
 import { canViewerSee } from "../user-privacy/canViewerSee";
 import { UserStatusDoc } from "@/lib/models/UserStatusDoc";
 import { ObjectId } from "mongodb";
+import { FeedTarget } from "@/types/user-feed";
+import { generatePromotionFeedItem } from "../karma/generatePromotionFeedItem";
+import { getUserRanking } from "../karma/getRanking";
 
 function resolveAvatar(user: UserDoc): string {
   return user.avatar ?? getGravatarUrl(user.email!);
@@ -72,6 +75,8 @@ export async function generateUserFeed(
     "hosted_event",
     "profile_status_updated",
     "profile_avatar_updated",
+    "profile_bio_updated",
+    "user_promoted",
   ];
 
   await logFeedItem({
@@ -85,6 +90,7 @@ export async function generateUserFeed(
       username: founder?.username,
       avatar: resolveAvatar(founder!),
       qualityBadge: founder?.qualityBadge,
+      karmaScore: founder?.karmaScore,
     },
     target: {
       snippet: FOUNDER_WELCOME_POST._FOUNDER_GREETING,
@@ -109,12 +115,9 @@ export async function generateUserFeed(
     if (user.onboarded !== true) {
       continue;
     }
-    // console.log(`Can I see? ${!canViewerSee(actorUser, user)}`);
     if (!canViewerSee(actorUser, user)) continue;
     for (const event of events) {
-      // console.log(`hello: ${event._id}`);
-
-      const host = await userCollection.findOne({ _id: event.host });
+      await userCollection.findOne({ _id: event.host });
       if (event.host?.toString() !== actorUser._id?.toString()) continue;
 
       const canceledOrCompletedEvents = await eventCollection
@@ -127,7 +130,7 @@ export async function generateUserFeed(
         (e) => e._id,
       );
 
-      const deleted = await feedCollection.deleteMany({
+      await feedCollection.deleteMany({
         "actor.eventId": { $in: canceledOrCompletedIds },
       });
 
@@ -167,7 +170,7 @@ export async function generateUserFeed(
 
     for (const status of userStatuses) {
       await logFeedItem({
-        userId: user._id!,
+        userId: user._id,
         sourceId: `${status.sourceId}`,
         type: "profile_status_updated",
         actor: {
@@ -177,6 +180,7 @@ export async function generateUserFeed(
           username: actorUser.username,
           avatar: resolveAvatar(actorUser),
           qualityBadge: actorUser.qualityBadge,
+          karmaScore: actorUser.karmaScore,
         },
         target: {
           userId: actorUser._id,
@@ -189,11 +193,31 @@ export async function generateUserFeed(
         timestamp: nowIso,
       });
     }
+
+    await logFeedItem({
+      userId: actorUser._id,
+      type: "user_promoted",
+      sourceId: `${actorUser._id}-promotion-${actorUser.newRank}`,
+      actor: {
+        id: actorUser._id?.toString(),
+        username: actorUser.username,
+        avatar: actorUser.avatar,
+        firstName: actorUser.firstName,
+        lastName: actorUser.lastName,
+        karmaScore: actorUser.karmaScore,
+      },
+      target: {
+        newRank: actorUser?.newRank!, //If theres a promotion, theres a new rank
+        karmaScore: actorUser.karmaScore,
+        timeOfPromotion: new Date(),
+      },
+      timestamp: new Date().toISOString(),
+    });
   }
 
   const feed = await feedCollection
     .find({ userId: user._id })
-    .sort({ timestamp: -1 })
+    .sort({ timestamp: -1, _id: -1 })
     .limit(50)
     .toArray();
 
@@ -215,6 +239,7 @@ export async function generateUserFeed(
         distanceFromEvent: doc.actor.distanceFromEvent,
         eventLocation: doc.actor.eventLocation,
         qualityBadge: doc.actor.qualityBadge,
+        karmaScore: doc.actor.karmaScore,
       },
       target: {
         ...doc.target,
@@ -223,6 +248,7 @@ export async function generateUserFeed(
         snippet: doc.target?.snippet,
         attachments: doc.target?.attachments,
         qualityBadge: doc.target?.qualityBadge,
+        karmaScore: doc.target?.karmaScore,
       },
       timestamp: doc.timestamp,
     }));

@@ -37,6 +37,7 @@ export async function GET(
             lastName: author.lastName,
             avatar: author.avatar,
             username: author.username,
+            karmaScore: author.karmaScore,
           }
         : null,
     };

@@ -36,6 +36,7 @@ export type UserStatusDoc = {
     | "connector"
     | "pioneer"
     | "luminary";
+  karmaScore?: number;
 };
 
 export type StatusViewDoc = {
@@ -175,6 +176,14 @@ export interface UserDoc {
     addedInterests?: boolean;
     completed?: boolean;
   };
+  dailyKarma?: {
+    date: string;
+    earned: number;
+    comments: number;
+    statuses: number;
+  };
+  oldRank: UserRanking;
+  newRank: UserRanking | null;
 }
 
 const fullWeek = [

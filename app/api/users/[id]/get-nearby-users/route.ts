@@ -168,6 +168,7 @@ export async function POST(
         sharedTags: Array.isArray(u.sharedTags) ? u.sharedTags : [],
         sharedCount: u.sharedCount ?? 0,
         qualityBadge: u.qualityBadge,
+        karmaScore: u.karmaScore,
       })),
     });
   } catch (e: any) {
