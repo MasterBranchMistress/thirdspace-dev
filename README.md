@@ -844,3 +844,42 @@ The feed system now supports:
 These changes lay the groundwork for more engaging feed content and smoother discovery of events and users.
 
 ![alt text](public/screenshots/u1.png) ![alt text](public/screenshots/u2.png) ![alt text](public/screenshots/u3.png) ![alt text](public/screenshots/u4.png)
+
+# Development Log — Karma System & Rank Promotions
+
+## Overview
+
+Today we implemented the full **karma reward and promotion system** powering user progression within the platform. This system awards karma for user actions, calculates rank promotions, and broadcasts those promotions through the activity feed while ensuring consistent UI updates across the app.
+
+The work included backend infrastructure, feed synchronization, and frontend reactivity.
+
+---
+
+# Karma Reward Pipeline
+
+A centralized utility function powers all karma rewards:
+
+Actions currently awarding karma:
+
+- Posting a status
+- Adding a comment (non-reply and not on own status)
+
+This function:
+
+- Applies daily reward caps
+- Returns the **awarded amount**
+- Prevents exceeding configured limits
+
+Example return payload:
+
+```ts
+{
+  awarded: number;
+}
+
+[text](README.md)!
+  [text](public / screenshots / k1.png)!
+  [text](public / screenshots / k2.png)!
+  [text](public / screenshots / k3.png)!
+  [text](public / screenshots / k4.png);
+```
