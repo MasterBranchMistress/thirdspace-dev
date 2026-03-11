@@ -876,10 +876,9 @@ Example return payload:
 {
   awarded: number;
 }
-
-[text](README.md)!
-  [text](public / screenshots / k1.png)!
-  [text](public / screenshots / k2.png)!
-  [text](public / screenshots / k3.png)!
-  [text](public / screenshots / k4.png);
 ```
+
+![text](public/screenshots/k1.png)!
+![text](public/screenshots/k2.png)!
+![text](public/screenshots/k3.png)!
+![text](public/screenshots/k4.png);
