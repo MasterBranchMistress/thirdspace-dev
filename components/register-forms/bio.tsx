@@ -35,7 +35,6 @@ export default function BioStep({ bio, setBio, handleSubmit }: BioStepProps) {
 
   useEffect(() => {
     //trigger analytics, show a toast, or conditionally unlock stuff here
-    console.log(bio);
   }, [agreed, bio]);
 
   return (

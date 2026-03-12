@@ -6,7 +6,7 @@ import { ObjectId } from "mongodb";
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
   const client = await clientPromise;
@@ -23,13 +23,13 @@ export async function PATCH(
     ) {
       return NextResponse.json(
         { error: "Invalid or missing requesterIds" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const userId = new ObjectId(id);
     const requesterObjectIds = requesterIds.map(
-      (uid: string) => new ObjectId(uid)
+      (uid: string) => new ObjectId(uid),
     );
 
     const user = await usersCollection.findOne({ _id: userId });
@@ -40,16 +40,14 @@ export async function PATCH(
 
     const validRequesters: ObjectId[] = requesterObjectIds.filter((rid) =>
       user.pendingFriendRequests?.some(
-        (pendingId) => pendingId.toString() === rid.toString()
-      )
+        (pendingId: string) => pendingId.toString() === rid.toString(),
+      ),
     );
-
-    console.log("Requestors array?", validRequesters);
 
     if (validRequesters.length === 0) {
       return NextResponse.json(
         { error: "No valid friend requests found" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -63,7 +61,7 @@ export async function PATCH(
             $in: validRequesters,
           },
         } as never,
-      }
+      },
     );
 
     // ✅ Update requesters: add user as friend, send notification
@@ -83,9 +81,9 @@ export async function PATCH(
                 read: false,
               },
             },
-          }
-        )
-      )
+          },
+        ),
+      ),
     );
 
     return NextResponse.json({
@@ -95,7 +93,7 @@ export async function PATCH(
   } catch (err: unknown) {
     return NextResponse.json(
       { error: (err as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

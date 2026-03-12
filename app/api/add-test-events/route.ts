@@ -30,12 +30,12 @@ export async function GET() {
     count: faker.number.int({ min: 0, max: 5 }),
   });
 
-  const eventsToInsert: EventDoc[] = Array.from({ length: 5 }).map(() => {
+  const eventsToInsert: any[] = Array.from({ length: 5 }).map(() => {
     // Random subset of attendees
     const shuffledAttendees = faker.helpers.shuffle(otherIds);
     const someAttendees = shuffledAttendees.slice(
       0,
-      faker.number.int({ min: 0, max: otherIds.length })
+      faker.number.int({ min: 0, max: otherIds.length }),
     );
 
     // Random messages
@@ -66,7 +66,7 @@ export async function GET() {
       attendees: someAttendees,
       tags: faker.helpers.arrayElements(
         ["bowling", "music", "coding", "food", "gaming", "outdoors"],
-        { min: 1, max: 3 }
+        { min: 1, max: 3 },
       ),
       messages,
       attachments,

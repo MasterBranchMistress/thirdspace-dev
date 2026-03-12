@@ -87,7 +87,6 @@ export default function CommentList({
       const { rewardKarma, promotion } = await res.json();
 
       if (promotion) {
-        console.log(`Promoted!!`);
         setKarmaScore(promotion.karmaScore);
         setRank(promotion.newRank);
       }
@@ -107,8 +106,6 @@ export default function CommentList({
       // feed.refresh?.();
     }
   }
-
-  // console.log("Event: ", statusId);
 
   return (
     <div className="h-[50vh] overflow-x-hidden animate-slide-down">

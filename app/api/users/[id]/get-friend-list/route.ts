@@ -32,8 +32,6 @@ export async function GET(
 
     const friendIds: ObjectId[] = me?.friends ?? [];
 
-    console.log(`Friends: ${me?.friends}`);
-
     if (!friendIds.length) {
       return NextResponse.json({ status: {}, event: {} }, { status: 200 });
     }

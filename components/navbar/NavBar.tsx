@@ -33,6 +33,7 @@ import ProfileSettingsModal from "../profile-settings/profileSettings";
 import NotificationsModal from "../notification-page/notificationPage";
 import { dropDownStyle } from "@/utils/get-dropdown-style/getDropDownStyle";
 import { useUserInfo } from "@/app/context/UserContext";
+import { RocketLaunchIcon } from "@heroicons/react/24/solid";
 
 export default function NavBar() {
   const { data: session, update } = useSession();
@@ -102,7 +103,7 @@ export default function NavBar() {
                   <Badge
                     content={""}
                     size="sm"
-                    className="border-none animate-pulse mt-1.5"
+                    className="border-none animate-blink mt-1.5 mr-[3px]"
                     color="success"
                     hidden={!notificationCount}
                     placement="top-right"
@@ -150,11 +151,14 @@ export default function NavBar() {
                   </DropdownItem>
                   <DropdownItem
                     key="dashboard"
-                    className="text-concrete"
-                    endContent={<GlobeAltIcon className="text-xs w-5" />}
+                    className="text-concrete bg-gradient-to-r
+  from-indigo-500
+  via-fuchsia-500
+  to-cyan-400"
                     onPress={() => router.push(`/dashboard`)}
+                    endContent={<RocketLaunchIcon width={20} />}
                   >
-                    Explore
+                    Hyperdrive™
                   </DropdownItem>
                   <DropdownItem
                     key="settings"
@@ -177,7 +181,7 @@ export default function NavBar() {
                     className="text-concrete"
                     endContent={
                       notificationCount ? (
-                        <div className="bg-danger text-xs rounded-full py-0.5 w-5 text-center">
+                        <div className="bg-danger text-tiny rounded-full py-0.5 w-5 text-center">
                           {notificationCount < 100 ? notificationCount : "99+"}
                         </div>
                       ) : null

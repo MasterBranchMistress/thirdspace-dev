@@ -75,9 +75,7 @@ export default function MissionChecklist({
     checkPost();
   }, [sessionUser, statusJustPosted]);
 
-  useEffect(() => {
-    console.log("statusJustPosted changed:", statusJustPosted);
-  }, [statusJustPosted]);
+  useEffect(() => {}, [statusJustPosted]);
 
   const derivedCompleted = useMemo(() => {
     return [

@@ -143,14 +143,6 @@ export async function POST(
         .filter(Boolean) as PreviewUser[];
     }
 
-    console.log(
-      "friendIds",
-      friendIds.length,
-      "statusSparkDocs",
-      statusSparkDocs.length,
-      "eventSparkDocs",
-      eventSparkDocs.length,
-    );
     return NextResponse.json({ status, event }, { status: 200 });
   } catch (err) {
     console.error("friend-preview POST error:", err);

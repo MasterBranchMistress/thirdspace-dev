@@ -293,7 +293,6 @@ export default function ProfileSettingsModal({
         },
       });
 
-      console.log("USER UPDATES: ", newUsername);
       if (!res.ok) {
         notify("Failed to load profile!", `Couldn't load profile details.`);
         throw new Error(data?.error || "Failed to save");

@@ -26,7 +26,7 @@ async function applyKarmaAndBadge(
 
   if (!user) return;
 
-  const badge = getUserRanking(user.karmaScore ?? 0, user.eventsAttended ?? 0);
+  const badge = getUserRanking(user.karmaScore ?? 0);
 
   await usersCollection.updateOne(
     { _id: new ObjectId(userId) },

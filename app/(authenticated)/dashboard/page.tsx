@@ -208,7 +208,8 @@ export default function Home() {
                 }}
               />
               <span className="font-light tracking-tight">
-                New Updates Available!
+                <span className="mr-2">{newItems.length}</span>New Update
+                {newItems.length === 1 ? "" : "s"} Available!
               </span>
               <button
                 color="primary"

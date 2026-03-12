@@ -8,7 +8,7 @@ import { removeBlockedUserFeedItems } from "@/utils/feed-generator/removeBlocked
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
@@ -30,7 +30,7 @@ export async function PATCH(
     if (!blockedUser) {
       return NextResponse.json(
         { error: "Unable to block: User not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -39,27 +39,27 @@ export async function PATCH(
     ) {
       return NextResponse.json(
         { error: "User is already blocked" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // ✅ remove friend from user list
     await userCollection.updateOne(
       { _id: new ObjectId(id) },
-      { $addToSet: { blocked: new ObjectId(String(blockUserId)) } }
+      { $addToSet: { blocked: new ObjectId(String(blockUserId)) } },
     );
 
     if (user.friends?.some((frnd) => frnd.toString() === blockUserId)) {
       await userCollection.updateOne(
         { _id: new ObjectId(id) },
-        { $pull: { friends: new ObjectId(String(blockUserId)) } }
+        { $pull: { friends: new ObjectId(String(blockUserId)) } },
       );
     }
 
     if (blockedUser.friends?.some((frnd) => frnd.toString() === id)) {
       await userCollection.updateOne(
         { _id: new ObjectId(String(blockUserId)) },
-        { $pull: { friends: new ObjectId(id) } }
+        { $pull: { friends: new ObjectId(id) } },
       );
     }
 
@@ -71,15 +71,14 @@ export async function PATCH(
       },
       {
         $pull: { attendees: new ObjectId(String(blockUserId)) },
-      }
+      },
     );
 
     //Remove feed items of the blocked user from blocker and in vice versa
     const remove = removeBlockedUserFeedItems(
       user._id.toString(),
-      blockUserId.toString()
+      blockUserId.toString(),
     );
-    console.log(`Removed Items: ${remove}`);
 
     const updateResult = await userCollection.findOne({
       _id: new ObjectId(id),
@@ -89,7 +88,7 @@ export async function PATCH(
   } catch (error: unknown) {
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

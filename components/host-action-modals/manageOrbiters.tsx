@@ -63,7 +63,6 @@ export function ManageOrbiter({
         const res = await fetch(`/api/events/${eventId}/get-attendees`);
         if (!res.ok) throw new Error("Failed to fetch attendees");
         const data = await res.json();
-        console.log("Orbiters Data:", data);
         setOrbiters(data.attendees ?? []);
       } catch (err) {
         console.error("Error fetching orbiters:", err);
@@ -76,7 +75,6 @@ export function ManageOrbiter({
     fetchOrbiters();
   }, [isOpen, eventId]); // 👈 add eventId here
 
-  console.log(`Event Id from manage Orbiters: ${eventId}`);
   const router = useRouter();
 
   const banUser = async (hostId: string, userId: string) => {
@@ -100,7 +98,7 @@ export function ManageOrbiter({
       }
 
       const data = await res.json();
-      console.log("Ban successful:", data);
+
       return data;
     } catch (err) {
       console.error("Error banning user:", err);
@@ -161,7 +159,7 @@ export function ManageOrbiter({
                         userName={banTarget.name}
                         onSuccess={() =>
                           setOrbiters((prev) =>
-                            prev.filter((o) => String(o._id) !== banTarget.id)
+                            prev.filter((o) => String(o._id) !== banTarget.id),
                           )
                         }
                       />
@@ -178,7 +176,7 @@ export function ManageOrbiter({
                           className="rounded-full"
                           onClick={() =>
                             router.push(
-                              `/dashboard/profile/${String(orbiter._id)}`
+                              `/dashboard/profile/${String(orbiter._id)}`,
                             )
                           }
                         />
@@ -205,7 +203,7 @@ export function ManageOrbiter({
                         <button
                           onClick={() =>
                             console.log(
-                              `Banning ${orbiter.firstName} from event`
+                              `Banning ${orbiter.firstName} from event`,
                             )
                           }
                           className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"

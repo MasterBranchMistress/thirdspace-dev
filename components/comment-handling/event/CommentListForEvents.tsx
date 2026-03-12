@@ -85,8 +85,6 @@ export default function CommentList({
     }
   }
 
-  console.log("Event: ", eventId);
-
   return (
     <>
       <h1 className="text-primary my-2 text-center font-light">

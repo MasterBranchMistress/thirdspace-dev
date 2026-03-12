@@ -267,7 +267,6 @@ export function EditEventModal({
                 isRequired
                 value={date}
                 onChange={(val) => {
-                  console.log("datepicker val:", val);
                   setDate(val); // keep ZonedDateTime in state
                   if (val) {
                     const { isoDate, time } = parseZonedDate(val);

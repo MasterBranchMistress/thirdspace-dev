@@ -6,7 +6,7 @@ const openai = new OpenAI({
 });
 
 export async function extractInterestTagsFromBio(
-  bio: string
+  bio: string,
 ): Promise<string[]> {
   if (bio.trim().length < 10) {
     return [];
@@ -27,7 +27,7 @@ export async function extractInterestTagsFromBio(
   });
 
   try {
-    console.log("AI Response: ", response.choices[0].message.content);
+    // console.log("AI Response: ", response.choices[0].message.content);
     const content = response.choices[0].message.content || "[]";
     return JSON.parse(content);
   } catch (err) {

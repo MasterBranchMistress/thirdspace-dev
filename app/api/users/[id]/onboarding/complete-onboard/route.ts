@@ -35,11 +35,6 @@ export async function POST(
       },
     );
 
-    console.log({
-      matchedCount: completeOnboard.matchedCount,
-      modifiedCount: completeOnboard.modifiedCount,
-    });
-
     return NextResponse.json(
       { onboard: true, completeOnboard: completeOnboard },
       { status: 200 },

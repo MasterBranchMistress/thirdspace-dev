@@ -50,10 +50,16 @@ export async function POST(
       );
     }
 
+    const viewerFollowers: string[] = Array.isArray(viewer.following)
+      ? viewer.following
+      : [];
+    const viewerFollowerSet = new Set(viewerFollowers);
+    const viewerFriends: string[] = Array.isArray(viewer.friends)
+      ? viewer.friends
+      : [];
+    const viewerFriendSet = new Set(viewerFriends);
     const viewerTags: string[] = Array.isArray(viewer.tags) ? viewer.tags : [];
     const viewerTagSet = new Set(viewerTags.map(normalizeTag));
-
-    // console.log("Viewer Tag Set: ", viewerTags);
 
     await db
       .collection(COLLECTIONS._EVENTS)
@@ -90,14 +96,6 @@ export async function POST(
       ])
       .toArray();
 
-    // console.log("candidate tag field:", {
-    //   tags: candidates?.[0]?.tags,
-    //   eventTags: candidates?.[0]?.eventTags,
-    //   general: candidates?.[0].host.karmaScore,
-    // });
-
-    // console.log(`Candidates: `, candidates[0]);
-
     const scored = candidates.map((evt: any) => {
       const tags: string[] = Array.isArray(evt.tags) ? evt.tags : [];
       const normalizedEventTags = tags.map(normalizeTag);
@@ -111,15 +109,17 @@ export async function POST(
       const distanceMeters = Number(evt.distanceMeters ?? 0);
       const distanceScore = Math.max(0, 1 - distanceMeters / maxDistanceMeters);
 
-      const attendees = Number(evt.attendees.length ?? 0);
+      const attendees = Number(evt.attendees?.length ?? 0);
+      const attendanceScore = Math.log1p(attendees) * 6;
 
       // base score (tags dominate)
-      const baseScore = sharedTagCount * 10 + distanceScore * 3 + attendees * 5;
+      const baseScore =
+        sharedTagCount * 10 + distanceScore * 3 + attendanceScore;
 
       // karma boost (host karma)
-      // console.log(`EVENT HOSTS: ${evt.host}`);
+
       const hostKarma = evt.karmaScore;
-      // console.log("HOST KARMAL ", hostKarma);
+
       const score =
         sharedTagCount > 0 ? baseScore * karmaToBoost(hostKarma) : baseScore; // guardrail: no karma boost with zero overlap
 
@@ -129,7 +129,7 @@ export async function POST(
         sharedTagCount,
         distanceMeters,
         relevanceScore: score,
-        hostKarma, // optional for UI
+        hostKarma: hostKarma, // optional for UI
         hostName:
           evt.host?.firstName +
           (evt.host?.lastName ? ` ${evt.host.lastName}` : ""),
@@ -139,10 +139,10 @@ export async function POST(
     });
 
     // Filtering rules: prefer overlap when viewer has tags
-    const filtered =
-      viewerTagSet.size > 0
-        ? scored.filter((e) => e.sharedTagCount > 0)
-        : scored;
+    const filtered = scored.filter((e) => {
+      if (viewerTagSet.size > 0 && e.sharedTagCount === 0) return false;
+      return true;
+    });
 
     filtered.sort((a, b) => b.relevanceScore - a.relevanceScore);
 

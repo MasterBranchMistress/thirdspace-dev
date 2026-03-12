@@ -20,11 +20,10 @@ type Props = {
 };
 
 export function NearbyUserCard({ user }: Props) {
-  const [isFollowed, setIsFollowed] = React.useState(false);
   const tags = user.tags ?? [];
-  // const sharedTags = user.sharedTags ?? [];
+
   const router = useRouter();
-  // console.log(`PASSED IN USER TO NEABRY USER, ${user.karmaScore}`);
+
   return (
     <Card
       className="w-full bg-primary/80 mt-3 shadow-none animate-slide-down rounded-2xl"

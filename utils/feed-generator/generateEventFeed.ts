@@ -43,8 +43,9 @@ export async function generateEventFeed(
   }
 
   for (const event of events) {
+    const THREE_HOURS = 1000 * 60 * 60 * 3;
     const msUntil = new Date(event.date).getTime() - new Date(now).getTime();
-    const isUpcoming = msUntil > 0 && msUntil < 1000 * 60 * 60 * 48; // next 48h only
+    const isUpcoming = msUntil > 0 && msUntil <= THREE_HOURS;
     const isPopular = (event.attendees?.length || 0) > 1;
 
     const hostUser =

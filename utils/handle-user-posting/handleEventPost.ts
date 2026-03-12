@@ -29,14 +29,9 @@ export async function handleAddEvent({
   attachments,
 }: Props) {
   try {
-    console.log("event creation started", {
-      userId: loggedInUser.id,
-      title: eventTitle,
-    });
     const uploadedUrls = await uploadFilesViaPresign({
       presignEndpoint: `/api/users/${loggedInUser.id}/upload-status-attachments`,
       files: attachments,
-      log: (msg, meta) => console.log(msg, meta), // or omit in prod
     });
     const res = await fetch(`/api/events/${loggedInUser.id}/add-event`, {
       method: "POST",

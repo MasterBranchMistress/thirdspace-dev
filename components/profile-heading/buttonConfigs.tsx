@@ -61,7 +61,7 @@ export function getSecondaryActionConfig({
 }: BooleanSwitches) {
   if (isSelf)
     return {
-      label: "Hyperdrive™",
+      label: "H-Drive™",
       icon: <RocketLaunchIcon width={iconSize} className="shrink-0" />,
     };
   if (isFollowing)

@@ -43,10 +43,13 @@ import {
   BookmarkSlashIcon,
   ChatBubbleBottomCenterIcon,
   ChatBubbleLeftEllipsisIcon,
+  ChatBubbleLeftIcon,
+  ChatBubbleLeftRightIcon,
   CheckCircleIcon,
   EnvelopeIcon,
   FireIcon,
   PaperAirplaneIcon,
+  XCircleIcon,
 } from "@heroicons/react/24/solid";
 
 interface FeedItemCardProps {
@@ -94,6 +97,7 @@ import RankBadge from "../karma/rankBadge";
 import PromotionFeedItem from "../karma/promotion-card-map";
 import { getUserRanking } from "@/utils/karma/getRanking";
 import { useUserInfo } from "@/app/context/UserContext";
+import { getTimeUntilEvent } from "@/utils/custom-hooks/useCountdown";
 
 export default function FeedItemCard({ item }: FeedItemCardProps) {
   const { data: session } = useSession();
@@ -213,10 +217,6 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
     ? String(user?.id) === String(actor.id)
     : String(user?.id) === String(target?.userId);
 
-  console.log(
-    `PROMOTION INFO: ${isUserActor(actor) && type === "user_promoted" ? getUserRanking(target?.promotion?.karmaScore) : null}`,
-  );
-
   const message =
     type === "event_is_popular"
       ? `Orbit Breaker™ 🔥`
@@ -302,14 +302,14 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             {!isUserActor(actor) ? (
               <div className="flex flex-col gap-0.5 items-start justify-center w-full min-w-0">
                 <h6
-                  className="text-sm tracking-tighter text-primary leading-snug
-                     whitespace-normal break-words line-clamp-1"
+                  className="text-sm font-mono tracking-tight text-primary leading-snug
+  truncate max-w-[10rem]"
                 >
                   {target?.host ?? target?.hostName}'s event has an Update!
                 </h6>
                 <p
                   className="text-xs font-extralight tracking-tight text-primary leading-snug
-  truncate max-w-[12rem]"
+  truncate max-w-[10rem]"
                 >
                   {eventDistance ?? 0} mi away •{" "}
                   {target?.startingDate
@@ -319,11 +319,11 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
               </div>
             ) : (
               <div className="flex flex-col gap-1 items-start justify-center">
-                <h4 className="text-small font-extralight tracking-wide leading-none text-primary">
+                <h4 className="text-small font-extralight tracking-wide leading-none text-primary truncate max-w-[10rem]">
                   {`${actor?.firstName || ""} ${actor?.lastName || ""}`.trim()}
                 </h4>
                 {isUserActor(actor) && (
-                  <h5 className="text-small tracking-tight text-primary">
+                  <h5 className="text-small tracking-tight text-primary truncate max-w-[10rem]">
                     @{actorUsername}
                   </h5>
                 )}
@@ -610,15 +610,15 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           {type === "hosted_event" && !isUserActor(actor) && (
             <div className="mt-2 tracking-tight max-w-[100%] font-normal text-sm">
               <div className="flex flex-col items-center justify-center text-center">
-                <div className="flex flex-row font-bold text-sm text-center mb-2 items-center">
-                  <span className="font-semibold shadow-lg shadow-primary border-1 border-primary py-1 mr-[-12] px-3 rounded-l-lg">
-                    {target?.host} is hosting
+                <div className="flex flex-row font-bold text-sm text-center justify-center mb-2 items-center">
+                  <span className="font-semibold shadow-md shadow-primary border-1 border-primary py-[5px] mr-[-12] px-3 rounded-l-lg">
+                    {actor.firstName} is hosting
                   </span>
                   <Button
                     size="sm"
-                    variant="shadow"
+                    variant="solid"
                     color="primary"
-                    className="text-secondary font-bold ml-2"
+                    className="text-secondary shadow-md shadow-primary rounded-l-none font-bold ml-2"
                     onPress={() =>
                       router.push(`/dashboard/event/${actor.eventId}`)
                     }
@@ -687,14 +687,14 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           {type === "event_is_popular" && (
             <div className="font-light max-w-[100%] mt-2 tracking-tight">
               <div className="flex flex-row font-bold text-sm text-center justify-center mb-2 items-center">
-                <span className="font-semibold shadow-lg shadow-primary border-1 border-primary py-1 mr-[-12] px-3 rounded-l-lg">
+                <span className="font-semibold shadow-md shadow-primary border-1 border-primary py-[5px] mr-[-12] px-3 rounded-l-lg">
                   {actor.firstName} is hosting
                 </span>
                 <Button
                   size="sm"
-                  variant="shadow"
+                  variant="solid"
                   color="primary"
-                  className="text-secondary font-bold ml-2"
+                  className="text-secondary shadow-md shadow-primary rounded-l-none font-bold ml-2"
                   onPress={() =>
                     router.push(`/dashboard/event/${actor.eventId}`)
                   }
@@ -790,23 +790,32 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
               >
                 <div className="w-full flex justify-center">
                   <div className="flex flex-row font-bold text-sm text-center mb-2 items-center">
-                    <span className="font-semibold shadow-lg shadow-primary border-1 border-primary py-1 mr-[-12] px-3 rounded-l-lg">
-                      {actor.firstName} is hosting
-                    </span>
                     <Button
                       size="sm"
-                      variant="shadow"
+                      variant="solid"
                       color="primary"
-                      className="text-secondary font-bold ml-2"
+                      className="text-secondary shadow-primary shadow-md font-bold rounded-r-none"
                       onPress={() =>
                         router.push(`/dashboard/event/${actor.eventId}`)
                       }
                     >
                       {target?.title}
                     </Button>
+
+                    <Button
+                      size="sm"
+                      variant="bordered"
+                      color="primary"
+                      className="text-primary shadow-primary shadow-md font-bold rounded-l-none"
+                      onPress={() =>
+                        router.push(`/dashboard/event/${actor.eventId}`)
+                      }
+                    >
+                      {getTimeUntilEvent(target?.startingDate ?? "")}
+                    </Button>
                   </div>
                 </div>
-                <span className="mt-1">
+                <span className="mt-1 flex flex-row gap-2 justify-center items-center">
                   <Button
                     endContent={
                       <CheckCircleIcon
@@ -827,7 +836,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                   </Button>
                   <Button
                     endContent={
-                      <BookmarkSlashIcon
+                      <XCircleIcon
                         color="secondary"
                         width={20}
                         className="p-0 m-0"
@@ -836,27 +845,23 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                     size="sm"
                     variant="shadow"
                     color="danger"
-                    className="text-secondary font-bold ml-3"
+                    className="text-secondary font-bold"
                     onPress={() => console.log("TODO: leave event api here!!")}
                   >
                     Cancel
                   </Button>
                   <Button
-                    endContent={
-                      <EnvelopeIcon
-                        color="primary"
-                        width={20}
-                        className="p-0 m-0"
-                      />
+                    startContent={
+                      <ChatBubbleLeftRightIcon width={20} color="secondary" />
                     }
                     size="sm"
                     variant="shadow"
                     color="primary"
-                    className="text-secondary font-bold ml-2 mt-2"
+                    className="text-secondary font-bold"
                     onPress={() => console.log("set up modal for reason why")}
                     //TODO: setup messaging via Twilio
                   >
-                    Message Host
+                    Message
                   </Button>
                 </span>
                 {target?.attachments && target.attachments.length > 0 ? (

@@ -124,6 +124,8 @@ export async function POST(req: NextRequest) {
         comments: 0,
         statuses: 0,
       },
+      oldRank: "drifter",
+      newRank: null,
     };
 
     const newUser: UserDoc = {

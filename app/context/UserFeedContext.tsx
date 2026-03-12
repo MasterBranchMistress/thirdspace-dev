@@ -93,17 +93,11 @@ export function FeedProvider({ children }: { children: ReactNode }) {
     setItems((prev) =>
       prev.map((item) => {
         const isMatch = String(item.actor?.id) === String(userId);
-        if (isMatch) {
-          console.log("matched target item", item);
-        }
         if (String(item.actor?.id) === String(userId)) {
           const updated = {
             ...item,
             actor: { ...item.actor, username },
           };
-
-          console.log("before", item);
-          console.log("after", updated);
 
           return updated;
         }

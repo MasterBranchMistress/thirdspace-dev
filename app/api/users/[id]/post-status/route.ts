@@ -151,11 +151,6 @@ export async function POST(
       await feedCollection.insertMany(feedDocs);
     }
 
-    //add Karma and caculate promoted
-    // console.log("STATUS ROUTE: before karma");
-    // console.log("user onboarded", user.onboarded);
-    // console.log("old karma", user.karmaScore);
-
     const oldRank = getUserRanking(postingUser.karmaScore ?? 0);
 
     const rewardKarma = postingUser.onboarded

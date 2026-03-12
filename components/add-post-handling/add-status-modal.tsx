@@ -69,7 +69,6 @@ export default function AddStatus({
       });
 
       const { rewardKarma, ok, newRank, totalKarma } = data;
-      // console.log(`Karma Reward?`, res);
 
       if (ok) {
         await onStatusPosted?.();

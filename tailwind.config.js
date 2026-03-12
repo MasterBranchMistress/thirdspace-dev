@@ -84,12 +84,15 @@ const config = {
           DEFAULT: "#ffffff",
         },
         success: {
-          DEFAULT: "#34d399",
+          DEFAULT: "#2E6F40",
           foreground: "#ffffff",
         },
         warning: {
           DEFAULT: "#fbbf24",
           foreground: "#ffffff",
+        },
+        danger: {
+          DEFAULT: "#950606",
         },
         indigo: {
           DEFAULT: "#5c6cc4",

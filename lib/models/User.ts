@@ -89,7 +89,8 @@ interface Notification {
     | "accepted_friend_request"
     | "blocked_user_joined_event"
     | "user_left_event"
-    | "user_joined_event";
+    | "user_joined_event"
+    | "user_followed";
   timestamp: Date;
 }
 
@@ -227,6 +228,7 @@ const NotificationSchema = new Schema(
         EVENT_STATUSES._ACCEPTED_FRIEND_REQUEST,
         EVENT_STATUSES._BLOCKED_USER_JOINED_EVENT,
         EVENT_STATUSES._USER_LEFT_EVENT,
+        EVENT_STATUSES._USER_FOLLOWED,
       ],
       required: true,
     },

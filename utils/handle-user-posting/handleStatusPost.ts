@@ -16,7 +16,6 @@ export async function handleAddStatus({
     const uploadedUrls = await uploadFilesViaPresign({
       presignEndpoint: `/api/users/${loggedInUser.id}/upload-status-attachments`,
       files: attachments,
-      log: (msg, meta) => console.log(msg, meta), // or omit in prod
     });
 
     const res = await fetch(`/api/users/${loggedInUser.id}/post-status`, {

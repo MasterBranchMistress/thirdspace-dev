@@ -18,7 +18,6 @@ export async function GET(
   const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
 
   try {
-    console.log("Source Id: ", id);
     const status = await statusCollection.findOne({ sourceId: id });
     if (!status || status.isDeleted) {
       return NextResponse.json({ error: "Status not found" }, { status: 404 });

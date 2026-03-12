@@ -21,7 +21,7 @@ export default function RankBadge({
   className = "",
 }: RankBadgeProps) {
   const derivedRank = getUserRanking(karmaScore);
-  // console.log(`DERIVED RANK ${derivedRank}: ${karmaScore}`);
+
   const meta = getRankMeta(derivedRank);
 
   const sizeClasses =

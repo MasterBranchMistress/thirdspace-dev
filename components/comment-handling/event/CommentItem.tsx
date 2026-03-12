@@ -70,8 +70,6 @@ export default function CommentItem({
   const { notify } = useToast();
   const router = useRouter();
 
-  console.log("Event: ", eventId);
-
   const deleteComment = async (commentId: string) => {
     try {
       const res = await fetch(`/api/events/${eventId}/delete-comment`, {

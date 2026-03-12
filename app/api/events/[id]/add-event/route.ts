@@ -158,23 +158,40 @@ export async function POST(
       timestamp: now,
     };
     await feedCollection.insertOne(baseFeedEvent);
-    if (["friends", "followers", "public", "off"].includes(user.visibility!)) {
-      const friends = await userCollection
-        .find({ _id: { $in: user.friends ?? [] } })
-        .toArray();
+    const visibility = user.visibility;
 
-      if (friends.length > 0) {
-        const { _id: ignore, ...baseFeedEventNoId } = baseFeedEvent as any;
+    const friendIds = (user.friends ?? []).map(String);
+    const followerIds = (user.followers ?? []).map(String);
 
-        const friendFeedEvents: Omit<EventFeedDoc, "_id">[] = friends.map(
-          (f) => ({
-            ...baseFeedEventNoId,
-            userId: new ObjectId(f._id),
-          }),
-        );
+    let recipientIds: string[] = [];
 
-        await feedCollection.insertMany(friendFeedEvents);
-      }
+    switch (visibility) {
+      case "friends":
+        recipientIds = friendIds;
+        break;
+
+      case "followers":
+      case "public":
+        recipientIds = Array.from(new Set([...friendIds, ...followerIds]));
+        break;
+
+      case "off":
+      default:
+        recipientIds = [];
+        break;
+    }
+
+    if (recipientIds.length > 0) {
+      const { _id: ignore, ...baseFeedEventNoId } = baseFeedEvent as any;
+
+      const feedEvents: Omit<EventFeedDoc, "_id">[] = recipientIds.map(
+        (recipientId) => ({
+          ...baseFeedEventNoId,
+          userId: new ObjectId(recipientId),
+        }),
+      );
+
+      await feedCollection.insertMany(feedEvents);
     }
 
     // --- Handle recurrence

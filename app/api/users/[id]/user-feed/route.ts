@@ -31,6 +31,7 @@ export async function GET(
 
     // get friend ids
     const friendsIds = user.friends || [];
+    const followingIds = user.following || [];
 
     //NOTE: I was just using this to debug empty state. Don't delete this or ill find you.
     // if (friendsIds.length === 0) {
@@ -118,9 +119,10 @@ export async function GET(
 
     // Filter out friends + self from nearby users
     const friendSet = new Set(friendsIds.map(String));
+    const followerSet = new Set(followingIds.map(String));
     const filteredUsers = nearbyUsers.filter((u: any) => {
       const uid = String(u.id ?? u._id);
-      return uid !== String(id) && !friendSet.has(uid);
+      return uid !== String(id) && !friendSet.has(uid) && !followerSet.has(uid);
     });
 
     // Filter out events already in feed (optional but nice)
@@ -130,9 +132,24 @@ export async function GET(
         .filter(Boolean)
         .map((eid: any) => String(eid)),
     );
+    const now = Date.now();
+
     const filteredEvents = nearbyEvents.filter((e: any) => {
-      const eid = String(e.id ?? e._id);
-      return !feedEventIds.has(eid);
+      const hostId = String(e.host?._id ?? e.host?.id ?? e.host);
+      const eventId = String(e.id ?? e._id);
+
+      const eventStart = new Date(e.date).getTime();
+      const fifteenMinutes = 15 * 60 * 1000;
+
+      const isExpired = eventStart + fifteenMinutes < now;
+
+      return (
+        !isExpired &&
+        hostId !== viewerId.toString() &&
+        !friendSet.has(hostId) &&
+        !followerSet.has(hostId) &&
+        !feedEventIds.has(eventId)
+      );
     });
     const eventAnchor =
       mergedFeed.length >= 7 ? 7 : Math.min(1, mergedFeed.length);

@@ -52,10 +52,7 @@ export async function generateUserFeed(
         upsert: true,
       },
     );
-    if (exists) {
-      console.log("Post: ", item);
-      return;
-    }
+
     if (!exists) {
       await feedCollection.insertOne({
         ...item,

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Lottie from "lottie-react";
-import astro from "@/public/lottie/coin-turn.json";
+import astro from "@/public/lottie/cheer.json";
 import confetti from "canvas-confetti";
 import { UserStatusDoc } from "@/lib/models/UserStatusDoc";
 
@@ -36,16 +36,15 @@ export default function KarmaRewardToast({
       className="fixed top-1/2 left-1/2 z-100
 -translate-x-1/2 -translate-y-1/2
 animate-appearance-in
-p-3 shadow-2xl backdrop-blur-3xl
-bg-gradient-to-r from-indigo-900/70 via-purple-800/70 to-cyan-800/70
+p-3 bg-primary/80
 rounded-full animate-in fade-in zoom-in-95 duration-200 border-none"
     >
-      <div className="flex flex-col p-3 items-center rounded-full border-none bg-none">
-        <div className="h-full w-[7rem] pt-3 shrink-0 transition-all animate-bounce">
+      <div className="flex flex-col p-4 items-center rounded-full border-none bg-none animate-appearance-in">
+        <div className="h-full w-[7rem] mt-[-1.5rem] shrink-0 transition-all">
           <Lottie animationData={astro} loop={true} />
         </div>
 
-        <div className="flex flex-col justify-center items-center leading-tight">
+        <div className="flex flex-col justify-center items-center leading-tight animate-pulse">
           <span className="text-sm font-bold text-white tracking-wider">
             {label}
           </span>

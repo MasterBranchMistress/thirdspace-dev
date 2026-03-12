@@ -12,9 +12,7 @@ export async function syncUserUsername(userId: string, newUsername: string) {
       .collection(collection)
       .updateMany(
         { "actor.id": userId },
-        { $set: { "actor.username": newUsername } }
+        { $set: { "actor.username": newUsername } },
       );
   }
-
-  console.log(`Synced username for ${userId} -> ${newUsername} across feeds`);
 }

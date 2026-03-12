@@ -13,7 +13,7 @@ export async function GET(
   const { id, statusId } = await context.params;
   const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
   const viewerId = await userCollection.findOne({ _id: new ObjectId(id) });
-  console.log("Viewer session: ", viewerId);
+
   if (!viewerId) {
     return NextResponse.json({ error: "User not logged in" }, { status: 404 });
   }

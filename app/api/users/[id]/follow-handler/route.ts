@@ -10,7 +10,7 @@ import { authOptions } from "@/lib/authOptions";
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const session = await getServerSession(authOptions);
   const client = await clientPromise;
@@ -34,31 +34,52 @@ export async function PATCH(
     return NextResponse.json({ error: "Viewer not found" }, { status: 404 });
   }
   const userIsFollowingViewer = user.followers?.some(
-    (followerId) => followerId.toString() === viewerId
+    (followerId) => followerId.toString() === viewerId,
   );
   if (userIsFollowingViewer) {
     await userCollection.updateOne(
       { _id: new ObjectId(id) },
-      { $pull: { followers: new ObjectId(String(viewerId)) } }
+      { $pull: { followers: new ObjectId(String(viewerId)) } },
     );
     await userCollection.updateOne(
       { _id: new ObjectId(viewerId) },
-      { $pull: { following: new ObjectId(String(id)) } }
+      { $pull: { following: new ObjectId(String(id)) } },
     );
 
     return NextResponse.json(
       { message: "User has unfollowed succcessfully" },
-      { status: 200 }
+      { status: 200 },
     );
   } else {
     await userCollection.updateOne(
       { _id: new ObjectId(id) },
-      { $addToSet: { followers: new ObjectId(String(viewerId)) } }
+      { $addToSet: { followers: new ObjectId(String(viewerId)) } },
     );
     await userCollection.updateOne(
       { _id: new ObjectId(viewerId) },
-      { $addToSet: { following: new ObjectId(String(id)) } }
+      { $addToSet: { following: new ObjectId(String(id)) } },
     );
+
+    await userCollection.updateOne(
+      { _id: new Object(user._id) },
+      {
+        $push: {
+          notifications: {
+            $each: [
+              {
+                _id: new ObjectId(),
+                actorId: viewer._id,
+                avatar: viewer.avatar,
+                message: `@${viewer.username} is now Orbiting you.`,
+                type: "user_followed",
+                timestamp: new Date(),
+              },
+            ],
+          },
+        },
+      },
+    );
+
     return NextResponse.json({
       message: "Successfully following user",
     });

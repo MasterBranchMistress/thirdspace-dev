@@ -15,7 +15,5 @@ export function parseZonedDate(zdt: ZonedDateTime | null) {
     hour12: false, // force 24h, can toggle
   });
 
-  console.log(isoDate, time);
-
   return { isoDate, time };
 }

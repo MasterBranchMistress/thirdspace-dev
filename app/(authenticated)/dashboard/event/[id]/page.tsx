@@ -21,6 +21,7 @@ import { FeedBackground } from "@/components/background-animations/UserFeedBackg
 import {
   BanknotesIcon,
   CheckBadgeIcon,
+  CheckCircleIcon,
   EllipsisVerticalIcon,
   ExclamationTriangleIcon,
   FireIcon,
@@ -424,7 +425,7 @@ export default function EventViewPage() {
                           {hasSparked ? "Unspark" : "Spark"}
                         </Button>
                       </div>
-                      <div className="flex items-center justify-center py-1">
+                      <div className="flex flex-col gap-3 items-center justify-center py-1">
                         <OrbiterList attendeeUsers={event?.attendees} />
                       </div>
                     </div>

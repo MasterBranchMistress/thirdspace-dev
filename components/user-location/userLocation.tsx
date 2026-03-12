@@ -27,10 +27,10 @@ export default async function UserLocation() {
       if (loc.status !== "success") return;
       try {
         const res = await fetch(
-          `/api/reverse-geocode?lat=${loc.coords.lat}&lng=${loc.coords.lng}`
+          `/api/reverse-geocode?lat=${loc.coords.lat}&lng=${loc.coords.lng}`,
         );
         const data = await res.json();
-        console.log(data);
+
         if (!res.ok) throw new Error(data?.error || "Reverse failed");
         setRev(data);
       } catch (e: any) {

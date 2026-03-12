@@ -275,13 +275,6 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
                         setDate(val);
                         setEventDate(String(isoDate));
                         setStartTime(time);
-                        console.log(
-                          "datepicker val:",
-                          "Event date: ",
-                          eventDate,
-                          "event time: ",
-                          startTime,
-                        );
                       }}
                     />
                   </div>
@@ -339,7 +332,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
                   />
                 </div>
 
-                <ModalFooter className="flex justify-end gap-2 p-4">
+                <ModalFooter className="flex justify-center gap-2 p-4">
                   <Button
                     type="button"
                     variant="ghost"
@@ -348,6 +341,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
                       resetForm();
                       onOpenChange(false);
                     }}
+                    size="sm"
                   >
                     Cancel
                   </Button>
@@ -356,8 +350,9 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
                     color="primary"
                     variant="shadow"
                     isLoading={loading}
+                    size="sm"
                   >
-                    Create Event
+                    Add Event
                   </Button>
                 </ModalFooter>
               </form>

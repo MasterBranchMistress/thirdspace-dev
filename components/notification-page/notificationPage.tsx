@@ -70,7 +70,8 @@ export default function NotificationsModal({
       type === "blocked_user_joined_event" ||
       type === "user_joined_event" ||
       type === "user_left_event" ||
-      type === "received_friend_request"
+      type === "received_friend_request" ||
+      type === "user_followed"
     ) {
       return true;
     }
@@ -100,9 +101,7 @@ export default function NotificationsModal({
 
   const router = useRouter();
 
-  useEffect(() => {
-    console.log(`Notifications: ${notifications}`);
-  }, [userId, messagesCount, notificationCount, groupsCount]);
+  useEffect(() => {}, [userId, messagesCount, notificationCount, groupsCount]);
 
   return (
     <Modal
@@ -113,7 +112,7 @@ export default function NotificationsModal({
       isDismissable
       scrollBehavior="inside"
       backdrop="blur"
-      className="bg-transparent text-concrete h-auto"
+      className="bg-transparent text-concrete h-auto p-3"
     >
       <ModalContent>
         {(onClose) => (
@@ -208,7 +207,7 @@ export default function NotificationsModal({
                               <button
                                 onClick={() =>
                                   router.push(
-                                    `/dashboard/event/${String(n._id)}`
+                                    `/dashboard/event/${String(n._id)}`,
                                   )
                                 }
                                 className="rounded-full bg-primary backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20 flex-shrink-0"
@@ -299,7 +298,7 @@ export default function NotificationsModal({
                                   onClick={
                                     /* ban user from event */ () =>
                                       console.log(
-                                        `Banning ${n.actorId} from ${n.eventId}`
+                                        `Banning ${n.actorId} from ${n.eventId}`,
                                       )
                                   }
                                   className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
@@ -307,6 +306,21 @@ export default function NotificationsModal({
                                   <HandThumbDownIcon
                                     width={23}
                                     className="text-concrete p-0.5 border-1 border-white bg-danger rounded-full"
+                                  />
+                                </button>
+                              </div>
+                            )}
+                            {n.type === "user_followed" && (
+                              <div className="flex flex-row gap-1 flex-shrink-0">
+                                <button
+                                  onClick={() =>
+                                    clearNotification(n._id.toString())
+                                  }
+                                  className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
+                                >
+                                  <XMarkIcon
+                                    width={23}
+                                    className="text-white p-0.5 border-1 border-white bg-white/5 backdrop-blur-md rounded-full"
                                   />
                                 </button>
                               </div>
@@ -366,10 +380,10 @@ export default function NotificationsModal({
                     </div>
                   </AccordionItem>
                   <AccordionItem
-                    key="groups"
-                    aria-label="Groups"
+                    key="clusters"
+                    aria-label="Clusters"
                     title={
-                      <TitleWithCount label="Groups" count={groupsCount} />
+                      <TitleWithCount label="Clusters™" count={groupsCount} />
                     }
                     indicator={
                       <ChevronLeftIcon

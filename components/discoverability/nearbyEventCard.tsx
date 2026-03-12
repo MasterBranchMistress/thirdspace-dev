@@ -32,8 +32,6 @@ export function EventDiscoverabilityCard({ event }: Props) {
     weekday: "short",
     month: "short",
     day: "numeric",
-    hour: "numeric",
-    minute: "numeric",
   });
 
   const mediaUrl =
@@ -103,20 +101,20 @@ export function EventDiscoverabilityCard({ event }: Props) {
               router.push(`/dashboard/user/${String(event.host._id)}`)
             }
           />
-          <div className="flex flex-col shrink-0 justify-start leading-tight">
-            <h4 className="text-xs font-semibold text-default-800">
+          <div className="flex flex-col shrink-0 items-start justify-start leading-tight max-w-[90px]">
+            <h4 className="text-xs font-semibold text-default-800 truncate">
               {event.title}
             </h4>
-            <span className="text-xs text-default-500">
+            <span className="text-xs text-default-500 truncate max-w-[120px]">
               Hosted by {event.hostName}
             </span>
           </div>
         </div>
         <div className="flex flex-col gap-1.5 items-end">
-          <span className="px-3 py-0.5 text-xs font-medium bg-secondary text-primary rounded-full w-fit">
+          <span className="px-3 py-0.5 text-tiny font-medium bg-secondary text-primary rounded-full w-fit truncate max-w-[90px]">
             {distanceMiles} mi away 📍
           </span>
-          <span className="px-3 bg-secondary text-primary text-xs py-0.5 font-medium rounded-full w-fit">
+          <span className="px-3 bg-secondary text-tiny text-primary py-0.5 font-medium rounded-full w-fit truncate max-w-[120px]">
             {eventTime}
           </span>
         </div>
@@ -130,7 +128,7 @@ export function EventDiscoverabilityCard({ event }: Props) {
             {event.tags.slice(0, 3).map((t) => (
               <span
                 key={t}
-                className="text-xs bg-secondary text-primary font-bold px-2 py-1 rounded-full"
+                className="text-xs z-10 bg-secondary text-primary font-bold px-2 py-1 rounded-full"
               >
                 #{t}
               </span>
@@ -159,10 +157,10 @@ export function EventDiscoverabilityCard({ event }: Props) {
           </div>
           <p className="text-xs bg-none text-muted-foreground text-center animate-fade-in">
             {filledBars >= 4
-              ? "🔥 Hot event"
+              ? "🔥 Hot Event"
               : filledBars >= 2
-                ? "🌟 Worth checking out"
-                : "✨ Quiet event"}
+                ? "🌟 Some Hype"
+                : "✨ Quiet Event"}
           </p>
         </div>
       </CardFooter>

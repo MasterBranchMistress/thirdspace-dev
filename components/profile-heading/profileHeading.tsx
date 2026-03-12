@@ -42,6 +42,7 @@ import {
 } from "./dialogConfig";
 import ProfileSettingsModal from "../profile-settings/profileSettings";
 import RankBadge from "../karma/rankBadge";
+import { useFeed } from "@/app/context/UserFeedContext";
 
 export default function ProfileHeading({
   disabled,
@@ -73,6 +74,8 @@ export default function ProfileHeading({
   const isPendingIncoming = !!flags.pendingIncoming;
   const isPendingOutgoing = !!flags.pendingOutgoing;
   const isFollowing = !!flags.following;
+
+  const feed = useFeed();
 
   const { reject, cancel, accept } = useNotifications();
 
@@ -119,6 +122,7 @@ export default function ProfileHeading({
         await unfriend({ loggedInUser: viewer, userToUnfriend: user });
         setRelationship(String(user._id), { friend: false });
         notify(`Unfriended ${user.username} 🙅`, ``);
+        feed.refresh?.();
       });
     } else if (isPendingOutgoing) {
       setUserActionFunction(() => async () => {
@@ -144,12 +148,14 @@ export default function ProfileHeading({
         setRelationship(String(user._id), {});
         notify(`Unblocked ${user.username} 👩‍🚀`, ``);
       });
+      feed.refresh?.();
     } else {
       setManageActionFunction(() => async () => {
         await blockUser({ loggedInUser: viewer, userToBlock: user });
         setRelationship(String(user._id), { blocked: true });
         notify(`Blocked ${user.username} 🙅`, ``);
       });
+      feed.refresh?.();
     }
     if (!isSelf) {
       if (!isFollowing) {
@@ -159,13 +165,18 @@ export default function ProfileHeading({
             ...(isFriend ? { friend: true } : {}),
             following: true,
           });
+          notify(
+            `Following @${user.username} 👍`,
+            `You'll see posts from ${user.firstName} in your feed now.`,
+          );
+          confetti({ particleCount: 100, spread: 80, origin: { y: 0.5 } });
+          feed.refresh?.();
         });
       } else {
         setSecondaryActionFunction(() => async () => {
           await handleFollowUser({ userWereFollowing: user });
           setRelationship(String(user._id), { following: false });
-          notify(`Following ${user.firstName} ${user.lastName} 👍`, ``);
-          confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+          feed.refresh?.();
         });
       }
     }
@@ -182,7 +193,7 @@ export default function ProfileHeading({
   return (
     <>
       <Card
-        isFooterBlurred
+        isFooterBlurred={true}
         className="border-none relative shadow-2xl overflow-hidden"
         radius="none"
       >
@@ -254,7 +265,7 @@ export default function ProfileHeading({
         >
           {!isPendingIncoming ? (
             <Button
-              className={`text-tiny ${isFriend || isPendingOutgoing ? "text-pink-300" : "text-concrete"} tracking-tighter bg-black/20 border-white/20 border-1`}
+              className={`text-tiny ${isFriend || isPendingOutgoing ? "text-pink-300" : "text-concrete"} tracking-tighter bg-black/20 border-white/20 border-1 w-full`}
               color="danger"
               radius="none"
               size="sm"
@@ -305,10 +316,10 @@ export default function ProfileHeading({
             ></RespondDropdown>
           )}
           <Button
-            className={`text-tiny p-3 tracking-tight ${
+            className={`text-tiny p-3 tracking-tight w-full ${
               isSelf
-                ? "bg-gradient-to-r from-indigo-500 via-purple-500 font-semibold to-cyan-400"
-                : "bg-black/20 border-white/20 border-1"
+                ? "bg-gradient-to-r  from-indigo-500 via-purple-500 font-semibold to-cyan-400"
+                : "bg-black/20  border-white/20 border-1"
             } ${!isFollowing ? "text-secondary" : "text-pink-300"}`}
             color="default"
             radius="none"
@@ -322,7 +333,7 @@ export default function ProfileHeading({
             {secondaryActionLabel}
           </Button>
           <Button
-            className="text-tiny text-white tracking-tight bg-black/20 border-white/20 border-1 "
+            className="text-tiny w-full text-white tracking-tight bg-black/20 border-white/20 border-1 "
             color="default"
             radius="none"
             size="sm"
@@ -334,7 +345,7 @@ export default function ProfileHeading({
             <UsersIcon width={17} className="shrink-0" /> Orbiters
           </Button>
           <Button
-            className={`text-tiny  ${isBlocked ? `text-concrete bg-danger` : `${!isSelf ? "text-pink-300" : "text-secondary"} bg-black/20 border-white/20`} tracking-tighter border-1`}
+            className={`text-tiny w-full  ${isBlocked ? `text-concrete bg-danger` : `${!isSelf ? "text-pink-300" : "text-secondary"} bg-black/20 border-white/20`} tracking-tighter border-1`}
             color="danger"
             radius="none"
             size="sm"

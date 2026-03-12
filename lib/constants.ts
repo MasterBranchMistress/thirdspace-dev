@@ -29,6 +29,7 @@ export const EVENT_STATUSES = {
   _ACCEPTED_FRIEND_REQUEST: "accepted_friend_request",
   _BLOCKED_USER_JOINED_EVENT: "blocked_user_joined_event",
   _USER_LEFT_EVENT: "user_left_event",
+  _USER_FOLLOWED: "user_followed",
 };
 
 // Example: user providers
