@@ -7,10 +7,24 @@ export function getTimeUntilEvent(date: Date | string) {
 
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
 
-  if (hours >= 1) {
-    return `Happening in ${hours} hour${hours > 1 ? "s" : ""}`;
+  if (minutes < 60) {
+    return `T-Minus: ${minutes} minute${minutes !== 1 ? "s" : ""}`;
   }
 
-  return `Happening in ${minutes} minute${minutes > 1 ? "s" : ""}`;
+  if (hours < 24) {
+    return `T-Minus: ${hours} hour${hours !== 1 ? "s" : ""}`;
+  }
+
+  if (days === 1) {
+    return "Landing tomorrow";
+  }
+
+  if (days < 7) {
+    return `Landing in ${days} day${days !== 1 ? "s" : ""}`;
+  }
+
+  const weeks = Math.floor(days / 7);
+  return `In Orbit: ${weeks} week${weeks !== 1 ? "s" : ""}`;
 }

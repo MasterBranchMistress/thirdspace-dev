@@ -65,6 +65,7 @@ import { EffectCards } from "swiper/modules";
 import FeedAttachmentSwiper from "@/components/discoverability/feedCard";
 import RankBadge from "@/components/karma/rankBadge";
 import { UserRanking } from "@/lib/constants";
+import EventMiniMap from "@/components/event-mini-map/eventMiniMap";
 
 type Comment = {
   userId: any;
@@ -136,6 +137,7 @@ export default function EventViewPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const { notify } = useToast();
+  const user = session?.user;
 
   const { hasSparked, setHasSparked, toggleEventSpark } = useEventSpark({
     user: session?.user,
@@ -474,6 +476,12 @@ export default function EventViewPage() {
                 />
               </div>
             )}
+            <EventMiniMap
+              user={user}
+              lat={event.location.lat}
+              lng={event.location.lng}
+              eventTitle={event.title}
+            />
             {/* Comments */}
             <div className="px-3 my-6 relative">
               <div>

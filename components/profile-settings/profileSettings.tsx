@@ -29,6 +29,7 @@ import confetti from "canvas-confetti";
 import AvatarUploader from "../attachment-uploader/avatarUploader";
 import { useUserInfo } from "@/app/context/UserContext";
 import { useFeed } from "@/app/context/UserFeedContext";
+import { useBrowserLocation } from "@/utils/geolocation/get-user-location/getUserLocation";
 
 type UserLocation = {
   name: string;
@@ -114,8 +115,9 @@ export default function ProfileSettingsModal({
   const { avatar, username, setUsername, setAvatar, rank, karmaScore } =
     useUserInfo();
   const feed = useFeed();
-  const user = session?.user;
 
+  const user = session?.user;
+  const browserLocation = useBrowserLocation();
   useEffect(() => {
     if (!isOpen || !userId) return;
     (async () => {
@@ -227,7 +229,11 @@ export default function ProfileSettingsModal({
       tags: (form.tags ?? []).slice(0, 5).map((t) => t.toLowerCase()),
       username: (form.username ?? "").trim(),
       lang: form.lang ?? "en",
-      location: { name: form.location?.name.trim() ?? "" },
+      location: {
+        name: form.location?.name.trim() ?? "",
+        lat: browserLocation.coords.lat,
+        lng: browserLocation.coords.lng,
+      },
       shareLocation: form.shareLocation ?? false,
     };
 
@@ -285,11 +291,13 @@ export default function ProfileSettingsModal({
         feed.updateActorUsername(userId, newUsername);
         feed.updateTargetUsername(userId, newUsername);
       }
+
       await update({
         user: {
           ...session?.user,
           avatar: updatedUserAvatar,
           username: newUsername,
+          location: next.location,
         },
       });
 
@@ -501,6 +509,7 @@ export default function ProfileSettingsModal({
                   onChange={(updates) =>
                     setForm((prev) => (prev ? { ...prev, ...updates } : prev))
                   }
+                  location={form.location}
                 />
 
                 <Security

@@ -5,10 +5,13 @@ import { ObjectId } from "mongodb";
 import dynamic from "next/dynamic";
 import { useInView } from "react-intersection-observer";
 import { PreviewUser } from "@/app/api/users/[id]/metadata/interests/friend-spark-preview/route";
+import { UserDoc } from "@/lib/models/User";
+import { SessionUser } from "@/types/user-session";
 
 interface FeedCardFooterProps {
   type: string;
   userId?: string;
+  viewer?: SessionUser;
   actor?: {
     id?: string | ObjectId;
     name?: string;
@@ -57,6 +60,7 @@ export default function FeedCardFooter({
   target,
   hasSparked,
   friendPreviewUsers,
+  viewer,
 }: FeedCardFooterProps) {
   const hasCoords =
     typeof target?.location?.lat === "number" &&
@@ -88,6 +92,9 @@ export default function FeedCardFooter({
               lat={target?.location?.lat}
               lng={target?.location?.lng}
               interactive={false}
+              user={viewer}
+              eventTitle={target.title}
+              previewOpen={false}
             />
           )}
         </div>

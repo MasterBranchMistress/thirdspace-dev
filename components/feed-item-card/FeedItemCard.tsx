@@ -191,8 +191,8 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
       target?.location?.lng
     ) {
       return getDistFromMiles(
-        userLocation.coords.lat,
-        userLocation.coords.lng,
+        userLocation.coords.lat ?? undefined,
+        userLocation.coords.lng ?? undefined,
         target.location.lat,
         target.location.lng,
       )?.toFixed(1);
@@ -942,6 +942,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
         <FeedCardFooter
           type={type}
           target={target}
+          viewer={session?.user}
           actor={actor}
           sourceId={
             (isUserActor(actor) && target?.status?.sourceId) ||

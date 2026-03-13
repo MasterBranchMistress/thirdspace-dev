@@ -5,6 +5,8 @@ export async function POST(req: NextRequest) {
   try {
     const { lat, lng } = await req.json();
 
+    console.log("reverse geocode body", lat, lng);
+
     if (
       typeof lat !== "number" ||
       typeof lng !== "number" ||
@@ -13,7 +15,7 @@ export async function POST(req: NextRequest) {
     ) {
       return NextResponse.json(
         { error: "Valid lat and lng are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -21,12 +23,12 @@ export async function POST(req: NextRequest) {
     if (!token) {
       return NextResponse.json(
         { error: "Missing MAPBOX_TOKEN" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-      `${lng},${lat}`
+      `${lng},${lat}`,
     )}.json?types=place,locality,neighborhood,address&limit=1&access_token=${token}`;
 
     const res = await fetch(url, { cache: "no-store" });
@@ -50,7 +52,7 @@ export async function POST(req: NextRequest) {
   } catch (e: any) {
     return NextResponse.json(
       { error: e?.message ?? "Reverse geocode failed" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

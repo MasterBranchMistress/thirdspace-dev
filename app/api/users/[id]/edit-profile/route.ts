@@ -127,35 +127,59 @@ export async function PATCH(
 
     //Location
     let locationName;
-    if (
-      typeof updates.location?.name === "string" &&
-      updates.location.name.trim() !== user.location?.name
-    ) {
+    if (typeof updates.location?.name === "string") {
       const trimmedLocation = updates.location.name.trim();
 
-      // Ensure location object exists
-      updateFields.location = { name: trimmedLocation };
-      locationName = trimmedLocation;
-      changes.location = { name: trimmedLocation };
+      const nextLat =
+        typeof updates.location?.lat === "number" ? updates.location.lat : null;
 
-      if (user.shareLocation === false)
-        return NextResponse.json(
-          { message: "User has their location privated" },
-          { status: 200 },
-        );
+      const nextLng =
+        typeof updates.location?.lng === "number" ? updates.location.lng : null;
 
-      let attachments: string[] = [];
-      let photoCredit:
-        | { name: string; username: string; profileUrl: string; link: string }
-        | undefined;
+      const nextGeo =
+        nextLat !== null && nextLng !== null
+          ? {
+              type: "Point" as const,
+              coordinates: [nextLng, nextLat] as [number, number],
+            }
+          : undefined;
 
-      try {
-        const result = await getLocationImage(trimmedLocation);
-        if (result) {
-          attachments = [result];
+      const locationChanged =
+        trimmedLocation !== (user.location?.name ?? "") ||
+        nextLat !== (user.location?.lat ?? null) ||
+        nextLng !== (user.location?.lng ?? null);
+
+      if (locationChanged) {
+        updateFields.location = {
+          name: trimmedLocation,
+          lat: nextLat,
+          lng: nextLng,
+          geo: nextGeo,
+        };
+
+        locationName = trimmedLocation;
+        changes.location = updateFields.location;
+
+        if (user.shareLocation === false) {
+          return NextResponse.json(
+            { message: "User has their location privated" },
+            { status: 200 },
+          );
         }
-      } catch (err) {
-        console.error("Unable to get photo: ", err);
+
+        let attachments: string[] = [];
+        let photoCredit:
+          | { name: string; username: string; profileUrl: string; link: string }
+          | undefined;
+
+        try {
+          const result = await getLocationImage(trimmedLocation);
+          if (result) {
+            attachments = [result];
+          }
+        } catch (err) {
+          console.error("Unable to get photo: ", err);
+        }
       }
     }
 

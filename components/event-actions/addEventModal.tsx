@@ -20,7 +20,6 @@ import Image from "next/image";
 import logo from "@/public/third-space-logos/thirdspace-logo-5.png";
 import Lottie from "lottie-react";
 import hourglass from "@/public/lottie/hourglass.json";
-import LocationAutocomplete from "../location-auto-complete/locationAutocomplete";
 import BudgetInput from "../budget-handling/budgetSlider";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { SelectEventPrivacy } from "./selectEventPrivacy";
@@ -39,6 +38,7 @@ import React from "react";
 import { parseZonedDate } from "@/utils/date-handling/parseCalendarZoneDateTime";
 import { handleAddEvent } from "@/utils/handle-user-posting/handleEventPost";
 import { useFeed } from "@/app/context/UserFeedContext";
+import LocationSearch from "../location-auto-complete/searchInput";
 
 type AddEventProps = {
   isOpen: boolean;
@@ -282,6 +282,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
                     label="Tags (comma separated)"
                     value={tagInput}
                     classNames={inputStyling}
+                    className="border-b-2 border-secondary"
                     onChange={(e: any) => setTagInput(e.target.value)}
                     onBlur={() => {
                       const parsed = normalizeTags(tagInput);
@@ -307,7 +308,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
                     ))}
                   </div>
 
-                  <LocationAutocomplete
+                  <LocationSearch
                     value={location?.name ?? ""}
                     onChange={(val) =>
                       setLocation({

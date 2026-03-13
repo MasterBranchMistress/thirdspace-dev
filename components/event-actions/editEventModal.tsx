@@ -25,11 +25,11 @@ import { RecurrenceRule, SelectRecurringEvent } from "./selectRecurringEvent";
 import { SelectEventPrivacy } from "./selectEventPrivacy";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useSession } from "next-auth/react";
-import LocationAutocomplete from "../location-auto-complete/locationAutocomplete";
 import BudgetInput from "../budget-handling/budgetSlider";
 import Lottie from "lottie-react";
 import hourglass from "@/public/lottie/hourglass.json";
 import AttachmentUploader from "../attachment-uploader/attachmentUploader";
+import LocationSearch from "../location-auto-complete/searchInput";
 
 type EditEventModalProps = {
   isOpen: boolean;
@@ -288,12 +288,12 @@ export function EditEventModal({
                 isPublic={isPublic}
                 setIsPublic={setIsPublic}
               />
-              <LocationAutocomplete
+              <LocationSearch
                 value={location?.name ?? ""}
                 onChange={(val) => setLocation({ ...location, name: val })}
                 onSelect={(loc) => setLocation(loc)}
               />
-              <BudgetInput initialValue={budget} onChange={setBudget} />
+              {/* <BudgetInput initialValue={budget} onChange={setBudget} /> */}
               <Input
                 label="Tags (comma separated)"
                 value={tagInput}

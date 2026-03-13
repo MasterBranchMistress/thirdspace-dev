@@ -73,8 +73,6 @@ export function EventActions({
     }
   }, [actionsAfterEventClose]);
 
-  console.log(`Event Id from actions: ${eventId}`);
-
   const [manageOrbiterModalOpen, setManageOrbiterModalOpen] = useState(false);
   const [editEventModalOpen, setEditEventModalOpen] = useState(false);
 
@@ -173,7 +171,7 @@ export function EventActions({
                   onPress={() =>
                     notify(
                       "Unable to Orbit 😭",
-                      "Sit tight! this feature is coming soon 🤞"
+                      "Sit tight! this feature is coming soon 🤞",
                     )
                   }
                 >

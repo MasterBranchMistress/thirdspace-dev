@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 type GeoState = {
   status: "idle" | "locating" | "success" | "error";
-  coords: { lat: number; lng: number; accuracy: number | null };
+  coords: { lat: number | null; lng: number | null; accuracy: number | null };
   placeName?: string;
   error?: string;
 };
@@ -16,7 +16,7 @@ export function useBrowserLocation(options?: {
 }): GeoState {
   const [state, setState] = useState<GeoState>({
     status: "idle",
-    coords: { lat: 0, lng: 0, accuracy: null },
+    coords: { lat: null, lng: null, accuracy: null },
   });
   const requested = useRef(false);
 
@@ -91,7 +91,7 @@ export function useBrowserLocation(options?: {
         enableHighAccuracy,
         timeout: timeoutMs,
         maximumAge: maximumAgeMs,
-      }
+      },
     );
   }, [options?.enableHighAccuracy, options?.maximumAgeMs, options?.timeoutMs]);
 
