@@ -5,8 +5,6 @@ export async function POST(req: NextRequest) {
   try {
     const { lat, lng } = await req.json();
 
-    console.log("reverse geocode body", lat, lng);
-
     if (
       typeof lat !== "number" ||
       typeof lng !== "number" ||

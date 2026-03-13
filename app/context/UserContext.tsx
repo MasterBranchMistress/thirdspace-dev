@@ -12,11 +12,22 @@ import {
 import { useSession } from "next-auth/react";
 import { UserRanking } from "@/lib/constants";
 
+export type UserLocation = {
+  name: string;
+  lat?: number | null;
+  lng?: number | null;
+  geo?: {
+    type: "Point";
+    coordinates: [number, number];
+  };
+};
+
 type UserInfoState = {
   avatar?: string;
   username?: string;
   rank?: UserRanking;
   karmaScore?: number;
+  location?: UserLocation | null;
 };
 
 type UserInfoContextType = UserInfoState & {
@@ -24,6 +35,7 @@ type UserInfoContextType = UserInfoState & {
   setUsername: (username: string) => void;
   setRank: (rank: UserRanking) => void;
   setKarmaScore: (score: number) => void;
+  setLocation: (location: UserLocation | null) => void;
   setUserInfo: (updates: Partial<UserInfoState>) => void;
 };
 
@@ -39,6 +51,7 @@ export const UserInfoProvider = ({ children }: { children: ReactNode }) => {
     username: undefined,
     rank: undefined,
     karmaScore: undefined,
+    location: null,
   });
 
   useEffect(() => {
@@ -46,13 +59,15 @@ export const UserInfoProvider = ({ children }: { children: ReactNode }) => {
     const nextUsername = session?.user?.username;
     const nextRank = session?.user?.qualityBadge;
     const nextKarmaScore = session?.user?.karmaScore;
+    const nextLocation = session?.user?.location ?? null;
 
     setUserInfoState((prev) => {
       if (
         prev.avatar === nextAvatar &&
         prev.username === nextUsername &&
         prev.rank === nextRank &&
-        prev.karmaScore === nextKarmaScore
+        prev.karmaScore === nextKarmaScore &&
+        JSON.stringify(prev.location) === JSON.stringify(nextLocation)
       ) {
         return prev;
       }
@@ -62,6 +77,7 @@ export const UserInfoProvider = ({ children }: { children: ReactNode }) => {
         username: nextUsername,
         rank: nextRank,
         karmaScore: nextKarmaScore,
+        location: nextLocation,
       };
     });
   }, [
@@ -69,6 +85,7 @@ export const UserInfoProvider = ({ children }: { children: ReactNode }) => {
     session?.user?.username,
     session?.user?.qualityBadge,
     session?.user?.karmaScore,
+    session?.user?.location,
   ]);
 
   const setAvatar = useCallback((avatar: string) => {
@@ -87,6 +104,10 @@ export const UserInfoProvider = ({ children }: { children: ReactNode }) => {
     setUserInfoState((prev) => ({ ...prev, karmaScore: score }));
   }, []);
 
+  const setLocation = useCallback((location: UserLocation | null) => {
+    setUserInfoState((prev) => ({ ...prev, location }));
+  }, []);
+
   const setUserInfo = useCallback((updates: Partial<UserInfoState>) => {
     setUserInfoState((prev) => ({ ...prev, ...updates }));
   }, []);
@@ -98,9 +119,18 @@ export const UserInfoProvider = ({ children }: { children: ReactNode }) => {
       setUsername,
       setRank,
       setKarmaScore,
+      setLocation,
       setUserInfo,
     }),
-    [userInfo, setAvatar, setUsername, setRank, setKarmaScore, setUserInfo],
+    [
+      userInfo,
+      setAvatar,
+      setUsername,
+      setRank,
+      setKarmaScore,
+      setLocation,
+      setUserInfo,
+    ],
   );
 
   return (

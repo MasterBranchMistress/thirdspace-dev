@@ -116,8 +116,6 @@ export default function ProfileSettingsModal({
     useUserInfo();
   const feed = useFeed();
 
-  const user = session?.user;
-  const browserLocation = useBrowserLocation();
   useEffect(() => {
     if (!isOpen || !userId) return;
     (async () => {
@@ -130,16 +128,6 @@ export default function ProfileSettingsModal({
           notify("Failed to load profile!", `Couldn't load profile details.`);
           return;
         }
-        const geoRes = await fetch(`/api/reverse-geocode`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            lat: data.user.location.lat,
-            lng: data.user.location.lng,
-          }),
-        });
-
-        const loc = await geoRes.json();
 
         const formPayload: UserPayload = {
           id: userId,
@@ -155,7 +143,7 @@ export default function ProfileSettingsModal({
             fileType: data.user.avatar.fileType,
           },
           location: {
-            name: data.user.location?.name ?? loc.place_name ?? "",
+            name: data.user.location?.name ?? "",
             lat: data.user.location?.lat ?? null,
             lng: data.user.location?.lng ?? null,
             geo: data.user.location?.geo,
@@ -230,9 +218,9 @@ export default function ProfileSettingsModal({
       username: (form.username ?? "").trim(),
       lang: form.lang ?? "en",
       location: {
-        name: form.location?.name.trim() ?? "",
-        lat: browserLocation.coords.lat,
-        lng: browserLocation.coords.lng,
+        name: form.location?.name?.trim() ?? "",
+        lat: form.location?.lat,
+        lng: form.location?.lng,
       },
       shareLocation: form.shareLocation ?? false,
     };
@@ -292,6 +280,9 @@ export default function ProfileSettingsModal({
         feed.updateTargetUsername(userId, newUsername);
       }
 
+      if (updatedUserAvatar) {
+      }
+
       await update({
         user: {
           ...session?.user,
@@ -324,6 +315,7 @@ export default function ProfileSettingsModal({
       setError(e.message || "Save failed");
     } finally {
       setSaving(false);
+      // feed.refresh?.();
     }
   };
 

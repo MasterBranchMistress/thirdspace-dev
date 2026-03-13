@@ -13,6 +13,8 @@ import { useBrowserLocation } from "@/utils/geolocation/get-user-location/getUse
 import { SearchBox } from "@mapbox/search-js-react";
 import LocationSearch from "../location-auto-complete/searchInput";
 import UserLocationSearch from "../location-auto-complete/userLocationInput";
+import UserLocation from "../user-location/userLocation";
+import { useUserInfo } from "@/app/context/UserContext";
 
 type PrivacyProps = {
   shareLocation: boolean;
@@ -46,12 +48,9 @@ export function Privacy({
   const browserLocation = useBrowserLocation();
   const userId = session?.user?.id;
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const { location, setLocation } = useUserInfo();
   const router = useRouter();
-  const [location, setLocation] = useState<{
-    name: string;
-    lat?: number;
-    lng?: number;
-  } | null>(null);
+
   const hasBrowserLocation =
     browserLocation.status === "success" &&
     typeof browserLocation.coords.lat === "number" &&
@@ -66,6 +65,21 @@ export function Privacy({
     }
     notify("Account deleted 😭", "We’re sorry to see you go.");
     await signOut({ callbackUrl: "/login" });
+  };
+
+  const getSuggestedLocation = async () => {
+    const geoRes = await fetch(`/api/reverse-geocode`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        lat: browserLocation.coords.lat,
+        lng: browserLocation.coords.lng,
+      }),
+    });
+
+    const loc = await geoRes.json();
+
+    setLocation(loc);
   };
 
   return (
@@ -89,7 +103,7 @@ export function Privacy({
           />
 
           <div className="mb-6 flex items-center justify-between">
-            <span className="text-sm">Allow Geolocation</span>
+            <span className="text-sm">Use device location</span>
             <CustomSwitch
               size="sm"
               checked={shareLocation}
@@ -103,7 +117,8 @@ export function Privacy({
               variant="shadow"
               color="primary"
               isDisabled={!hasBrowserLocation || !shareLocation}
-              onPress={() => {
+              onPress={async () => {
+                await getSuggestedLocation();
                 if (!hasBrowserLocation) return;
 
                 onChange({
@@ -125,7 +140,7 @@ export function Privacy({
               Use Current Location
             </Button>
 
-            {browserLocation.placeName && (
+            {browserLocation.placeName && shareLocation && (
               <p className="mt-2 text-xs text-white/60 mb-[-1rem]">
                 Detected: {browserLocation.placeName}
               </p>

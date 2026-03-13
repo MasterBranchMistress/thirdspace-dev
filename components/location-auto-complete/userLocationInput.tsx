@@ -30,9 +30,17 @@ export default function UserLocationSearch({
           htmlFor="location"
           className="text-xs text-concrete transition-all"
         >
-          Wrong location? Search here.
+          City or Neighborhood
         </label>
+        <p className="text-[11px] text-concrete/60 mt-1">
+          Helps us show things happening nearby.
+        </p>
         <SearchBox
+          interceptSearch={(text) => {
+            const q = text.trim();
+            if (q.length < 3) return "";
+            return q;
+          }}
           theme={{
             variables: {
               fontFamily: "inherit",

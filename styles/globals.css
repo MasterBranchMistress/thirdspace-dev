@@ -55,8 +55,8 @@ input:-webkit-autofill:active {
 /* seacrhbox. hope this works */
 
 .thirdspace-searchbox [role="listbox"] {
-  background: rgb(92, 108, 196, 0.8);
-  backdrop-filter: blur(30px);
+  background-color: rgb(92, 108, 196, 0.8);
+  backdrop-filter: blur(40px);
   border-radius: "none";
   width: 15rem;
   padding: 5px;
