@@ -84,11 +84,7 @@ export default function CommentList({
     );
 
     if (res.ok) {
-      const { rewardKarma, promotion } = await res.json();
-
-      if (typeof rewardKarma === "number") {
-        setKarmaScore(rewardKarma);
-      }
+      const { rewardKarma, promotion, totalKarma } = await res.json();
 
       if (promotion?.newRank) {
         setRank(promotion.newRank);
@@ -99,6 +95,7 @@ export default function CommentList({
           label: "Added Comment!",
           amount: rewardKarma,
         });
+        setKarmaScore(totalKarma);
       }
 
       const updated = await fetch(

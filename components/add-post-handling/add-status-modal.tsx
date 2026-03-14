@@ -93,7 +93,6 @@ export default function AddStatus({
     } finally {
       setLoading(false);
       useRefOnSubmit.current = false;
-      await update();
       feed.refresh?.();
     }
   };

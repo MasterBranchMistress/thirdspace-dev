@@ -220,6 +220,7 @@ export async function POST(
               karmaScore: newKarmaScore,
             }
           : null,
+        totalKarma: newKarmaScore,
       },
       { status: 201 },
     );
