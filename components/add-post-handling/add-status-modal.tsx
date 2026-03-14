@@ -88,9 +88,7 @@ export default function AddStatus({
         setKarmaScore(totalKarma);
         setRank(newRank);
 
-        if (!karmaReward) {
-          notify("Status Posted 🤝", ``);
-        }
+        notify("Status Posted 🤝", ``);
       }
     } finally {
       setLoading(false);

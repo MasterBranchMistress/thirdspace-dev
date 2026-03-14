@@ -18,6 +18,7 @@ type Props = {
   interactive?: boolean;
   eventTitle?: string;
   previewOpen?: boolean;
+  onEventPage?: boolean;
 };
 
 export default function EventMiniMap({
@@ -27,12 +28,13 @@ export default function EventMiniMap({
   zoom = 15,
   eventTitle,
   previewOpen,
+  onEventPage,
 }: Props) {
   if (typeof lat !== "number" || typeof lng !== "number") return null;
 
   return (
     <div
-      className="w-full h-full flex-col justify-center items-center overflow-hidden rounded-none border border-divider"
+      className={`w-full h-full ${onEventPage ? "mt-3" : ""} flex-col justify-center items-center overflow-hidden rounded-none border border-divider`}
       style={{
         height: previewOpen ? "100vh" : "25vh",
       }}

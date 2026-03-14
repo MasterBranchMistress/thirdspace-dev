@@ -77,6 +77,7 @@ export default function FeedCardFooter({
         "hosted_event",
         "event_coming_up",
         "event_is_popular",
+        "updated_event",
       ].includes(type) && (
         <div
           ref={ref}

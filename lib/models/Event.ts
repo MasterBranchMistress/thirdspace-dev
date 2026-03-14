@@ -62,7 +62,7 @@ export interface EventDoc {
   createdAt?: Date;
   updatedAt?: Date;
   banned?: ObjectId[];
-  attachments?: Attachment[];
+  attachments?: any[];
   public?: boolean;
   recurring?: boolean;
   recurrenceRule?: "none" | "daily" | "weekly" | "monthly";

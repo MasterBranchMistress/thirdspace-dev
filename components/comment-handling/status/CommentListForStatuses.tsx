@@ -26,8 +26,7 @@ export default function CommentList({
   const [comments, setComments] = useState<CommentDoc[]>([]);
   const { data: session } = useSession();
   const userId = session?.user.id;
-  const { setKarmaScore, setRank } = useUserInfo();
-  const feed = useFeed();
+  const { karmaScore, setKarmaScore, setRank } = useUserInfo();
 
   //we can determine isCommentOwner from here
   const [karmaReward, setKarmaReward] = useState<{
@@ -83,15 +82,19 @@ export default function CommentList({
         headers: { "Content-Type": "application/json" },
       },
     );
+
     if (res.ok) {
       const { rewardKarma, promotion } = await res.json();
 
-      if (promotion) {
-        setKarmaScore(promotion.karmaScore);
+      if (typeof rewardKarma === "number") {
+        setKarmaScore(rewardKarma);
+      }
+
+      if (promotion?.newRank) {
         setRank(promotion.newRank);
       }
 
-      if (rewardKarma > 0) {
+      if (typeof rewardKarma === "number" && rewardKarma > 0) {
         setKarmaReward({
           label: "Added Comment!",
           amount: rewardKarma,

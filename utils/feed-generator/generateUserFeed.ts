@@ -10,9 +10,6 @@ import { geocodeAddress } from "../geolocation/geocode-address/geocodeAddress";
 import { canViewerSee } from "../user-privacy/canViewerSee";
 import { UserStatusDoc } from "@/lib/models/UserStatusDoc";
 import { ObjectId } from "mongodb";
-import { FeedTarget } from "@/types/user-feed";
-import { generatePromotionFeedItem } from "../karma/generatePromotionFeedItem";
-import { getUserRanking } from "../karma/getRanking";
 
 function resolveAvatar(user: UserDoc): string {
   return user.avatar ?? getGravatarUrl(user.email!);
@@ -74,6 +71,7 @@ export async function generateUserFeed(
     "profile_avatar_updated",
     "profile_bio_updated",
     "user_promoted",
+    "updated_event",
   ];
 
   await logFeedItem({

@@ -12,6 +12,7 @@ export interface EventFeedDoc {
     | "event_is_nearby"
     | "hosted_event"
     | "joined_event"
+    | "updated_event"
   >;
   actor: FeedEventActor;
   target: FeedTarget;

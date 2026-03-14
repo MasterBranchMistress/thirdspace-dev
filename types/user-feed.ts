@@ -22,7 +22,8 @@ export type FeedItemType =
   | "event_is_popular"
   | "event_is_nearby"
   | "event_coming_up"
-  | "user_promoted";
+  | "user_promoted"
+  | "updated_event";
 
 export type UserStatus = {
   content: string;
@@ -85,7 +86,7 @@ export interface FeedEventActor {
   lastName?: string;
   username?: string;
   hostUser?: string;
-  attachments?: (string | Attachment)[];
+  attachments?: Attachment[];
   host?: string;
   eventId?: ObjectId;
   eventName: string;

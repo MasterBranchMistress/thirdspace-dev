@@ -32,7 +32,7 @@ export const selectStyle = {
 };
 
 export const attachmentStyling =
-  "h-80 w-auto p-1 bg-white/20 backdrop-blur-2xl shadow-2xl rounded-md object-cover border-1 border-concrete/20";
+  "h-auto w-[100vw] object-cover rounded-none border-none";
 
 export const inputStyling = {
   label: "text-concrete",

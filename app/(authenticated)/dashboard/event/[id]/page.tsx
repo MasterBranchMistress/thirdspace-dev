@@ -66,6 +66,8 @@ import FeedAttachmentSwiper from "@/components/discoverability/feedCard";
 import RankBadge from "@/components/karma/rankBadge";
 import { UserRanking } from "@/lib/constants";
 import EventMiniMap from "@/components/event-mini-map/eventMiniMap";
+import { Attachment } from "@/types/user-feed";
+import { normalizeAttachments } from "@/utils/attachments/normalizeAttachments";
 
 type Comment = {
   userId: any;
@@ -130,7 +132,7 @@ export default function EventViewPage() {
   const [orbiters, setOrbiters] = useState([]);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
-  const [attachments, setAttachments] = useState([]);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const lottieRef = useRef<LottieRefCurrentProps>(null);
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
@@ -197,7 +199,7 @@ export default function EventViewPage() {
           setIsJoined(joined);
         }
 
-        setAttachments(eventData.attachments);
+        setAttachments(normalizeAttachments(eventData.attachments));
         setComments(commentData.comments || []);
       } catch (err) {
         console.error(err);
@@ -481,6 +483,7 @@ export default function EventViewPage() {
               lat={event.location.lat}
               lng={event.location.lng}
               eventTitle={event.title}
+              onEventPage={true}
             />
             {/* Comments */}
             <div className="px-3 my-6 relative">

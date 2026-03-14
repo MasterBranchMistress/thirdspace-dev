@@ -102,7 +102,8 @@ import { getTimeUntilEvent } from "@/utils/custom-hooks/useCountdown";
 export default function FeedItemCard({ item }: FeedItemCardProps) {
   const { data: session } = useSession();
   const user = session?.user;
-  const { avatar, username, rank, karmaScore, setKarmaScore } = useUserInfo();
+  const { avatar, username, rank, karmaScore, setKarmaScore, location } =
+    useUserInfo();
   if (!user) return;
   const [showPulse, setShowPulse] = useState(false);
   const [hasSparked, setHasSparked] = useState(false);
@@ -147,8 +148,6 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
         : actor.username
       : username;
 
-  const promotionKarmaScore = target?.promotion?.karmaScore;
-
   const actorKarmaScore = isCurrentUser ? karmaScore : actor?.karmaScore;
 
   const { getRelationship } = useUserRelationships();
@@ -183,22 +182,17 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
     await loadUserDoc();
   };
 
-  const userLocation = useBrowserLocation();
   const eventDistance = useMemo(() => {
-    if (
-      userLocation.status === "success" &&
-      target?.location?.lat &&
-      target?.location?.lng
-    ) {
+    if (location && target?.location?.lat && target?.location?.lng) {
       return getDistFromMiles(
-        userLocation.coords.lat ?? undefined,
-        userLocation.coords.lng ?? undefined,
+        location?.lat ?? undefined,
+        location?.lng ?? undefined,
         target.location.lat,
         target.location.lng,
       )?.toFixed(1);
     }
     return null;
-  }, [userLocation, target?.location]);
+  }, [location, target?.location]);
 
   useEffect(() => {
     setHasSparked(Boolean((item as any).hasSparked));
@@ -236,8 +230,10 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                     ? `The Space Station ™ 👽`
                     : type === "user_promoted"
                       ? `Ascension™  🚀`
-                      : isUserActor(actor) &&
-                        `${actor.firstName} is doing something cool 🤔`;
+                      : type === "updated_event"
+                        ? `Course Correction™ 🛸`
+                        : isUserActor(actor) &&
+                          `${actor.firstName} is doing something cool 🤔`;
 
   const handleDeletePost = async (statusId?: string) => {
     try {
@@ -404,6 +400,83 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
               timestamp={target?.timeOfPromotion ?? new Date()}
               newRank={getUserRanking(target?.promotion?.karmaScore)}
             />
+          )}
+          {type === "updated_event" && !isUserActor(actor) && (
+            <div className="mt-2 tracking-tight max-w-[100%] font-normal text-sm">
+              <div className="flex flex-col items-center justify-center text-center">
+                <div className="flex flex-row font-bold text-sm text-center justify-center mb-2 items-center">
+                  <span className="font-semibold shadow-md shadow-primary border-1 border-primary py-[5px] mr-[-12] px-3 rounded-l-lg">
+                    {actor.firstName} just updated
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="solid"
+                    color="primary"
+                    className="text-secondary shadow-md shadow-primary rounded-l-none font-bold ml-2"
+                    onPress={() =>
+                      router.push(`/dashboard/event/${actor.eventId}`)
+                    }
+                  >
+                    {target?.title}
+                  </Button>
+                </div>
+                <div className="font-light tracking-tight text-md px-3 mt-3">
+                  {target?.snippet}
+                </div>
+              </div>
+              {target?.attachments && target.attachments.length > 0 ? (
+                <div
+                  className="relative overflow-hidden"
+                  onClick={() =>
+                    router.push(`/dashboard/event/${String(actor.eventId)}`)
+                  }
+                >
+                  <Swiper
+                    effect={"cards"}
+                    grabCursor={true}
+                    centeredSlides={true}
+                    slidesPerView={"auto"}
+                    pagination={true}
+                    modules={[EffectCards]}
+                    className="flex justify-center mt-3"
+                    cardsEffect={{ slideShadows: false }}
+                    onClick={() =>
+                      router.push(`/dashboard/event/${actor.eventId}`)
+                    }
+                  >
+                    {target.attachments.map((a, i) => {
+                      return (
+                        <SwiperSlide
+                          key={i}
+                          className={`flex ${target.attachments?.length && target.attachments?.length > 1 ? `!w-[85vw]` : `h-auto`} justify-center`}
+                        >
+                          <FeedAttachmentSwiper
+                            key={i}
+                            attachment={a as any}
+                            attachments={target.attachments}
+                          />
+                        </SwiperSlide>
+                      );
+                    })}
+                  </Swiper>
+                </div>
+              ) : (
+                <div
+                  className="relative w-[100vw] h-[60vh] overflow-hidden mt-3 cursor-pointer"
+                  onClick={() =>
+                    router.push(`/dashboard/event/${actor.eventId}`)
+                  }
+                >
+                  <Image
+                    src={"/third-space-logos/thirdspace-logo-6.png"}
+                    alt={`thirdspace-logo`}
+                    fill
+                    priority
+                    className="relative z-10 object-cover"
+                  />
+                </div>
+              )}
+            </div>
           )}
           {type === "joined_platform" && isUserActor(actor) && (
             <div className="font-light tracking-tight w-[100vw] text-center">

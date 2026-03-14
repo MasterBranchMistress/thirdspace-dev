@@ -30,6 +30,7 @@ import Lottie from "lottie-react";
 import hourglass from "@/public/lottie/hourglass.json";
 import AttachmentUploader from "../attachment-uploader/attachmentUploader";
 import LocationSearch from "../location-auto-complete/searchInput";
+import { useFeed } from "@/app/context/UserFeedContext";
 
 type EditEventModalProps = {
   isOpen: boolean;
@@ -67,6 +68,7 @@ export function EditEventModal({
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const { data: session } = useSession();
   const [budget, setBudget] = useState<number>(0);
+  const feed = useFeed();
 
   // Prefill on open
   useEffect(() => {
@@ -137,7 +139,6 @@ export function EditEventModal({
       setLoading(true);
       let uploadedUrls: string[] = [];
 
-      //If we have files uploaded
       if (newFiles.length > 0) {
         const res = await fetch(`/api/events/${eventId}/upload-attachments`, {
           method: "POST",
@@ -152,7 +153,6 @@ export function EditEventModal({
 
         const { files: presigned } = await res.json();
 
-        //Upload to S3
         await Promise.all(
           newFiles.map((file, i) =>
             fetch(presigned[i].signedUrl, {
@@ -165,9 +165,10 @@ export function EditEventModal({
 
         uploadedUrls = presigned.map((f: any) => f.publicUrl);
       }
-      //for our date
+
       let isoDate: string | null = null;
       let time: string | null = null;
+
       if (date) {
         isoDate = date.toAbsoluteString();
         const jsDate = date.toDate();
@@ -187,8 +188,8 @@ export function EditEventModal({
             title,
             description,
             status,
-            date: eventDate,
-            startTime,
+            date: isoDate,
+            startTime: time ?? startTime,
             public: isPublic,
             recurring,
             recurrenceRule,
@@ -207,8 +208,11 @@ export function EditEventModal({
         const errData = await res.json().catch(() => ({}));
         throw new Error(errData.error || "Failed to update event");
       }
-      notify("Event Edited 🗓️", "Sit tight while your event is processed.");
+
+      notify("Event Edited 🗓️", "Your event was updated successfully.");
+      feed.refresh?.();
       onClose();
+      window.location.reload();
     } catch (err) {
       notify("Couldn't save changes 😭", (err as Error).message);
     } finally {
@@ -290,7 +294,13 @@ export function EditEventModal({
               />
               <LocationSearch
                 value={location?.name ?? ""}
-                onChange={(val) => setLocation({ ...location, name: val })}
+                onChange={(val) =>
+                  setLocation((prev) => ({
+                    name: val,
+                    lat: prev?.lat,
+                    lng: prev?.lng,
+                  }))
+                }
                 onSelect={(loc) => setLocation(loc)}
               />
               {/* <BudgetInput initialValue={budget} onChange={setBudget} /> */}
@@ -332,11 +342,13 @@ export function EditEventModal({
                   setNewFiles((prev) => [...prev, ...files])
                 }
               />
-              <h1 className="text-center font-extralight mt-3">
-                Existing Attachments
-              </h1>
               {attachments.length > 0 && (
-                <div className="flex flex-wrap justify-center gap-1">
+                <h1 className="text-center font-extralight mt-3">
+                  Existing Attachments
+                </h1>
+              )}
+              {attachments.length > 0 && (
+                <div className="flex flex-wrap w-full h-auto justify-center gap-1">
                   {attachments.map((url, i) => (
                     <div key={i} className="relative group">
                       {url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
