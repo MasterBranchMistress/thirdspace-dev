@@ -394,12 +394,18 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
             </span>
           )}
           {type === "user_promoted" && isUserActor(actor) && (
-            <PromotionFeedItem
-              actor={actor}
-              target={target}
-              timestamp={target?.timeOfPromotion ?? new Date()}
-              newRank={getUserRanking(target?.promotion?.karmaScore)}
-            />
+            <div
+              onClick={() => {
+                router.push(`/dashboard/profile/${actor.id?.toString()}`);
+              }}
+            >
+              <PromotionFeedItem
+                actor={actor}
+                target={target}
+                timestamp={target?.timeOfPromotion ?? new Date()}
+                newRank={getUserRanking(target?.promotion?.karmaScore)}
+              />
+            </div>
           )}
           {type === "updated_event" && !isUserActor(actor) && (
             <div className="mt-2 tracking-tight max-w-[100%] font-normal text-sm">
@@ -639,7 +645,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
               ) : null}
 
               {/* Actions (ALWAYS render if the status exists) */}
-              {target?.status?.attachments.length === 0 ? (
+              {target?.status ? (
                 <div className="mt-3 flex justify-center gap-3 py-1">
                   <button
                     type="button"
