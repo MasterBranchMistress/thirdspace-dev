@@ -54,7 +54,7 @@ export default function DrifterPromotion({
         </div>
         <RankBadge
           size="sm"
-          karmaScore={actor.karmaScore}
+          karmaScore={target?.promotion?.karmaScore}
           className="mt-[-.5rem]"
         />
         <p>

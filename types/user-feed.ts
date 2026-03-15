@@ -29,6 +29,8 @@ export type UserStatus = {
   content: string;
   attachments: string[];
   sourceId: string;
+  boostCount?: number;
+  boostedBy?: ObjectId[];
 };
 
 /**
@@ -194,6 +196,8 @@ export interface FeedTarget {
     newRank: UserRanking;
     karmaScore?: number;
   };
+  boostedCount?: number;
+  boostedBy?: ObjectId[];
 }
 
 /**

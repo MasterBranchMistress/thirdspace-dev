@@ -37,6 +37,8 @@ export type UserStatusDoc = {
     | "pioneer"
     | "luminary";
   karmaScore?: number;
+  boostedCount?: number;
+  boostedBy?: ObjectId[];
 };
 
 export type StatusViewDoc = {
@@ -129,7 +131,6 @@ export interface UserDoc {
   provider?: string;
   friends?: ObjectId[];
   blocked?: ObjectId[];
-  pendingFriendRequests?: [];
   pendingFriendRequestsIncoming?: ObjectId[];
   pendingFriendRequestsOutgoing?: ObjectId[];
   createdAt?: Date;

@@ -1,5 +1,5 @@
 import React from "react";
-import SparkMeta from "./FeedStats";
+import SparkMeta from "./SparkMeta";
 import { Image } from "@heroui/react";
 import { ObjectId } from "mongodb";
 import dynamic from "next/dynamic";
@@ -7,6 +7,7 @@ import { useInView } from "react-intersection-observer";
 import { PreviewUser } from "@/app/api/users/[id]/metadata/interests/friend-spark-preview/route";
 import { UserDoc } from "@/lib/models/User";
 import { SessionUser } from "@/types/user-session";
+import BoostMeta from "./BoostMeta";
 
 interface FeedCardFooterProps {
   type: string;
@@ -43,6 +44,9 @@ interface FeedCardFooterProps {
   sourceId: string;
   hasSparked: boolean;
   friendPreviewUsers: PreviewUser[];
+  hasBoosted: boolean;
+  boostPreviewUsers: PreviewUser[];
+  optimisticBoosted: boolean;
 }
 
 const EventMiniMap = dynamic(
@@ -60,7 +64,10 @@ export default function FeedCardFooter({
   target,
   hasSparked,
   friendPreviewUsers,
+  hasBoosted,
+  boostPreviewUsers,
   viewer,
+  optimisticBoosted,
 }: FeedCardFooterProps) {
   const hasCoords =
     typeof target?.location?.lat === "number" &&
@@ -83,11 +90,6 @@ export default function FeedCardFooter({
           ref={ref}
           className="flex flex-col gap-1 w-full justify-center align-middle"
         >
-          {/* <p className="font-bold tracking-tight text-small mx-1 pb-2">
-            {target?.location?.name ??
-              target?.location?.address ??
-              "Somewhere mysterious"}
-          </p> */}
           {inView && hasCoords && (
             <EventMiniMap
               lat={target?.location?.lat}
@@ -111,6 +113,11 @@ export default function FeedCardFooter({
       )}
 
       <div className="flex justify-evenly gap-10 w-[90%]">
+        <BoostMeta
+          hasBoosted={hasBoosted}
+          boostPreviewUsers={boostPreviewUsers}
+          optimisticBoosted={optimisticBoosted}
+        />
         <SparkMeta
           hasSparked={hasSparked}
           friendPreviewUsers={friendPreviewUsers}

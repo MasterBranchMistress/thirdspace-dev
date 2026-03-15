@@ -204,6 +204,8 @@ export async function generateUserFeed(
       target: {
         newRank: actorUser?.newRank!, //If theres a promotion, theres a new rank
         karmaScore: actorUser.karmaScore,
+        boostedCount: 0,
+        boostedBy: [],
         timeOfPromotion: new Date(),
       },
       timestamp: new Date().toISOString(),

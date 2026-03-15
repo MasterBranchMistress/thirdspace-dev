@@ -14,6 +14,7 @@ import {
   Dropdown,
   user,
   Textarea,
+  AvatarGroup,
 } from "@heroui/react";
 
 import Image from "next/image";
@@ -28,6 +29,7 @@ import {
   ArrowRightStartOnRectangleIcon,
   EllipsisVerticalIcon,
   FlagIcon,
+  RocketLaunchIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import AttachmentSwiper from "../swiper/swiper";
@@ -65,7 +67,7 @@ import {
   sparkStatus,
   unsparkStatus,
 } from "@/utils/feed-item-actions/status-item-actions/sparkHandler";
-import SparkMeta from "./FeedStats";
+import SparkMeta from "./SparkMeta";
 import StatusDetailModal from "../status-view-modal/statusViewModal";
 import { deleteStatus } from "@/utils/feed-item-actions/status-item-actions/deleteStatus";
 import { NearbyUserCard } from "../discoverability/nearbyUserCard";
@@ -98,6 +100,8 @@ import PromotionFeedItem from "../karma/promotion-card-map";
 import { getUserRanking } from "@/utils/karma/getRanking";
 import { useUserInfo } from "@/app/context/UserContext";
 import { getTimeUntilEvent } from "@/utils/custom-hooks/useCountdown";
+import { boostStatus } from "@/utils/feed-item-actions/status-item-actions/boostHandler";
+import { BoostedBy } from "@/lib/models/UserFeedDoc";
 
 export default function FeedItemCard({ item }: FeedItemCardProps) {
   const { data: session } = useSession();
@@ -108,9 +112,16 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
   const [showPulse, setShowPulse] = useState(false);
   const [hasSparked, setHasSparked] = useState(false);
   const [previewFriends, setPreviewFriends] = useState([]);
+  const [hasBoosted, setHasBoosted] = useState(false);
+  const [previewBoosts, setPreviewBoosts] = useState([]);
   const [openStatusId, setOpenStatusId] = useState<string | null>(null);
   const [activeEventIndex, setActiveEventIndex] = useState(0); //For discover events section
   const [activeUserIndex, setActiveUserIndex] = useState(0); // for discover users section
+  const [alreadyBoosted, setAlreadyBoosted] = useState(false);
+  const [boostCount, setBoostCount] = useState(0);
+  const [usersWhoboosted, setUsersWhoBoosted] = useState<BoostedBy[]>([]);
+  const [optimisticBoosted, setOptimisticBoosted] = useState(hasBoosted);
+  const [isBoosting, setIsBoosting] = useState(false);
   const [statusJustPosted, setStatusJustPosted] = useState(false);
   const [visibility, setVisibility] = useState(false);
   const [tags, setTags] = useState(false);
@@ -182,6 +193,23 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
     await loadUserDoc();
   };
 
+  const handleBoost = async (statusId: string) => {
+    try {
+      const res = await boostStatus(statusId);
+
+      if (!res.ok) throw new Error("Boost failed");
+
+      const { boostedBy } = res;
+
+      // update local state
+      setAlreadyBoosted(true);
+      setBoostCount((prev) => prev + 1);
+      setUsersWhoBoosted(boostedBy);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const eventDistance = useMemo(() => {
     if (location && target?.location?.lat && target?.location?.lng) {
       return getDistFromMiles(
@@ -197,15 +225,32 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
   useEffect(() => {
     setHasSparked(Boolean((item as any).hasSparked));
     setPreviewFriends((item as any).friendSparkPreviewUsers ?? []);
-  }, [(item as any).hasSparked]);
+    setHasBoosted(Boolean((item as any).hasBoosted));
+    setPreviewBoosts((item as any).boostPreviewUsers);
+  }, [(item as any).hasSparked, (item as any).hasBoosted]);
 
-  const buttonText = isUserActor(actor) ? (
-    <Lottie animationData={sendmessage} style={{ width: "1.6rem" }} />
-  ) : null;
+  useEffect(() => {
+    setOptimisticBoosted(hasBoosted);
+  }, [hasBoosted]);
+
+  async function onBoost(sourceId: string) {
+    if (!sourceId || optimisticBoosted || !actorKarmaScore || isBoosting)
+      return;
+
+    setOptimisticBoosted(true);
+    setIsBoosting(true);
+
+    try {
+      await handleBoost(sourceId);
+    } catch (error) {
+      console.error("Boost failed:", error);
+      setOptimisticBoosted(false);
+    } finally {
+      setIsBoosting(false);
+    }
+  }
+
   const router = useRouter();
-  const relationship = isUserActor(actor)
-    ? getRelationship(String(actor.id))
-    : getRelationship(String(target?.userId));
 
   const isSelf = isUserActor(actor)
     ? String(user?.id) === String(actor.id)
@@ -405,6 +450,31 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                 timestamp={target?.timeOfPromotion ?? new Date()}
                 newRank={getUserRanking(target?.promotion?.karmaScore)}
               />
+              <div className="flex flex-col items-center justify-center gap-1">
+                {target?.status?.sourceId && !isSelf && (
+                  <Button
+                    variant="shadow"
+                    color="primary"
+                    size="sm"
+                    className="mt-3"
+                    endContent={<RocketLaunchIcon width={20} />}
+                    onPress={() =>
+                      onBoost(
+                        target?.status?.sourceId ? target.status?.sourceId : "",
+                      )
+                    }
+                    isDisabled={
+                      optimisticBoosted || !actorKarmaScore || isBoosting
+                    }
+                  >
+                    {optimisticBoosted
+                      ? "Boosted"
+                      : isBoosting
+                        ? "Boosting..."
+                        : "Boost"}
+                  </Button>
+                )}
+              </div>
             </div>
           )}
           {type === "updated_event" && !isUserActor(actor) && (
@@ -1031,6 +1101,9 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           userId={target?.userId?.toString()}
           hasSparked={hasSparked}
           friendPreviewUsers={previewFriends}
+          hasBoosted={hasBoosted}
+          boostPreviewUsers={previewBoosts}
+          optimisticBoosted={optimisticBoosted}
         />
       </CardFooter>
     </Card>

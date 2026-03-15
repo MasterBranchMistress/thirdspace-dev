@@ -6,7 +6,7 @@ import { UserDoc } from "@/lib/models/User";
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
@@ -29,7 +29,7 @@ export async function PATCH(
     }
 
     const senderIsInPendingRequests = user.pendingFriendRequestsIncoming?.some(
-      (c) => c.toString() === fromId
+      (c) => c.toString() === fromId,
     );
 
     if (senderIsInPendingRequests) {
@@ -37,28 +37,30 @@ export async function PATCH(
         { _id: new ObjectId(id) },
         {
           $pull: {
-            pendingFriendRequests: new ObjectId(String(fromId)),
+            pendingFriendRequestsIncoming: new ObjectId(String(fromId)),
             notifications: {
               actorId: sender._id,
               type: "received_friend_request",
             },
           },
-        }
+        },
       );
     }
 
     // ✅ add to friends (both ways)
     await userCollection.updateOne(
       { _id: new ObjectId(user._id) }, //recipient
-      { $addToSet: { friends: new ObjectId(String(fromId)) } }
+      { $addToSet: { friends: new ObjectId(String(fromId)) } },
     );
     await userCollection.updateOne(
       { _id: new ObjectId(user._id) },
-      { $pull: { pendingFriendRequestsIncoming: new ObjectId(String(fromId)) } }
+      {
+        $pull: { pendingFriendRequestsIncoming: new ObjectId(String(fromId)) },
+      },
     );
     await userCollection.updateOne(
       { _id: new ObjectId(String(fromId)) },
-      { $addToSet: { friends: new ObjectId(id) } }
+      { $addToSet: { friends: new ObjectId(id) } },
     );
     await userCollection.updateOne(
       { _id: new ObjectId(String(fromId)) },
@@ -66,7 +68,7 @@ export async function PATCH(
         $pull: {
           pendingFriendRequestsOutgoing: new ObjectId(String(user._id)),
         },
-      }
+      },
     );
 
     await userCollection.updateOne(
@@ -77,7 +79,7 @@ export async function PATCH(
             $each: [
               {
                 _id: new ObjectId(),
-                actorId: fromId,
+                actorId: user._id,
                 avatar: user.avatar,
                 message: `${user.firstName} ${user.lastName} accepted your friend request.`,
                 eventId: new ObjectId(),
@@ -87,17 +89,17 @@ export async function PATCH(
             ],
           },
         },
-      }
+      },
     );
 
     return NextResponse.json(
       { message: "Friend request accepted!" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error: unknown) {
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

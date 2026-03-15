@@ -6,7 +6,7 @@ import { UserDoc } from "@/lib/models/User";
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const client = await clientPromise;
   const db = client.db(DBS._THIRDSPACE);
@@ -34,7 +34,7 @@ export async function PATCH(
       },
       {
         $pull: { pendingFriendRequestsIncoming: new ObjectId(String(fromId)) },
-      }
+      },
     );
     await userCollection.updateOne(
       {
@@ -44,11 +44,11 @@ export async function PATCH(
         $pull: {
           pendingFriendRequestsOutgoing: new ObjectId(String(user._id)),
         },
-      }
+      },
     );
 
     const senderIsInPendingRequests = user.pendingFriendRequestsIncoming?.some(
-      (c) => c.toString() === fromId
+      (c) => c.toString() === fromId,
     );
 
     if (!senderIsInPendingRequests) {
@@ -61,11 +61,11 @@ export async function PATCH(
               type: "received_friend_request",
             },
           },
-        }
+        },
       );
       return NextResponse.json(
         { error: "No pending request from this user" },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
@@ -74,24 +74,24 @@ export async function PATCH(
         { _id: new ObjectId(id) },
         {
           $pull: {
-            pendingFriendRequests: new ObjectId(String(fromId)),
+            pendingFriendRequestsIncoming: new ObjectId(String(fromId)),
             notifications: {
               actorId: sender._id,
               type: "received_friend_request",
             },
           },
-        }
+        },
       );
     }
 
     return NextResponse.json(
       { message: "Friend request rejected" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error: unknown) {
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

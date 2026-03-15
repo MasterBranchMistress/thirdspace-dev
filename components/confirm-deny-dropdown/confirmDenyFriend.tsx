@@ -11,8 +11,6 @@ import {
   UserPlusIcon,
 } from "@heroicons/react/24/outline";
 import { dropDownStyle } from "@/utils/get-dropdown-style/getDropDownStyle";
-import { useNotifications } from "@/app/context/NotificationContext";
-import { useUserRelationships } from "@/app/context/UserRelationshipsContext";
 
 export function RespondDropdown({
   onAccept,
@@ -27,8 +25,8 @@ export function RespondDropdown({
     <Dropdown classNames={dropDownStyle} backdrop="blur">
       <DropdownTrigger>
         <Button
-          className="text-tiny tracking-tighter text-white bg-black/20 border-white/20 border-1"
-          radius="lg"
+          className="text-tiny w-full tracking-tighter text-white bg-black/20 border-white/20 border-1"
+          radius="none"
           size="sm"
           variant="flat"
           disabled={disabled}

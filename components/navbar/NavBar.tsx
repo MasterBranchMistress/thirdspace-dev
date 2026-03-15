@@ -103,7 +103,7 @@ export default function NavBar() {
                   <Badge
                     content={""}
                     size="sm"
-                    className="border-none animate-blink mt-1.5 mr-[3px]"
+                    className="border-none animate-pulse mt-1.5 mr-[3px]"
                     color="success"
                     hidden={!notificationCount}
                     placement="top-right"

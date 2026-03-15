@@ -21,9 +21,12 @@ import { getStatusSparks } from "@/utils/feed-item-actions/status-item-actions/s
 import { UserDoc, UserStatusDoc } from "@/lib/models/User";
 import { getEventSparks } from "@/utils/feed-item-actions/event-item-actions/sparkHandler";
 import { getFriendSparkPreviews } from "@/utils/metadata/friend-spark-previews/friendSparkPreviews";
+import { getBoostPreviews } from "@/utils/metadata/boost-promotion-preview/boostPreview";
 import { getUser } from "@/utils/frontend-backend-connection/getUserInfo";
 import { Button } from "@heroui/button";
 import { RocketLaunchIcon } from "@heroicons/react/24/solid";
+import { getBoostedPromos } from "@/utils/feed-item-actions/status-item-actions/boostHandler";
+import { Console } from "console";
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -132,6 +135,8 @@ export default function Home() {
         eventIds,
       );
 
+      const usersWhoBoosted = await getBoostPreviews(session.user, statusIds);
+
       const statusSparkedIds = statusIds.length
         ? await getStatusSparks(statusIds, session.user)
         : [];
@@ -140,18 +145,36 @@ export default function Home() {
         ? await getEventSparks(eventIds, session.user)
         : [];
 
+      const boostedPromoIds = statusIds.length
+        ? await getBoostedPromos(statusIds, session.user)
+        : [];
+
       const statusSet = new Set(statusSparkedIds.map(String));
       const eventSet = new Set(eventSparkedIds.map(String));
+      const boostSet = new Set(boostedPromoIds.map(String));
+
+      console.log("Boost Set: ", boostSet, usersWhoBoosted);
 
       const hydratedItems: FeedItem[] = items.map((it: any) => {
-        const sid = it?.target?.status?.sourceId;
-        if (sid)
+        console.log(`item: `, it);
+        const sid = String(it?.target?.status?.sourceId);
+
+        if (sid) {
+          const statusId = String(sid);
+          const boostKey = statusId;
+
+          console.log(`Boost key: `, boostKey);
+          console.log("match? ", boostSet.has(boostKey));
+
           return {
             ...it,
-            hasSparked: statusSet.has(String(sid)),
+            hasSparked: statusSet.has(statusId),
+            hasBoosted: boostSet.has(boostKey),
             friendSparkPreviewUsers:
-              friendswhoSparked.status?.[String(sid)] ?? [],
+              friendswhoSparked?.status?.[statusId] ?? [],
+            boostPreviewUsers: usersWhoBoosted?.promotion?.[boostKey] ?? [],
           };
+        }
 
         const eid = it?.target?.eventId ?? it?.actor?.eventId;
         if (eid)
@@ -162,7 +185,7 @@ export default function Home() {
               friendswhoSparked.event?.[String(eid)] ?? [],
           };
 
-        return { ...it, hasSparked: false };
+        return { ...it, hasSparked: false, hasBoosted: false };
       });
 
       prependItems?.(hydratedItems);
