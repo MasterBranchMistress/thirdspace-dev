@@ -81,10 +81,7 @@ export async function GET(
     }
 
     // ✅ Generate feed items
-    let userFeed: FeedItem[] = await feedCollection
-      .find(feedQuery)
-      .sort({ timestamp: -1 })
-      .toArray();
+    let userFeed: FeedItem[] = await feedCollection.find(feedQuery).toArray();
 
     const generatedUserFeed = await generateUserFeed(
       user,
@@ -111,6 +108,8 @@ export async function GET(
 
     const nearbyUsers = nearbyUsersData.users ?? [];
     const nearbyEvents = nearbyEventsData.events ?? [];
+
+    console.log(`EVENTS NEARBY: `, nearbyEvents);
 
     let mergedFeed: any[] = [...combined];
 
@@ -152,11 +151,13 @@ export async function GET(
       );
     });
     const eventAnchor =
-      mergedFeed.length >= 7 ? 7 : Math.min(1, mergedFeed.length);
+      mergedFeed.length >= 1 ? 2 : Math.min(1, mergedFeed.length);
     const userAnchor =
-      mergedFeed.length >= 3 ? 3 : Math.min(0, mergedFeed.length);
+      mergedFeed.length >= 1 ? 1 : Math.min(0, mergedFeed.length);
 
-    if (filteredEvents.length > 0 && user.onboarded) {
+    console.log(filteredEvents);
+
+    if (filteredEvents.length > 0) {
       mergedFeed = upsertAtAnchor(
         mergedFeed,
         {
@@ -172,7 +173,7 @@ export async function GET(
       );
     }
 
-    if (filteredUsers.length > 0 && user.onboarded) {
+    if (filteredUsers.length > 0) {
       mergedFeed = upsertAtAnchor(
         mergedFeed,
         {
