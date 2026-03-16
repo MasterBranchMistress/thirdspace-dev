@@ -113,3 +113,7 @@ export const USER_RANKING = {
 } as const;
 
 export type UserRanking = (typeof USER_RANKING)[keyof typeof USER_RANKING];
+
+export const TUTORIALS = {
+  _TUTORIAL_MEDIA_POST: "tutorial_media_post_seen",
+};

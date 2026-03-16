@@ -209,6 +209,8 @@ type FeedItemBase = {
   type: FeedItemType;
   timestamp: string;
   friendSparkPreviewUsers?: PreviewUser[];
+  showMediaTutorial?: boolean;
+  dismissMediaTutorial?: boolean;
 };
 
 export interface FeedItemUser extends FeedItemBase {

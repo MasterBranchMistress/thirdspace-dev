@@ -52,6 +52,20 @@ const config = {
             backgroundPosition: "0% 50%",
           },
         },
+        boostLaunch: {
+          "0%": {
+            transform: "translateY(0) scale(0.9)",
+            opacity: "0",
+          },
+          "20%": {
+            transform: "translateY(-50vh) scale(1)",
+            opacity: "1",
+          },
+          "100%": {
+            transform: "translateY(-100vh) scale(1.05)",
+            opacity: "0",
+          },
+        },
       },
       animation: {
         pointLeft: "pointLeft 1s ease-in-out infinite",
@@ -59,6 +73,7 @@ const config = {
         slideDown: "slideDown 0.8s ease-out forwards",
         postGlow: "postGlow 2.5s ease-in-out infinite",
         postPulse: "postPulse 2.5s ease-in-out infinite",
+        boostLaunch: "boostLaunch 4.5s ease-out forwards",
       },
       fontFamily: {
         sans: ["var(--font-sans)"],

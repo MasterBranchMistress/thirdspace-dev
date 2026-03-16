@@ -21,11 +21,14 @@ import { UserDoc } from "@/lib/models/User";
 import { getUser } from "@/utils/frontend-backend-connection/getUserInfo";
 import { useSession } from "next-auth/react";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
+import { useFeed } from "@/app/context/UserFeedContext";
 
 export default function Footer() {
   const { data: userSession } = useSession();
   const [openModal, setOpenModal] = useState<"status" | "event" | null>(null);
   const [tutorialText, setTutorialText] = useState(true);
+
+  const feed = useFeed();
 
   useEffect(() => {
     const hidden = localStorage.getItem("hideAddPostTutorial");
@@ -49,7 +52,6 @@ export default function Footer() {
               justify-center
               bg-white/20
               backdrop-blur-xl
-              border border-white/30
               shadow-lg
               hover:scale-105
               transition-transform
@@ -60,7 +62,7 @@ export default function Footer() {
               localStorage.setItem("hideAddPostTutorial", "true");
             }}
           >
-            <span className="absolute inset-0 rounded-full blur-md bg-primary animate-postPulse"></span>
+            <span className="absolute inset-0 rounded-full bg-primary/400"></span>
             <span className="relative flex items-center justify-center">
               <Lottie
                 animationData={addPost}
@@ -71,9 +73,8 @@ export default function Footer() {
             </span>
 
             {tutorialText ? (
-              <div className="flex felx-row gap-2 pr-2 pl-2 animate-blink font-extrabold">
-                <ArrowLeftIcon width={20} color="secondary" /> Click This Button
-                To Add A Post
+              <div className="flex flex-row gap-2 pr-2 pl-2 z-10 animate-pulse font-light">
+                <p className="text-sm">Tap To Add A Post</p>
               </div>
             ) : null}
           </button>
@@ -100,6 +101,8 @@ export default function Footer() {
             key="show-tutorial"
             onPress={() => {
               localStorage.removeItem("hideAddPostTutorial");
+              localStorage.removeItem("tutorial_media_post_seen");
+              feed.refresh?.();
             }}
             endContent={<LightBulbIcon width={16} />}
           >

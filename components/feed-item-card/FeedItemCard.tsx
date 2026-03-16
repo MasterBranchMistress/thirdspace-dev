@@ -56,6 +56,8 @@ import {
 
 interface FeedItemCardProps {
   item: FeedItem;
+  showMediaTutorial?: boolean;
+  dismissMediaTutorial?: () => void;
 }
 import { useToast } from "@/app/providers/ToastProvider";
 import {
@@ -102,9 +104,18 @@ import { useUserInfo } from "@/app/context/UserContext";
 import { getTimeUntilEvent } from "@/utils/custom-hooks/useCountdown";
 import { boostStatus } from "@/utils/feed-item-actions/status-item-actions/boostHandler";
 import { BoostedBy } from "@/lib/models/UserFeedDoc";
+import BoostToast from "../karma/BoostPromotionToast";
+import { TUTORIALS } from "@/lib/constants";
+import MediaPostTutorial from "../tutorials/mediaPostTutorial";
 
-export default function FeedItemCard({ item }: FeedItemCardProps) {
+export default function FeedItemCard({
+  item,
+  showMediaTutorial = false,
+  dismissMediaTutorial,
+}: FeedItemCardProps) {
   const { data: session } = useSession();
+  const { notify } = useToast();
+  const feed = useFeed();
   const user = session?.user;
   const { avatar, username, rank, karmaScore, setKarmaScore, location } =
     useUserInfo();
@@ -127,8 +138,6 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
   const [tags, setTags] = useState(false);
   const [userDoc, setUserDoc] = useState<UserDoc | null>(null);
   const { type, target, actor, timestamp } = item;
-  const { notify } = useToast();
-  const feed = useFeed();
 
   const openStatus = (id?: string) => {
     if (!id) return;
@@ -475,6 +484,7 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
                   </Button>
                 )}
               </div>
+              <BoostToast open={optimisticBoosted} />
             </div>
           )}
           {type === "updated_event" && !isUserActor(actor) && (
@@ -672,89 +682,98 @@ export default function FeedItemCard({ item }: FeedItemCardProps) {
           )}
 
           {type === "profile_status_updated" && isUserActor(actor) && (
-            <div className="font-light tracking-tight max-w-[100%] text-center">
-              {/* Text */}
-              {target?.status?.content?.trim() ? (
-                <p className="mx-3 text-sm my-2">{target.status.content}</p>
-              ) : null}
+            <>
+              {showMediaTutorial && <MediaPostTutorial />}
+              <div className="font-light tracking-tight max-w-[100%] text-center">
+                {/* Text */}
+                {target?.status?.content?.trim() ? (
+                  <>
+                    <p className="mx-3 text-sm my-2">{target.status.content}</p>
+                  </>
+                ) : null}
 
-              {/* Attachments */}
-              {target?.status?.attachments?.length ? (
-                <Swiper
-                  effect={"cards"}
-                  grabCursor={true}
-                  centeredSlides={true}
-                  slidesPerView={"auto"}
-                  pagination={true}
-                  modules={[EffectCards]}
-                  className="flex justify-center mt-3"
-                  cardsEffect={{ slideShadows: false }}
-                  onTap={() => {
-                    const activeStatusId = target.status?.sourceId;
-                    if (!activeStatusId) return;
-                    openStatus(activeStatusId);
-                  }}
-                >
-                  {target.status.attachments?.map((a, i) => {
-                    return (
-                      <SwiperSlide
-                        key={i}
-                        className={`${target.status?.attachments?.length && target.status?.attachments?.length > 1 ? `!w-[85vw]` : `h-auto`} flex justify-center`}
-                      >
-                        <FeedAttachmentSwiper
-                          statusId={target.status?.sourceId}
-                          attachments={target.status?.attachments}
-                          attachment={a as any}
-                          controls={true}
-                          muted={true}
-                        />
-                      </SwiperSlide>
-                    );
-                  })}
-                </Swiper>
-              ) : null}
+                {/* Attachments */}
+                {target?.status?.attachments?.length ? (
+                  <Swiper
+                    effect={"cards"}
+                    grabCursor={true}
+                    centeredSlides={true}
+                    slidesPerView={"auto"}
+                    pagination={true}
+                    modules={[EffectCards]}
+                    className="flex justify-center mt-3"
+                    cardsEffect={{ slideShadows: false }}
+                    onTap={() => {
+                      dismissMediaTutorial?.();
+                      const activeStatusId = target.status?.sourceId;
+                      if (!activeStatusId) return;
+                      openStatus(activeStatusId);
+                    }}
+                  >
+                    {target.status.attachments?.map((a, i) => {
+                      return (
+                        <SwiperSlide
+                          key={i}
+                          className={`${target.status?.attachments?.length && target.status?.attachments?.length > 1 ? `!w-[85vw]` : `h-auto`} flex justify-center`}
+                        >
+                          <FeedAttachmentSwiper
+                            statusId={target.status?.sourceId}
+                            attachments={target.status?.attachments}
+                            attachment={a as any}
+                            controls={true}
+                            muted={true}
+                          />
+                        </SwiperSlide>
+                      );
+                    })}
+                  </Swiper>
+                ) : null}
 
-              {/* Actions (ALWAYS render if the status exists) */}
-              {target?.status ? (
-                <div className="mt-3 flex justify-center gap-3 py-1">
-                  <button
-                    type="button"
-                    className="text-sm opacity-80 hover:opacity-100"
-                    onClick={() => openStatus(target.status!.sourceId)}
+                {/* Actions (ALWAYS render if the status exists) */}
+                {target?.status ? (
+                  <div
+                    onClick={() => dismissMediaTutorial?.()}
+                    className="mt-3 flex justify-center gap-3 py-1"
                   >
-                    <ChatBubbleLeftEllipsisIcon
-                      width={25}
-                      className="text-primary"
-                    />
-                  </button>
-                  <button
-                    type="button"
-                    className="text-sm opacity-80 hover:opacity-100"
-                    onClick={() => openStatus(target.status!.sourceId)}
-                  >
-                    <FireIcon width={25} className="text-primary" />
-                  </button>
-                  <button
-                    type="button"
-                    className="text-sm opacity-80 hover:opacity-100"
-                    onClick={() => openStatus(target.status!.sourceId)}
-                  >
-                    <ArrowPathRoundedSquareIcon
-                      width={25}
-                      className="text-primary"
-                    />
-                  </button>
-                  <button
-                    type="button"
-                    className="text-sm opacity-80 hover:opacity-100"
-                    onClick={() => openStatus(target.status!.sourceId)}
-                  >
-                    <PaperAirplaneIcon width={25} className="text-primary" />
-                  </button>
-                  {/* later: Spark / Share / Repost */}
-                </div>
-              ) : null}
-            </div>
+                    <button
+                      type="button"
+                      className="text-sm opacity-80 hover:opacity-100"
+                      onClick={() => openStatus(target.status!.sourceId)}
+                    >
+                      <ChatBubbleLeftEllipsisIcon
+                        width={25}
+                        className="text-primary"
+                      />
+                    </button>
+                    <button
+                      type="button"
+                      className="text-sm opacity-80 hover:opacity-100"
+                      onClick={() => openStatus(target.status!.sourceId)}
+                    >
+                      <FireIcon width={25} className="text-primary" />
+                    </button>
+                    <button
+                      type="button"
+                      className="text-sm opacity-80 hover:opacity-100"
+                      onClick={() => openStatus(target.status!.sourceId)}
+                    >
+                      <ArrowPathRoundedSquareIcon
+                        width={25}
+                        className="text-primary"
+                      />
+                    </button>
+                    <button
+                      type="button"
+                      className="text-sm opacity-80 hover:opacity-100"
+                      onClick={() => openStatus(target.status!.sourceId)}
+                    >
+                      <PaperAirplaneIcon width={25} className="text-primary" />
+                    </button>
+                    {/* later: Spark / Share / Repost */}
+                  </div>
+                ) : null}
+              </div>
+            </>
           )}
           {type === "hosted_event" && !isUserActor(actor) && (
             <div className="mt-2 tracking-tight max-w-[100%] font-normal text-sm">

@@ -23,6 +23,7 @@ export default function BoostMeta({
   const { data: session } = useSession();
 
   const viewerId = session?.user?.id;
+  const viewerHasBoosted = hasBoosted || optimisticBoosted;
 
   const me: PreviewUser | null = viewerId
     ? {
@@ -36,17 +37,20 @@ export default function BoostMeta({
     (u) => !viewerId || String(u.id) !== String(viewerId),
   );
 
-  const avatars = [...(hasBoosted && me ? [me] : []), ...others].slice(0, 3);
+  const avatars = [...(viewerHasBoosted && me ? [me] : []), ...others].slice(
+    0,
+    3,
+  );
 
-  if (!hasBoosted && others.length === 0) return null;
+  if (!viewerHasBoosted && others.length === 0) return null;
 
   const firstOther = others[0]?.firstName ?? "Someone";
 
   let label = "";
 
-  if (hasBoosted && others.length > 0) {
+  if (viewerHasBoosted && others.length > 0) {
     label = `You and ${firstOther} boosted this`;
-  } else if (hasBoosted) {
+  } else if (viewerHasBoosted) {
     label = "You boosted this";
   } else if (others.length === 1) {
     label = `${firstOther} boosted this`;

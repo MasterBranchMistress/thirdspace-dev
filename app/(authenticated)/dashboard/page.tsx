@@ -62,18 +62,13 @@ export default function Home() {
   );
 
   const [userInfo, setUserInfo] = useState<UserDoc | null>(null);
-  const [hideCaughtUpSection, setHideCaughtUpSection] = useState(false);
+  const [showMediaTutorial, setShowMediaTutorial] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.replace("/login");
     }
   }, [status, router]);
-
-  useEffect(() => {
-    const hidden = localStorage.getItem("feedTutorialComplete") === "true";
-    setHideCaughtUpSection(hidden);
-  }, []);
 
   useEffect(() => {
     if (
@@ -153,10 +148,7 @@ export default function Home() {
       const eventSet = new Set(eventSparkedIds.map(String));
       const boostSet = new Set(boostedPromoIds.map(String));
 
-      console.log("Boost Set: ", boostSet, usersWhoBoosted);
-
       const hydratedItems: FeedItem[] = items.map((it: any) => {
-        console.log(`item: `, it);
         const sid = String(it?.target?.status?.sourceId);
 
         if (sid) {
@@ -204,10 +196,20 @@ export default function Home() {
     loadUser();
   }, [session?.user]);
 
+  useEffect(() => {
+    const seen = localStorage.getItem("tutorial_media_post_seen") === "true";
+    setShowMediaTutorial(!seen);
+  }, []);
+
   if (status === "loading" || !coords) return <LoadingPage />;
   if (error) return <p>{error}</p>;
   if ((!items || items.length === 0) && !loading)
     return <EmptyFeedState name={session?.user.firstName} />;
+
+  const dismissMediaTutorial = () => {
+    localStorage.setItem("tutorial_media_post_seen", "true");
+    setShowMediaTutorial(false);
+  };
 
   return (
     <div>
@@ -255,12 +257,16 @@ export default function Home() {
         )}
 
         {items.map((item, i) => {
-          // TODO: Replace with stable key once backend IDs are consistent
-
           const isLast = i === items.length - 1;
+          const showTutorialOnThisCard = showMediaTutorial && i === 0;
+
           return (
             <div key={i} ref={isLast ? lastItemRef : null}>
-              <FeedItemCard item={item} />
+              <FeedItemCard
+                item={item}
+                showMediaTutorial={showTutorialOnThisCard}
+                dismissMediaTutorial={dismissMediaTutorial}
+              />
             </div>
           );
         })}
