@@ -779,14 +779,14 @@ export default function FeedItemCard({
             <div className="mt-2 tracking-tight max-w-[100%] font-normal text-sm">
               <div className="flex flex-col items-center justify-center text-center">
                 <div className="flex flex-row font-bold text-sm text-center justify-center mb-2 items-center">
-                  <span className="font-semibold shadow-md shadow-primary border-1 border-primary py-[5px] mr-[-12] px-3 rounded-l-lg">
+                  {/* <span className="font-semibold shadow-md shadow-primary border-1 border-primary py-[5px] mr-[-12] px-3 rounded-l-lg">
                     {actor.firstName} is hosting
-                  </span>
+                  </span> */}
                   <Button
                     size="sm"
                     variant="solid"
                     color="primary"
-                    className="text-secondary shadow-md shadow-primary rounded-l-none font-bold ml-2"
+                    className="text-secondary shadow-md shadow-primary rounded-md font-bold ml-2"
                     onPress={() =>
                       router.push(`/dashboard/event/${actor.eventId}`)
                     }
@@ -794,7 +794,7 @@ export default function FeedItemCard({
                     {target?.title}
                   </Button>
                 </div>
-                <div className="font-light tracking-tight text-md px-3 mt-3">
+                <div className="font-light tracking-tight text-center text-md py-1 px-2 mt-1">
                   {target?.snippet}
                 </div>
               </div>
