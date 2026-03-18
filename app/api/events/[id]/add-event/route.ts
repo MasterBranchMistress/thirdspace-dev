@@ -61,6 +61,9 @@ export async function POST(
     if (lat == null || lng == null) {
       const addr = locIn.address ?? locIn.name ?? "";
       const geo = await geocodeAddress(addr);
+      if (!geo) {
+        throw new Error("Missing geo field on event location");
+      }
       if (geo) {
         lat = geo.lat;
         lng = geo.lng;

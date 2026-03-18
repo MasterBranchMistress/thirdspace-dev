@@ -86,6 +86,17 @@ type Comment = {
   likes: number;
 };
 
+type EventLocation = {
+  address?: string;
+  name: string;
+  lat?: number;
+  lng?: number;
+  geo?: {
+    type: "Point";
+    coordinates: [number, number];
+  };
+};
+
 type EventDetails = {
   donations: any;
   event: Comment;
@@ -105,7 +116,7 @@ type EventDetails = {
   startTime: string;
   tags: string[];
   public: boolean;
-  location: { name: string; lat?: number; lng?: number };
+  location: EventLocation;
   comments: Comment[];
   host: {
     _id: string;

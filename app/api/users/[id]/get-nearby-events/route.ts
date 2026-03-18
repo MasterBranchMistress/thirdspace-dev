@@ -28,7 +28,7 @@ export async function POST(
 
   try {
     const body = await req.json().catch(() => ({}));
-    const radiusKm: number = body.radiusKm ?? 10;
+    let radiusKm: number = body.radiusKm ?? 25;
     const limit: number = body.limit ?? 50;
 
     if (!userId) {
@@ -96,6 +96,11 @@ export async function POST(
       ])
       .toArray();
 
+    //TODO: temporary until user preferences are added
+    if (candidates.length < 10) {
+      radiusKm = 50;
+    }
+
     const scored = candidates.map((evt: any) => {
       const tags: string[] = Array.isArray(evt.tags) ? evt.tags : [];
       const normalizedEventTags = tags.map(normalizeTag);
@@ -118,7 +123,7 @@ export async function POST(
 
       // karma boost (host karma)
 
-      const hostKarma = evt.karmaScore;
+      const hostKarma = evt.host.karmaScore;
 
       const score =
         sharedTagCount > 0 ? baseScore * karmaToBoost(hostKarma) : baseScore; // guardrail: no karma boost with zero overlap

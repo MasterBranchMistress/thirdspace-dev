@@ -149,14 +149,17 @@ export default function Home() {
       const boostSet = new Set(boostedPromoIds.map(String));
 
       const hydratedItems: FeedItem[] = items.map((it: any) => {
-        const sid = String(it?.target?.status?.sourceId);
+        const sid = it?.target?.status?.sourceId;
+
+        console.log(`ITEM: `, it);
 
         if (sid) {
           const statusId = String(sid);
           const boostKey = statusId;
 
-          console.log(`Boost key: `, boostKey);
-          console.log("match? ", boostSet.has(boostKey));
+          console.log(`key: `, boostKey);
+          console.log("Boost match? ", boostSet.has(boostKey));
+          console.log("event match? ", statusSet.has(boostKey));
 
           return {
             ...it,
@@ -168,7 +171,10 @@ export default function Home() {
           };
         }
 
-        const eid = it?.target?.eventId ?? it?.actor?.eventId;
+        const eid = it?.actor?.eventId;
+
+        console.log(`EVENT ID: `, eid);
+
         if (eid)
           return {
             ...it,

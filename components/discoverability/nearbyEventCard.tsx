@@ -101,8 +101,8 @@ export function EventDiscoverabilityCard({ event }: Props) {
               router.push(`/dashboard/user/${String(event.host._id)}`)
             }
           />
-          <div className="flex flex-col shrink-0 items-start justify-start leading-tight max-w-[90px]">
-            <h4 className="text-xs font-semibold text-default-800 truncate">
+          <div className="flex flex-col shrink-0 items-start justify-start leading-tight max-w-[60px]">
+            <h4 className="text-xs font-semibold text-default-800 truncate max-w-[9rem]">
               {event.title}
             </h4>
             <span className="text-xs text-default-500 truncate max-w-[120px]">

@@ -109,7 +109,7 @@ export async function GET(
     const nearbyUsers = nearbyUsersData.users ?? [];
     const nearbyEvents = nearbyEventsData.events ?? [];
 
-    console.log(`EVENTS NEARBY: `, nearbyEvents);
+    // console.log(`EVENTS NEARBY: `, nearbyEvents);
 
     let mergedFeed: any[] = [...combined];
 

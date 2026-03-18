@@ -64,7 +64,8 @@ export default function ProfilePage() {
   const router = useRouter();
   const { data: session } = useSession();
   const viewer = session?.user;
-  const { getRelationship, isSelf } = useUserRelationships();
+  const { getRelationship, isSelf, refreshRelationships } =
+    useUserRelationships();
   const { avatar, username, rank, setRank, karmaScore } = useUserInfo();
 
   useEffect(() => {
@@ -85,6 +86,7 @@ export default function ProfilePage() {
         if (profileRes.ok) {
           const profileData = await profileRes.json();
           setProfile(profileData);
+          refreshRelationships?.();
         } else {
           setProfile(null);
         }
