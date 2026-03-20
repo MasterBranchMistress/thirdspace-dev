@@ -75,7 +75,6 @@ export async function POST(req: NextRequest) {
       availibility: [],
       friends: [new ObjectId(process.env.FOUNDER_USER_ID)],
       blocked: [],
-      pendingFriendRequests: [],
       notifications: [],
       isAdmin: false,
       karmaScore: 0,
@@ -100,6 +99,7 @@ export async function POST(req: NextRequest) {
       visibility: "",
       lang: "en",
       tags: tags ?? [],
+      normalizedTags: [],
       usernameLastChangedAt: now,
       bioLastUpdatedAt: now,
       avatarLastUpdatedAt: now,
@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
       username: generateAnonUsername(),
       passwordHash,
       bio,
-      tags, // this was missing
+      tags,
       ...baseUserDefaults,
     };
 

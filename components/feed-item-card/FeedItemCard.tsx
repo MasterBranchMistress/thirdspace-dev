@@ -424,7 +424,7 @@ export default function FeedItemCard({
                     </DropdownItem>
                   </>
                 ) : null}
-                {isSelf ? (
+                {isSelf && type !== "user_promoted" ? (
                   <DropdownItem
                     key="delete_post"
                     className="text-concrete bg-danger"

@@ -111,6 +111,7 @@ type VisibilityLevel = "off" | "friends" | "followers" | "public" | "";
 
 export interface UserDoc {
   sharedTags?: any;
+  normalizedTags?: string[];
   distanceMeters?: number;
   id?: string;
   statusAttachments?: (string | Attachment)[] | undefined;

@@ -1,7 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { ObjectId } from "mongodb";
 import { getServerSession } from "next-auth";
-// adjust these imports to your project
 import { authOptions } from "@/lib/authOptions";
 import clientPromise from "@/lib/mongodb";
 import { COLLECTIONS, DBS } from "@/lib/constants";
@@ -42,7 +41,7 @@ export async function GET(
       .toArray();
 
     if (!friendIds.length) {
-      return NextResponse.json({ status: {}, event: {} }, { status: 200 });
+      return NextResponse.json({ friends: {} }, { status: 200 });
     }
 
     return NextResponse.json({ friends: friends }, { status: 200 });

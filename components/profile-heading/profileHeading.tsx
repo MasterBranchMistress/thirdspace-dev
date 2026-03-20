@@ -46,6 +46,7 @@ import RankBadge from "../karma/rankBadge";
 import { useFeed } from "@/app/context/UserFeedContext";
 import FriendsModal from "./viewFriendsModal";
 import { useSession } from "next-auth/react";
+import FollowersModal from "./viewFollowersModal";
 
 export default function ProfileHeading({
   disabled,
@@ -68,6 +69,7 @@ export default function ProfileHeading({
     async () => {},
   );
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isViewingFollowers, setIsViewingFollowers] = useState(false);
 
   const { setRelationship, getRelationship } = useUserRelationships();
 
@@ -343,7 +345,7 @@ export default function ProfileHeading({
             size="sm"
             variant="flat"
             onPress={() => {
-              notify("Feature Coming Soon! 🤝", ``);
+              setIsViewingFollowers(true);
             }}
           >
             <UsersIcon width={17} className="shrink-0" /> Orbiters
@@ -387,6 +389,11 @@ export default function ProfileHeading({
         onOpenChange={setIsEditingProfile}
       />
       <FriendsModal isOpen={isOpen} onOpenChange={onOpenChange} user={viewer} />
+      <FollowersModal
+        isFollowersOpen={isViewingFollowers}
+        onFollowersOpenChange={setIsViewingFollowers}
+        userId={String(user._id)}
+      />
     </>
   );
 }

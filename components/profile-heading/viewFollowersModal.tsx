@@ -24,14 +24,15 @@ import { useRouter } from "next/navigation";
 import { ObjectId } from "mongodb";
 import Lottie from "lottie-react";
 import emptyFriends from "@/public/lottie/emptymessagenotifs.json"; // your file
+import { getUserFollowers } from "@/utils/frontend-backend-connection/getUserFollowerList";
 
 type FriendsModalProps = {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  user: SessionUser;
+  isFollowersOpen: boolean;
+  onFollowersOpenChange: (open: boolean) => void;
+  userId: string;
 };
 
-type FriendPreview = {
+type FollowerPreview = {
   avatar: string;
   firstName: string;
   lastName: string;
@@ -39,42 +40,41 @@ type FriendPreview = {
   _id: ObjectId;
 };
 
-export default function FriendsModal({
-  isOpen,
-  onOpenChange,
-  user,
+export default function FollowersModal({
+  isFollowersOpen,
+  onFollowersOpenChange,
+  userId,
 }: FriendsModalProps) {
-  if (!user) return "No user found";
-  const [friends, setFriends] = useState<FriendPreview[]>([]);
+  const [followers, setFollowers] = useState<FollowerPreview[]>([]);
   const router = useRouter();
 
   useEffect(() => {
-    if (!isOpen || !user) return;
+    if (!isFollowersOpen) return;
 
     let isMounted = true;
 
-    const fetchFriends = async () => {
+    const fetchFollowers = async () => {
       try {
-        const data = await getUserFriends(user);
+        const data = await getUserFollowers(userId);
         if (isMounted) {
-          setFriends(data.friends);
+          setFollowers(data.followers);
         }
       } catch (err) {
         console.error("Failed to fetch friends", err);
       }
     };
 
-    fetchFriends();
+    fetchFollowers();
 
     return () => {
       isMounted = false;
     };
-  }, [isOpen, user]);
+  }, [isFollowersOpen, userId]);
 
   return (
     <Modal
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
+      isOpen={isFollowersOpen}
+      onOpenChange={onFollowersOpenChange}
       size="xs"
       backdrop="blur"
       placement="center"
@@ -93,8 +93,8 @@ export default function FriendsModal({
             <ModalBody>
               {/* Placeholder content */}
               <div className="flex flex-col gap-3 mt-[-7rem] h-auto overflow-y-auto">
-                {Array.isArray(friends) && friends.length ? (
-                  friends.map((user: FriendPreview) => (
+                {Array.isArray(followers) && followers.length ? (
+                  followers.map((user: FollowerPreview) => (
                     <div
                       key={user._id?.toString()}
                       className="flex items-center gap-3 p-2 rounded-xl hover:bg-default-100 transition"
@@ -142,7 +142,7 @@ export default function FriendsModal({
                     />
 
                     <p className="text-sm mt-3 text-default-500 text-center">
-                      Your orbit is empty… for now 🌌
+                      This universe seems quiet… for now 🌌
                     </p>
                   </div>
                 )}
