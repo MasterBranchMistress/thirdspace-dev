@@ -1,9 +1,12 @@
-export function getTimeUntilEvent(date: Date | string) {
+export function getTimeUntilEvent(date: Date | string, disabled?: boolean) {
   const now = Date.now();
   const eventTime = new Date(date).getTime();
   const diff = eventTime - now;
 
   if (diff <= 0) return "Happening now";
+  if (diff <= 0) {
+    disabled = true;
+  }
 
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
@@ -27,4 +30,13 @@ export function getTimeUntilEvent(date: Date | string) {
 
   const weeks = Math.floor(days / 7);
   return `In Orbit: ${weeks} week${weeks !== 1 ? "s" : ""}`;
+}
+
+export function isPastDate(dateString?: string) {
+  if (!dateString) return false;
+
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return false;
+
+  return date.getTime() < Date.now();
 }

@@ -10,12 +10,12 @@ type Attachment = {
   thumbNail?: string;
 };
 
-type EventDonation = {
-  userId: ObjectId;
-  amount: number;
-  currency: string; // "USD" (default now, extensible later)
-  timestamp: Date;
-  refunded?: boolean; // in case you need to track clawbacks
+export type CostSplitMode = "free" | "host_covers" | "split_evenly";
+
+export type EventBudget = {
+  splitMode: CostSplitMode;
+  totalEstimated: number;
+  currency: "USD";
 };
 
 export interface EventDoc {
@@ -68,12 +68,7 @@ export interface EventDoc {
   recurrenceRule?: "none" | "daily" | "weekly" | "monthly";
   recurrenceEndDate?: Date;
   recurringParentEventId?: ObjectId;
-  budgetInfo?: {
-    estimatedCost: number;
-    currency?: string;
-    notes?: string;
-  };
-  donations?: EventDonation[];
+  costInfo?: EventBudget;
   timestamp: Date;
   orbiters?: ObjectId[];
   views: number;

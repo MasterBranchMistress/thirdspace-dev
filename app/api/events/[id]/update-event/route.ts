@@ -19,6 +19,7 @@ function buildUpdateSnippet(changedFields: string[]) {
       return "Updated Event Date or Time.";
     if (field === "location") return "Updated event Location.";
     if (field === "attachments") return "Updated Event Media.";
+    if (field === "costInfo") return "Updated Budget Info";
     if (field === "tags") return "Updated Event Tags.";
   }
 

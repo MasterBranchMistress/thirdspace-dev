@@ -191,7 +191,7 @@ export default function ProfilePage() {
               user={profile.user}
               relationship={getRelationship(String(profile.user._id))}
               isSelf={isUserViewingSelf}
-              viewer={viewer as never}
+              viewer={viewer!}
             />
           </div>
         </div>

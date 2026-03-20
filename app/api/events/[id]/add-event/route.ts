@@ -110,11 +110,11 @@ export async function POST(
         ? new Date(data.recurrenceEndDate)
         : undefined,
       recurringParentEventId: undefined,
-      budgetInfo: data.budgetInfo
+      costInfo: data.costInfo
         ? {
-            estimatedCost: data.budgetInfo.estimatedCost ?? 0,
-            currency: data.budgetInfo.currency,
-            notes: data.budgetInfo.notes,
+            splitMode: data.costInfo.splitMode,
+            totalEstimated: data.costInfo.totalEstimated,
+            currency: "USD",
           }
         : undefined,
       timestamp: now,

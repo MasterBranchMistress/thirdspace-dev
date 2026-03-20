@@ -39,6 +39,7 @@ import { parseZonedDate } from "@/utils/date-handling/parseCalendarZoneDateTime"
 import { handleAddEvent } from "@/utils/handle-user-posting/handleEventPost";
 import { useFeed } from "@/app/context/UserFeedContext";
 import LocationSearch from "../location-auto-complete/searchInput";
+import { CostSplitMode, EventBudget, EventDoc } from "@/lib/models/Event";
 
 type AddEventProps = {
   isOpen: boolean;
@@ -62,7 +63,12 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
     lat?: number;
     lng?: number;
   } | null>(null);
-  const [budget, setBudget] = useState<number>(0);
+  const [costInfo, setCostInfo] = useState<{
+    totalEstimated: number;
+    splitMode: CostSplitMode;
+    currency: "USD";
+  } | null>(null);
+  const [splitMode, setSplitMode] = useState<CostSplitMode>("free");
   const [isPublic, setIsPublic] = useState<boolean>(false);
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
@@ -83,7 +89,8 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
     setTagInput("");
     setTags([]);
     setLocation(null);
-    setBudget(0);
+    setCostInfo(null);
+    setSplitMode("free");
     setDate(null);
     setIsPublic(false);
     setNewFiles([]);
@@ -109,7 +116,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
       recurring: false,
       recurrenceRule: null,
       location: location,
-      budgetInfo: { estimatedCost: budget },
+      costInfo: costInfo,
     };
 
     const MAX_TOTAL_BYTES = 50 * 1024 * 1024; // 50MB total payload guard
@@ -162,11 +169,11 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
         "One or more attachments have an unsupported file type.",
         "",
       );
-    if (eventData.budgetInfo.estimatedCost == null)
+    if (eventData.costInfo == null)
       return notify("Estimated cost is required.", "");
-    if (Number.isNaN(Number(eventData.budgetInfo.estimatedCost)))
+    if (Number.isNaN(Number(eventData.costInfo.totalEstimated)))
       return notify("Estimated cost must be a number.", "");
-    if (Number(eventData.budgetInfo.estimatedCost) < 0)
+    if (Number(eventData.costInfo.totalEstimated) < 0)
       return notify("Estimated cost can't be negative.", "");
 
     setLoading(true);
@@ -181,8 +188,9 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
         eventTimeAndDate: eventData.date,
         eventLocation: eventData.location?.name as any,
         eventStartTime: eventData.startTime,
-        estimatedCost: eventData.budgetInfo.estimatedCost,
+        estimatedCost: eventData.costInfo.totalEstimated,
         eventPrivacy: eventData.public,
+        costInfo: eventData.costInfo,
         attachments: newFiles,
       });
       try {
@@ -319,7 +327,25 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
                     onSelect={(loc) => setLocation(loc)}
                   />
 
-                  {/* <BudgetInput initialValue={budget} onChange={setBudget} /> */}
+                  <BudgetInput
+                    initialValue={costInfo?.totalEstimated ?? 0}
+                    onChange={(val) => {
+                      setCostInfo((prev) => ({
+                        ...(prev ?? {
+                          splitMode: "free",
+                          totalEstimated: 0,
+                          currency: "USD",
+                        }),
+                        totalEstimated: val,
+                      }));
+                    }}
+                    onSplitChange={(mode) => {
+                      setCostInfo((prev) => ({
+                        ...(prev ?? { totalEstimated: 0, currency: "USD" }),
+                        splitMode: mode,
+                      }));
+                    }}
+                  />
 
                   <SelectEventPrivacy
                     isPublic={isPublic}

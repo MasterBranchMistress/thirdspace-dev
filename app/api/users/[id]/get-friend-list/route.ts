@@ -16,25 +16,36 @@ export async function GET(
     const db = client.db(DBS._THIRDSPACE);
     const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
     const session = await getServerSession(authOptions);
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const me = await userCollection.findOne(
-      {
-        _id: new ObjectId(session.user.id),
-      },
-      {
-        projection: {
-          friends: 1,
-        },
-      },
-    );
-
+    const me = await userCollection.findOne({
+      _id: new ObjectId(session.user.id),
+    });
     const friendIds: ObjectId[] = me?.friends ?? [];
+    const friends = await userCollection
+      .find(
+        {
+          _id: { $in: friendIds },
+        },
+        {
+          projection: {
+            _id: 1,
+            firstName: 1,
+            lastName: 1,
+            username: 1,
+            avatar: 1,
+          },
+        },
+      )
+      .toArray();
 
     if (!friendIds.length) {
       return NextResponse.json({ status: {}, event: {} }, { status: 200 });
     }
+
+    return NextResponse.json({ friends: friends }, { status: 200 });
   } catch (err) {
     return err as Error;
   }

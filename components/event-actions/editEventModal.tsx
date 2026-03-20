@@ -11,7 +11,7 @@ import {
   Chip,
   DatePicker,
 } from "@heroui/react";
-import { EventDoc } from "@/lib/models/Event";
+import { EventBudget, EventDoc } from "@/lib/models/Event";
 import { useToast } from "@/app/providers/ToastProvider";
 import Image from "next/image";
 import logo from "@/public/third-space-logos/thirdspace-logo-5.png";
@@ -67,7 +67,7 @@ export function EditEventModal({
   const [attachments, setAttachments] = useState<string[]>([]);
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const { data: session } = useSession();
-  const [budget, setBudget] = useState<number>(0);
+  const [costInfo, setCostInfo] = useState<EventBudget | null>(null);
   const feed = useFeed();
 
   // Prefill on open
@@ -97,7 +97,11 @@ export function EditEventModal({
         ),
       );
       setStatus(initialData.status ?? "active");
-      setBudget(initialData?.budgetInfo?.estimatedCost ?? 0);
+      setCostInfo({
+        totalEstimated: initialData.costInfo?.totalEstimated ?? 0,
+        splitMode: initialData.costInfo?.splitMode ?? "free",
+        currency: "USD",
+      });
       setIsPublic(initialData.public ?? false);
     } else {
       (async () => {
@@ -123,7 +127,11 @@ export function EditEventModal({
               typeof a === "string" ? a : a.url,
             ),
           );
-          setBudget(data.budgetInfo?.estimatedCost ?? 0);
+          setCostInfo({
+            totalEstimated: data.costInfo?.totalEstimated ?? 0,
+            splitMode: data.costInfo?.splitMode ?? "free",
+            currency: "USD",
+          });
           setIsPublic(data.public ?? false);
         } catch (err) {
           notify("Couldn't load event 😭", (err as Error).message);
@@ -196,10 +204,7 @@ export function EditEventModal({
             tags,
             location,
             attachments: [...attachments, ...uploadedUrls],
-            budgetInfo: {
-              estimatedCost: budget,
-              currency: "USD",
-            },
+            costInfo: costInfo,
           },
         }),
       });
@@ -281,13 +286,26 @@ export function EditEventModal({
                 variant="underlined"
               />
               {/* TODO: decide if we even need this. Status can be time based. recurrance seems awfully spammy. implement later maybe */}
-              {/* <EventStatusSelect status={status} setStatus={setStatus} />
-              <SelectRecurringEvent
-                recurring={recurring}
-                recurrenceRule={recurrenceRule}
-                setRecurring={setRecurring}
-                setRecurrenceRule={setRecurrenceRule}
-              /> */}
+              <BudgetInput
+                initialValue={costInfo?.totalEstimated ?? 0}
+                initialSplitMode={costInfo?.splitMode ?? "free"}
+                onChange={(val) => {
+                  setCostInfo((prev) => ({
+                    ...(prev ?? {
+                      splitMode: "free",
+                      totalEstimated: 0,
+                      currency: "USD",
+                    }),
+                    totalEstimated: val,
+                  }));
+                }}
+                onSplitChange={(mode) => {
+                  setCostInfo((prev) => ({
+                    ...(prev ?? { totalEstimated: 0, currency: "USD" }),
+                    splitMode: mode,
+                  }));
+                }}
+              />
               <SelectEventPrivacy
                 isPublic={isPublic}
                 setIsPublic={setIsPublic}

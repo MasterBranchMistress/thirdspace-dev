@@ -8,6 +8,7 @@ import {
   Button,
   CardHeader,
   Chip,
+  useDisclosure,
 } from "@heroui/react";
 import { UserDoc } from "@/lib/models/User";
 import {
@@ -43,6 +44,8 @@ import {
 import ProfileSettingsModal from "../profile-settings/profileSettings";
 import RankBadge from "../karma/rankBadge";
 import { useFeed } from "@/app/context/UserFeedContext";
+import FriendsModal from "./viewFriendsModal";
+import { useSession } from "next-auth/react";
 
 export default function ProfileHeading({
   disabled,
@@ -58,6 +61,7 @@ export default function ProfileHeading({
   relationship: RelationshipFlags;
   isSelf: boolean;
 }) {
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [showOverlay, setShowOverlay] = useState(false);
   const [dialogConfig, setDialogConfig] = useState<DialogConfig | null>(null);
   const [dialogAction, setDialogAction] = useState<() => Promise<void>>(
@@ -352,8 +356,12 @@ export default function ProfileHeading({
             variant="flat"
             disabled={disabled}
             onPress={() => {
-              setDialogConfig(getBlockDialogConfig(isBlocked, user));
-              setDialogAction(() => manageActionFunction);
+              if (!isSelf) {
+                setDialogConfig(getBlockDialogConfig(isBlocked, user));
+                setDialogAction(() => manageActionFunction);
+              } else {
+                onOpen();
+              }
             }}
           >
             {manageActionIcon}
@@ -378,6 +386,7 @@ export default function ProfileHeading({
         isOpen={isEditingProfile}
         onOpenChange={setIsEditingProfile}
       />
+      <FriendsModal isOpen={isOpen} onOpenChange={onOpenChange} user={viewer} />
     </>
   );
 }

@@ -2,6 +2,7 @@ import { SessionUser } from "@/types/user-session";
 import { ZonedDateTime } from "@heroui/system/dist/types";
 import { useState } from "react";
 import { uploadFilesViaPresign } from "../amazon-s3-media/returns3Urls";
+import { EventBudget } from "@/lib/models/Event";
 
 type Props = {
   loggedInUser: SessionUser;
@@ -13,6 +14,7 @@ type Props = {
   estimatedCost: number;
   eventLocation: string;
   eventPrivacy: boolean;
+  costInfo: EventBudget;
   attachments: File[];
 };
 
@@ -25,7 +27,7 @@ export async function handleAddEvent({
   eventTags,
   eventTimeAndDate,
   eventStartTime,
-  estimatedCost,
+  costInfo,
   attachments,
 }: Props) {
   try {
@@ -45,11 +47,7 @@ export async function handleAddEvent({
           tags: eventTags,
           public: eventPrivacy,
           reccuuring: false,
-          budgetInfo: {
-            estimatedCost: estimatedCost,
-            currency: "usd",
-            notes: null,
-          },
+          costInfo: costInfo,
           location: {
             name: eventLocation,
           },

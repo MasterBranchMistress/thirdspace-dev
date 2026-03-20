@@ -101,7 +101,10 @@ import RankBadge from "../karma/rankBadge";
 import PromotionFeedItem from "../karma/promotion-card-map";
 import { getUserRanking } from "@/utils/karma/getRanking";
 import { useUserInfo } from "@/app/context/UserContext";
-import { getTimeUntilEvent } from "@/utils/custom-hooks/useCountdown";
+import {
+  getTimeUntilEvent,
+  isPastDate,
+} from "@/utils/custom-hooks/useCountdown";
 import { boostStatus } from "@/utils/feed-item-actions/status-item-actions/boostHandler";
 import { BoostedBy } from "@/lib/models/UserFeedDoc";
 import BoostToast from "../karma/BoostPromotionToast";
@@ -852,14 +855,11 @@ export default function FeedItemCard({
           {type === "event_is_popular" && (
             <div className="font-light max-w-[100%] mt-2 tracking-tight">
               <div className="flex flex-row font-bold text-sm text-center justify-center mb-2 items-center">
-                <span className="font-semibold shadow-md shadow-primary border-1 border-primary py-[5px] mr-[-12] px-3 rounded-l-lg">
-                  {actor.firstName} is hosting
-                </span>
                 <Button
                   size="sm"
                   variant="solid"
                   color="primary"
-                  className="text-secondary shadow-md shadow-primary rounded-l-none font-bold ml-2"
+                  className="text-secondary shadow-md shadow-primary rounded-md font-bold ml-2"
                   onPress={() =>
                     router.push(`/dashboard/event/${actor.eventId}`)
                   }
@@ -993,9 +993,10 @@ export default function FeedItemCard({
                     variant="shadow"
                     color="success"
                     className="text-secondary font-bold"
-                    onPress={() =>
-                      router.push(`/dashboard/event/${actor.eventId}`)
-                    }
+                    onPress={() => {
+                      router.push(`/dashboard/event/${actor.eventId}`);
+                    }}
+                    isDisabled={isPastDate(target?.startingDate)}
                   >
                     Check In
                   </Button>
@@ -1012,6 +1013,7 @@ export default function FeedItemCard({
                     color="danger"
                     className="text-secondary font-bold"
                     onPress={() => console.log("TODO: leave event api here!!")}
+                    isDisabled={isPastDate(target?.startingDate)}
                   >
                     Cancel
                   </Button>

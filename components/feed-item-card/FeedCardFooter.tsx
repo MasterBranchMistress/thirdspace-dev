@@ -49,16 +49,6 @@ interface FeedCardFooterProps {
   optimisticBoosted: boolean;
 }
 
-const EventMiniMap = dynamic(
-  () => import("@/components/event-mini-map/eventMiniMap"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="w-full h-[100px] rounded-none bg-default-100 animate-pulse" />
-    ),
-  },
-);
-
 export default function FeedCardFooter({
   type,
   target,
@@ -79,30 +69,6 @@ export default function FeedCardFooter({
 
   return (
     <div className="flex flex-col items-center gap-1 tracking-tight w-full text-center px-0">
-      {[
-        "joined_event",
-        "hosted_event",
-        "event_coming_up",
-        "event_is_popular",
-        "updated_event",
-      ].includes(type) && (
-        <div
-          ref={ref}
-          className="flex flex-col gap-1 w-full justify-center align-middle"
-        >
-          {inView && hasCoords && (
-            <EventMiniMap
-              lat={target?.location?.lat}
-              lng={target?.location?.lng}
-              interactive={false}
-              user={viewer}
-              eventTitle={target.title}
-              previewOpen={false}
-            />
-          )}
-        </div>
-      )}
-
       {type === "profile_avatar_updated" && (
         <Image
           src={target?.snippet}

@@ -68,6 +68,8 @@ import { UserRanking } from "@/lib/constants";
 import EventMiniMap from "@/components/event-mini-map/eventMiniMap";
 import { Attachment } from "@/types/user-feed";
 import { normalizeAttachments } from "@/utils/attachments/normalizeAttachments";
+import { getTimeUntilEvent } from "@/utils/custom-hooks/useCountdown";
+import { EventBudget } from "@/lib/models/Event";
 
 type Comment = {
   userId: any;
@@ -126,10 +128,7 @@ type EventDetails = {
     qualityBadge: UserRanking;
   };
   attendees: Attendee[];
-  budgetInfo: {
-    estimatedCost: number;
-    currency: string;
-  };
+  costInfo: EventBudget;
 };
 
 const imageSize = 5;
@@ -221,6 +220,9 @@ export default function EventViewPage() {
 
     if (id && userId) fetchEvent();
   }, [id, userId]);
+
+  if (!event?.costInfo) return null;
+  const attendeeCount = event?.attendees?.length ?? 0;
 
   // Handlers
   const handleJoin = async () => {
@@ -393,7 +395,8 @@ export default function EventViewPage() {
                         hour: "numeric",
                         minute: "numeric",
                         hour12: true,
-                      })}
+                      })}{" "}
+                      — {getTimeUntilEvent(event.date)}
                     </p>
 
                     <p className="text-xs text-center text-gray-400">
@@ -408,6 +411,24 @@ export default function EventViewPage() {
                           #{tag}
                         </span>
                       ))}
+                    </div>
+                    <div>
+                      <p className="text-primary font-light text-sm text-center mt-4">
+                        {event.costInfo.splitMode === "free"
+                          ? "Event is Free 🍻"
+                          : ""}
+                        {event.costInfo.splitMode === "host_covers"
+                          ? "Cost Covered by Host 🥳"
+                          : ""}
+                        {event.costInfo.splitMode === "split_evenly"
+                          ? event.attendees?.length
+                            ? `Split Evenly ~ $${(
+                                event.costInfo.totalEstimated /
+                                (event.attendees.length + 1)
+                              ).toFixed(2)} per Orbiter`
+                            : "Split Evenly: Cost will update per Orbiter"
+                          : ""}
+                      </p>
                     </div>
                     <div className="mt-3 w-full text-xs flex flex-col p-0 gap-2 justify-center items-center text-primary">
                       <div className="flex flex-row gap-2 my-2 bg-concrete">
