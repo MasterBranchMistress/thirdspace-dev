@@ -65,13 +65,6 @@ export async function POST(req: NextRequest) {
       )
       .toArray();
 
-    console.log(
-      promotionDocs.map((doc) => ({
-        promotionId: String(doc.sourceId),
-        boostedBy: doc.boostedBy,
-      })),
-    );
-
     const promotionByTarget = new Map<string, string[]>();
 
     for (const doc of promotionDocs) {
@@ -108,15 +101,6 @@ export async function POST(req: NextRequest) {
           )
           .toArray()
       : [];
-
-    console.log(
-      "previewUsers found:",
-      previewUsers.map((u) => ({
-        id: String(u._id),
-        firstName: u.firstName,
-        avatar: u.avatar,
-      })),
-    );
 
     const userMap = new Map<string, PreviewUser>();
     for (const u of previewUsers) {

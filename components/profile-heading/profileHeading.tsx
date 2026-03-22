@@ -159,7 +159,10 @@ export default function ProfileHeading({
       setManageActionFunction(() => async () => {
         await blockUser({ loggedInUser: viewer, userToBlock: user });
         setRelationship(String(user._id), { blocked: true });
-        notify(`Blocked ${user.username} 🙅`, ``);
+        notify(
+          `Blocked ${user.username} 🙅`,
+          `${user.firstName} will no longer be able to see your posts.`,
+        );
       });
       feed.refresh?.();
     }

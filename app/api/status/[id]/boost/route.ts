@@ -163,15 +163,6 @@ export async function POST(
       sourceId: id,
     });
 
-    console.log("session user:", session?.user);
-    console.log("route id:", id);
-    console.log("feedItem found:", !!feedItem);
-    console.log("feedItem type:", feedItem?.type);
-    console.log("promotedUserId:", feedItem?.actor?.id);
-    console.log("sender id:", sender?._id?.toString());
-    console.log("sender karma:", sender?.karmaScore);
-    console.log("status found:", !!updatedStatus);
-
     return NextResponse.json(
       {
         message: "Boost sent successfully",

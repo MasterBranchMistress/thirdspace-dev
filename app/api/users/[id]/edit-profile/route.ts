@@ -6,9 +6,12 @@ import { UserDoc } from "@/lib/models/User";
 import { UserFeedDoc } from "@/lib/models/UserFeedDoc";
 import { isAuthorized } from "@/utils/auth";
 import { getLocationImage } from "@/utils/get-location-images/getLocationImages";
-import { syncUserUsername } from "@/utils/sync-user-username/syncUsername";
-import { syncUserAvatar } from "@/utils/sync-user-avatar/syncAvatar";
-import { awardKarma } from "@/utils/karma/awardKarma";
+
+import {
+  sanitizeDisplayTags,
+  buildNormalizedTags,
+  buildTagMatchKeysFromNormalized,
+} from "@/utils/metadata/tag-handling/normalizeTags";
 
 export async function PATCH(
   req: NextRequest,
@@ -184,22 +187,26 @@ export async function PATCH(
     }
 
     // ✅ Tags
-    if (
-      Array.isArray(updates.tags) &&
-      updates.tags.join(",") !== (user.tags || []).join(",")
-    ) {
+    if (Array.isArray(updates.tags)) {
       if (updates.tags.length > 5) {
         return NextResponse.json(
           { error: "You can only select up to 5 tags." },
           { status: 400 },
         );
       }
-      const cleanedTags = updates.tags.map((t: string) =>
-        t.trim().toLowerCase(),
-      );
-      updateFields.tags = cleanedTags;
-      changes.tags = cleanedTags;
-      updateFields.tagsLastupdatedAt = new Date();
+
+      const displayTags = sanitizeDisplayTags(updates.tags);
+      const currentTags = sanitizeDisplayTags(user.tags || []);
+      const normalizedTags = buildNormalizedTags(displayTags);
+      const tagMatchKeys = buildTagMatchKeysFromNormalized(normalizedTags);
+
+      if (displayTags.join(",") !== currentTags.join(",")) {
+        updateFields.tags = displayTags;
+        updateFields.normalizedTags = normalizedTags;
+        updateFields.tagMatchKeys = tagMatchKeys;
+        changes.tags = displayTags;
+        updateFields.tagsLastupdatedAt = new Date();
+      }
     }
 
     // If no updates

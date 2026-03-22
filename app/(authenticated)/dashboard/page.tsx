@@ -151,15 +151,9 @@ export default function Home() {
       const hydratedItems: FeedItem[] = items.map((it: any) => {
         const sid = it?.target?.status?.sourceId;
 
-        console.log(`ITEM: `, it);
-
         if (sid) {
           const statusId = String(sid);
           const boostKey = statusId;
-
-          console.log(`key: `, boostKey);
-          console.log("Boost match? ", boostSet.has(boostKey));
-          console.log("event match? ", statusSet.has(boostKey));
 
           return {
             ...it,
@@ -172,8 +166,6 @@ export default function Home() {
         }
 
         const eid = it?.actor?.eventId;
-
-        console.log(`EVENT ID: `, eid);
 
         if (eid)
           return {

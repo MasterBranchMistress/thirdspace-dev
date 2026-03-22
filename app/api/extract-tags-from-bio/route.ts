@@ -1,26 +1,34 @@
-// app/api/extract-tags-from-bio/route.ts
-import { extractInterestTagsFromBio } from "@/utils/tag-extractor/tagExtractor";
+import { getFuzzyMatchingTags } from "@/utils/tag-extractor/fuzzyTagMatcher";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { bio } = body;
+    const { userTags, candidateTags } = body;
 
-    if (!bio || typeof bio !== "string" || bio.trim().length < 10) {
+    if (
+      !Array.isArray(userTags) ||
+      !Array.isArray(candidateTags) ||
+      userTags.length === 0 ||
+      candidateTags.length === 0
+    ) {
       return NextResponse.json(
-        { error: "Bio must be a string with at least 10 characters." },
-        { status: 400 }
+        {
+          error:
+            "userTags and candidateTags must be non-empty arrays of strings.",
+        },
+        { status: 400 },
       );
     }
 
-    const tags = await extractInterestTagsFromBio(bio);
-    return NextResponse.json({ tags });
+    const matches = await getFuzzyMatchingTags(userTags, candidateTags);
+
+    return NextResponse.json({ matches });
   } catch (err: any) {
-    console.error("Tag extraction failed:", err.message);
+    console.error("Fuzzy tag matching failed:", err.message);
     return NextResponse.json(
-      { error: "Failed to extract tags" },
-      { status: 500 }
+      { error: "Failed to perform fuzzy tag matching" },
+      { status: 500 },
     );
   }
 }

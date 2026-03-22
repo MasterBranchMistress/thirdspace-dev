@@ -19,9 +19,6 @@ export async function GET(
 
     const { id } = await context.params;
 
-    console.log("session user:", session.user.id);
-    console.log("requested user:", id);
-
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ error: "Invalid user id" }, { status: 400 });
     }

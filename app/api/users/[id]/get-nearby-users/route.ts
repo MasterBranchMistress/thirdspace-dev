@@ -4,6 +4,8 @@ import clientPromise from "@/lib/mongodb";
 import { DBS, COLLECTIONS } from "@/lib/constants";
 import { ObjectId } from "mongodb";
 import { UserDoc } from "@/lib/models/User";
+import { getFuzzyMatchingTags } from "@/utils/tag-extractor/fuzzyTagMatcher";
+import { serializeNearbyUser } from "@/utils/discoverability/serialize-users/serializeUsers";
 
 export async function POST(
   req: NextRequest,
@@ -16,7 +18,7 @@ export async function POST(
     }
 
     const {
-      radiusKm = 25,
+      radiusKm = 50,
       minShared = 1,
       limit = 20,
     } = await req.json().catch(() => ({}));
@@ -25,8 +27,6 @@ export async function POST(
     const db = client.db(DBS._THIRDSPACE);
 
     const userCollection = db.collection(COLLECTIONS._USERS);
-    userCollection.createIndex({ "location.geo": "2dsphere" });
-    userCollection.createIndex({ tags: 1 });
 
     const idx = await userCollection.indexes();
     if (!idx.some((i) => i.key?.["location.geo"] === "2dsphere")) {
@@ -36,13 +36,39 @@ export async function POST(
     // 1) Load requester’s location + tags
     const me = await userCollection.findOne(
       { _id: new ObjectId(String(userId)) },
-      { projection: { "location.geo": 1, tags: 1, blocked: 1 } },
+      {
+        projection: {
+          "location.geo": 1,
+          normalizedTags: 1,
+          tagMatchKeys: 1,
+          blocked: 1,
+          following: 1,
+          friends: 1,
+        },
+      },
     );
 
     const myPoint = me?.location?.geo;
-    const myTags: string[] = Array.isArray(me?.tags) ? me!.tags : [];
+    const myNormalizedTags: string[] = Array.isArray(me?.normalizedTags)
+      ? me.normalizedTags
+      : [];
+
+    const myTagMatchKeys: string[] = Array.isArray(me?.tagMatchKeys)
+      ? me.tagMatchKeys
+      : [];
+
+    const combinedTags = Array.from(
+      new Set([...myNormalizedTags, ...myTagMatchKeys]),
+    );
+
     const blockedIds: ObjectId[] = Array.isArray(me?.blocked)
       ? me!.blocked
+      : [];
+    const followedAccounts: ObjectId[] = Array.isArray(me?.following)
+      ? me.following
+      : [];
+    const friendedAccounts: ObjectId[] = Array.isArray(me?.friends)
+      ? me.friends
       : [];
 
     if (!myPoint?.type || !Array.isArray(myPoint.coordinates)) {
@@ -52,9 +78,14 @@ export async function POST(
       );
     }
 
-    const excludeIds = [new ObjectId(userId), ...blockedIds];
+    const excludeIds = [
+      new ObjectId(userId),
+      ...blockedIds,
+      ...followedAccounts,
+      ...friendedAccounts,
+    ];
     const maxDistanceMeters = radiusKm * 1000;
-    const effectiveMinShared = myTags.length === 0 ? 0 : minShared;
+    const effectiveMinShared = combinedTags.length === 0 ? 0 : minShared;
 
     const pipeline: any[] = [
       {
@@ -71,9 +102,23 @@ export async function POST(
       },
       {
         $addFields: {
-          sharedTags: { $setIntersection: ["$tags", myTags] },
+          candidateCombinedTags: {
+            $setUnion: [
+              { $ifNull: ["$normalizedTags", []] },
+              { $ifNull: ["$tagMatchKeys", []] },
+            ],
+          },
+        },
+      },
+      {
+        $addFields: {
+          sharedTags: {
+            $setIntersection: ["$candidateCombinedTags", combinedTags],
+          },
           sharedCount: {
-            $size: { $ifNull: [{ $setIntersection: ["$tags", myTags] }, []] },
+            $size: {
+              $setIntersection: ["$candidateCombinedTags", combinedTags],
+            },
           },
           distanceScore: {
             $max: [
@@ -122,6 +167,8 @@ export async function POST(
           username: 1,
           avatar: 1,
           tags: 1,
+          normalizedTags: 1,
+          tagMatchKeys: 1,
           bio: 1,
           followers: 1,
           following: 1,
@@ -144,32 +191,104 @@ export async function POST(
       .aggregate(pipeline)
       .toArray();
 
+    const strongMatches = users.filter((u: any) => (u.sharedCount ?? 0) >= 2);
+
+    const matchedTags = new Set(users.flatMap((u: any) => u.sharedTags ?? []));
+
+    const unresolvedTags = combinedTags.filter((t) => !matchedTags.has(t));
+
+    const shouldRunAI = strongMatches.length < 3 && unresolvedTags.length > 0;
+
+    if (shouldRunAI) {
+      const fallbackCandidates = await db
+        .collection(COLLECTIONS._USERS)
+        .aggregate([
+          {
+            $geoNear: {
+              near: myPoint,
+              distanceField: "distanceMeters",
+              spherical: true,
+              maxDistance: maxDistanceMeters,
+              query: {
+                _id: { $nin: excludeIds },
+                "location.geo": { $exists: true },
+                normalizedTags: { $exists: true, $ne: [] },
+              },
+            },
+          },
+          {
+            $project: {
+              firstName: 1,
+              lastName: 1,
+              username: 1,
+              avatar: 1,
+              tags: 1,
+              normalizedTags: 1,
+              tagMatchKeys: 1,
+              bio: 1,
+              followers: 1,
+              following: 1,
+              friends: 1,
+              location: 1,
+              distanceMeters: 1,
+              karmaScore: 1,
+              qualityBadge: 1,
+            },
+          },
+          { $limit: 30 },
+        ])
+        .toArray();
+
+      const existingIds = new Set(users.map((u: any) => String(u._id)));
+      const unresolvedCandidates = fallbackCandidates
+        .filter((u: any) => !existingIds.has(String(u._id)))
+        .slice(0, 10);
+
+      const rescuedUsers = [];
+
+      for (const candidate of unresolvedCandidates) {
+        const candidateTags = Array.isArray(candidate.normalizedTags)
+          ? candidate.normalizedTags
+          : [];
+
+        if (!candidateTags.length) continue;
+
+        const fuzzyMatches = await getFuzzyMatchingTags(
+          unresolvedTags,
+          candidateTags,
+        );
+
+        if (fuzzyMatches.length > 1) {
+          rescuedUsers.push({
+            ...candidate,
+            sharedTags: fuzzyMatches,
+            sharedCount: fuzzyMatches.length,
+            matchScore: fuzzyMatches.length * 2,
+            matchSource: "ai",
+          });
+        }
+      }
+
+      const finalUsers = [...users, ...rescuedUsers]
+        .sort((a: any, b: any) => {
+          if ((b.matchScore ?? 0) !== (a.matchScore ?? 0)) {
+            return (b.matchScore ?? 0) - (a.matchScore ?? 0);
+          }
+          return (
+            (a.distanceMeters ?? Infinity) - (b.distanceMeters ?? Infinity)
+          );
+        })
+        .slice(0, Math.max(1, Math.min(limit, 100)));
+
+      return NextResponse.json({
+        count: finalUsers.length,
+        users: finalUsers.map(serializeNearbyUser),
+      });
+    }
+
     return NextResponse.json({
       count: users.length,
-      users: users.map((u) => ({
-        id: String(u._id),
-        firstName: u.firstName,
-        lastName: u.lastName,
-        username: u.username,
-        avatar: u.avatar,
-        followers: Array.isArray(u.followers)
-          ? u.followers.map((id: ObjectId) => String(id))
-          : [],
-        following: Array.isArray(u.following)
-          ? u.following.map((id: ObjectId) => String(id))
-          : [],
-        friends: Array.isArray(u.friends)
-          ? u.friends.map((id: ObjectId) => String(id))
-          : [],
-        tags: Array.isArray(u.tags) ? u.tags : [],
-        bio: u.bio,
-        location: u.location,
-        distanceMeters: u.distanceMeters,
-        sharedTags: Array.isArray(u.sharedTags) ? u.sharedTags : [],
-        sharedCount: u.sharedCount ?? 0,
-        qualityBadge: u.qualityBadge,
-        karmaScore: u.karmaScore,
-      })),
+      users: users.map(serializeNearbyUser),
     });
   } catch (e: any) {
     console.error("Nearby users error:", e);

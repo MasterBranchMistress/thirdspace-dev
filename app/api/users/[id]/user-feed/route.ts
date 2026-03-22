@@ -109,7 +109,18 @@ export async function GET(
     const nearbyUsers = nearbyUsersData.users ?? [];
     const nearbyEvents = nearbyEventsData.events ?? [];
 
-    // console.log(`EVENTS NEARBY: `, nearbyEvents);
+    const strongMatches = nearbyUsers.filter(
+      (u: any) => (u.sharedCount ?? 0) >= 2,
+    );
+
+    const matchedTags = new Set(
+      nearbyUsers.flatMap((u: any) => u.sharedTags ?? []),
+    );
+
+    const shouldRunAI = strongMatches.length < 3;
+
+    if (shouldRunAI) {
+    }
 
     let mergedFeed: any[] = [...combined];
 
@@ -154,8 +165,6 @@ export async function GET(
       mergedFeed.length >= 1 ? 2 : Math.min(1, mergedFeed.length);
     const userAnchor =
       mergedFeed.length >= 1 ? 1 : Math.min(0, mergedFeed.length);
-
-    console.log(filteredEvents);
 
     if (filteredEvents.length > 0) {
       mergedFeed = upsertAtAnchor(

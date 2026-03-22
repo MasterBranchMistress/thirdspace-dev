@@ -61,8 +61,6 @@ export async function POST(
       )
       .toArray();
 
-    console.log(`Boosted: `, boostedPromotions);
-
     return NextResponse.json(
       {
         boostedPromotionIds: boostedPromotions.map((doc) =>
