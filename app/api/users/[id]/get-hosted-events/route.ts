@@ -10,7 +10,7 @@ import { canViewerSee } from "@/utils/user-privacy/canViewerSee";
 
 export async function GET(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
 
@@ -34,7 +34,7 @@ export async function GET(
       return NextResponse.json({ error: "Host not found" }, { status: 404 });
     }
 
-    const filter: Record<string, unknown> = { host: new ObjectId(id) };
+    const filter: Record<string, unknown> = { hostId: new ObjectId(id) };
 
     const allowed =
       hostUser.shareHostedEvents !== false && canViewerSee(hostUser, viewer);
@@ -42,7 +42,7 @@ export async function GET(
     if (!allowed) {
       return NextResponse.json(
         { error: "User has hosted events privated" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -93,12 +93,12 @@ export async function GET(
         },
         appliedFilters: filter,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (err: unknown) {
     return NextResponse.json(
       { error: (err as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

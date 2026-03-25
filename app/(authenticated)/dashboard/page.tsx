@@ -18,7 +18,7 @@ import backToTop from "@/public/lottie/back-to-top.json";
 import { useBrowserLocation } from "@/utils/geolocation/get-user-location/getUserLocation";
 import { useUserInfo } from "@/app/context/UserContext";
 import { getStatusSparks } from "@/utils/feed-item-actions/status-item-actions/sparkHandler";
-import { UserDoc, UserStatusDoc } from "@/lib/models/User";
+import { UserDoc } from "@/lib/models/User";
 import { getEventSparks } from "@/utils/feed-item-actions/event-item-actions/sparkHandler";
 import { getFriendSparkPreviews } from "@/utils/metadata/friend-spark-previews/friendSparkPreviews";
 import { getBoostPreviews } from "@/utils/metadata/boost-promotion-preview/boostPreview";

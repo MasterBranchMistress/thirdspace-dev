@@ -39,9 +39,16 @@ export function EventDiscoverabilityCard({ event }: Props) {
 
   // Generate hype meter (0–5 bars)
   const totalBars = 5;
-  const filledBars = Math.round(
-    (event.popularity ? event.popularity / 100 : 0) * totalBars,
+  const MIN = 8;
+  const MAX = 18;
+
+  const normalized = Math.min(
+    Math.max((event?.baseScore ? event.baseScore - MIN : 0) / (MAX - MIN), 0),
+    1,
   );
+
+  const filledBars = Math.round(normalized * totalBars);
+
   const firstAttachment = event.attachments?.[0];
   const hasAttachments = !!event.attachments?.length;
   const isVideo = firstAttachment?.type === "video";
@@ -96,9 +103,11 @@ export function EventDiscoverabilityCard({ event }: Props) {
             isBordered
             radius="full"
             size="sm"
-            src={event.hostAvatar ?? "/placeholder-event.png"}
+            src={
+              event.hostAvatar || event.host?.avatar || "/placeholder-event.png"
+            }
             onClick={() =>
-              router.push(`/dashboard/user/${String(event.host._id)}`)
+              router.push(`/dashboard/user/${String(event.hostId)}`)
             }
           />
           <div className="flex flex-col shrink-0 items-start justify-start leading-tight max-w-[60px]">
@@ -106,7 +115,7 @@ export function EventDiscoverabilityCard({ event }: Props) {
               {event.title}
             </h4>
             <span className="text-xs text-default-500 truncate max-w-[120px]">
-              Hosted by {event.hostName}
+              Hosted by {event.hostName || event.host.username}
             </span>
           </div>
         </div>
@@ -124,8 +133,8 @@ export function EventDiscoverabilityCard({ event }: Props) {
 
       <CardFooter className="flex justify-between gap-3 pt-3 text-sm">
         {event.tags?.length ? (
-          <div className="flex flex-wrap gap-2 shrink-0 px-2 justify-center">
-            {event.tags.slice(0, 3).map((t) => (
+          <div className="flex flex-wrap gap-2 shrink-0 px-2 justify-center truncate max-w-[7rem]">
+            {event?.normalizedTags?.slice(0, 3).map((t) => (
               <span
                 key={t}
                 className="text-xs z-10 bg-secondary text-primary font-bold px-2 py-1 rounded-full"
@@ -137,7 +146,7 @@ export function EventDiscoverabilityCard({ event }: Props) {
         ) : null}
 
         {/* Hype meter */}
-        <div className="flex flex-col items-center mt-2">
+        <div className="flex flex-col items-center justify-end px-2 mt-2">
           <div className="flex gap-1 mb-1">
             {Array.from({ length: totalBars }).map((_, i) => (
               <div
@@ -160,7 +169,7 @@ export function EventDiscoverabilityCard({ event }: Props) {
               ? "🔥 Hot Event"
               : filledBars >= 2
                 ? "🌟 Some Hype"
-                : "✨ Quiet Event"}
+                : "✨ Low-key"}
           </p>
         </div>
       </CardFooter>

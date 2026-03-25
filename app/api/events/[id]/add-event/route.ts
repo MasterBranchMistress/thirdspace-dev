@@ -9,6 +9,12 @@ import { getServerSession } from "next-auth";
 import { ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/authOptions";
+import {
+  buildNormalizedTags,
+  buildTagMatchKeysFromNormalized,
+  normalizeTag,
+} from "@/utils/metadata/tag-handling/normalizeTags";
+import { getGravatarUrl } from "@/utils/gravatar";
 
 export async function POST(
   req: NextRequest,
@@ -76,6 +82,9 @@ export async function POST(
       );
     }
 
+    const normalizedTags = buildNormalizedTags(data.tags);
+    const tagMatchKeys = buildTagMatchKeysFromNormalized(normalizedTags);
+
     // --- Insert Event ---
     const now = new Date();
     const baseEvent: EventDoc = {
@@ -93,11 +102,17 @@ export async function POST(
         lng,
         geo: { type: "Point", coordinates: [lng, lat] },
       },
-      host: new ObjectId(user._id),
+      hostId: user._id,
+      host: {
+        username: user.username,
+        avatar: user?.avatar ?? getGravatarUrl(user?.email!),
+      },
       attendees: [],
       qualityBadge: user.qualityBadge,
       karmaScore: user.karmaScore,
       tags: data.tags || [],
+      normalizedTags: normalizedTags,
+      tagMatchKeys: tagMatchKeys,
       comments: [],
       status: EVENT_STATUSES._ACTIVE,
       createdAt: now,

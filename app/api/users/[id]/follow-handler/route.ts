@@ -27,16 +27,23 @@ export async function PATCH(
     _id: new ObjectId(String(viewerId)),
   });
 
+  if (viewerId === id) {
+    return NextResponse.json(
+      { error: "You cannot follow yourself" },
+      { status: 400 },
+    );
+  }
+
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
   if (!viewer) {
     return NextResponse.json({ error: "Viewer not found" }, { status: 404 });
   }
-  const userIsFollowingViewer = user.followers?.some(
-    (followerId) => followerId.toString() === viewerId,
+  const viewerIsFollowingUser = viewer.following?.some(
+    (followedId) => followedId.toString() === id,
   );
-  if (userIsFollowingViewer) {
+  if (viewerIsFollowingUser) {
     await userCollection.updateOne(
       { _id: new ObjectId(id) },
       { $pull: { followers: new ObjectId(String(viewerId)) } },
@@ -61,7 +68,7 @@ export async function PATCH(
     );
 
     await userCollection.updateOne(
-      { _id: new Object(user._id) },
+      { _id: new ObjectId(user._id) },
       {
         $push: {
           notifications: {

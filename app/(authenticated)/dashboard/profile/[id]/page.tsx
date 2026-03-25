@@ -92,6 +92,7 @@ export default function ProfilePage() {
         }
 
         // Hosted Events
+
         if (eventsRes.ok) {
           const eventsData = await eventsRes.json();
           setHostedEvents(eventsData);
@@ -118,7 +119,7 @@ export default function ProfilePage() {
 
     if (id && viewer?.id) {
       fetchData();
-      // getRelationship(String(profile?.user._id))
+      getRelationship(String(profile?.user._id));
     }
   }, [id, viewer?.id]);
 

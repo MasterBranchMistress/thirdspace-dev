@@ -19,6 +19,9 @@ export type EventBudget = {
 };
 
 export interface EventDoc {
+  sharedTags?: any;
+  normalizedTags?: string[];
+  tagMatchKeys?: string[];
   hostName?: string;
   popularity?: number;
   distanceMeters?: number;
@@ -41,7 +44,11 @@ export interface EventDoc {
       coordinates: number[];
     };
   };
-  host: ObjectId;
+  host: {
+    username: string;
+    avatar: string;
+  };
+  hostId: ObjectId;
   karmaScore?: number;
   hostAvatar?: string;
   attendees: ObjectId[];
@@ -80,6 +87,7 @@ export interface EventDoc {
     | "connector"
     | "pioneer"
     | "luminary";
+  baseScore?: number;
 }
 
 const MessageSchema = new Schema(

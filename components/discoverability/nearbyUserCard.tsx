@@ -32,7 +32,7 @@ export function NearbyUserCard({ user }: Props) {
       onPress={() => router.push(`/dashboard/profile/${user.id}`)}
     >
       <CardHeader className="justify-between items-start pb-3">
-        <div className="flex gap-4 items-center justify-start">
+        <div className="flex gap-4 items-center justify-start shrink-0">
           <Avatar
             isBordered
             radius="full"
@@ -42,7 +42,7 @@ export function NearbyUserCard({ user }: Props) {
           />
 
           <div className="flex flex-col justify-start items-start leading-tight">
-            <h4 className="text-sm font-semibold text-default-800">
+            <h4 className="text-sm font-semibold text-default-800 max-w-[7rem] truncate min-w-0">
               {user.firstName} {user.lastName}
             </h4>
             <span className="text-xs text-default-500 max-w-[7rem] truncate min-w-0">
@@ -50,8 +50,8 @@ export function NearbyUserCard({ user }: Props) {
             </span>
           </div>
         </div>
-        <div className="flex flex-col gap-1.5 shrink-0 items-end">
-          <span className="px-3 py-0.5 text-xs font-medium bg-secondary text-primary rounded-full w-fit">
+        <div className="flex flex-col gap-1.5 shrink-0 items-end max-w-[7rem] truncate min-w-0">
+          <span className="px-3 py-0.5 text-xs font-medium bg-secondary text-primary rounded-full w-full truncate max-w-[10rem]">
             {user.distanceMeters
               ? (user?.distanceMeters / 1069.34).toFixed(1)
               : 0}{" "}

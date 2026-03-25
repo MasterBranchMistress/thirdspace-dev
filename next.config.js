@@ -6,6 +6,7 @@ const nextConfig = {
       "www.gravatar.com",
       "lumiere-a.akamaihd.net",
       "thirdspace-attachments-dev.s3.us-east-2.amazonaws.com",
+      "loremflickr.com",
     ],
   },
 };

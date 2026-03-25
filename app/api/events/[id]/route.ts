@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params; // ✅ must await params in App Router
   const client = await clientPromise;
@@ -24,7 +24,7 @@ export async function GET(
 
     // populate host
     const hostUser = await userCollection.findOne({
-      _id: new ObjectId(event.host),
+      _id: new ObjectId(event.hostId),
     });
 
     // populate attendees

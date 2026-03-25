@@ -292,6 +292,8 @@ export default function FeedItemCard({
                         : isUserActor(actor) &&
                           `${actor.firstName} is doing something cool 🤔`;
 
+  // console.log(type === "hosted_event" && !isUserActor(actor) && actor.eventId);
+
   const handleDeletePost = async (statusId?: string) => {
     try {
       if (!statusId) return;
@@ -779,14 +781,14 @@ export default function FeedItemCard({
             <div className="mt-2 tracking-tight max-w-[100%] font-normal text-sm">
               <div className="flex flex-col items-center justify-center text-center">
                 <div className="flex flex-row font-bold text-sm text-center justify-center mb-2 items-center">
-                  {/* <span className="font-semibold shadow-md shadow-primary border-1 border-primary py-[5px] mr-[-12] px-3 rounded-l-lg">
+                  <span className="font-semibold truncate max-w-[10rem] shadow-md shadow-primary border-1 border-primary py-[5px] mr-[-12] px-3 rounded-l-lg">
                     {actor.firstName} is hosting
-                  </span> */}
+                  </span>
                   <Button
                     size="sm"
                     variant="solid"
                     color="primary"
-                    className="text-secondary shadow-md shadow-primary rounded-md font-bold ml-2"
+                    className="text-secondary shadow-md shadow-primary rounded-r-md rounded-l-none font-bold ml-2"
                     onPress={() =>
                       router.push(`/dashboard/event/${actor.eventId}`)
                     }

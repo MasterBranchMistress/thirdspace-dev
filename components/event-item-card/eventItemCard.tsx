@@ -2,13 +2,14 @@
 
 import { Card, CardBody, Chip } from "@heroui/react";
 import { EventDoc } from "@/lib/models/Event";
-import AttachmentSwiper from "../swiper/swiper";
 import logo from "@/public/third-space-logos/thirdspace-logo-5.png";
 import Image from "next/image";
 import {
   CheckCircleIcon,
   TrophyIcon,
   XCircleIcon,
+  PhotoIcon,
+  PlayCircleIcon,
 } from "@heroicons/react/24/outline";
 
 type Props = {
@@ -18,22 +19,43 @@ type Props = {
 
 export default function EventGridCard({ event, onClick }: Props) {
   const attachments = event.attachments ?? [];
+  const firstAttachment = attachments[0];
+  const remainingAttachmentCount = Math.max(attachments.length - 1, 0);
+
   const Preview = () => {
-    if (!attachments.length) {
+    if (!firstAttachment) {
       return (
         <div className="absolute inset-0 flex items-center justify-center bg-black/20">
           <Image src={logo} alt={event.description} width={300} height={300} />
         </div>
       );
     }
+
+    if (firstAttachment.type === "video") {
+      return (
+        <div className="absolute inset-0 overflow-hidden bg-black/30">
+          <video
+            src={firstAttachment.url}
+            className="h-full w-full object-cover"
+            muted
+            playsInline
+            preload="metadata"
+          />
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+            <PlayCircleIcon className="h-12 w-12 text-white/90" />
+          </div>
+        </div>
+      );
+    }
+
     return (
-      <div className="absolute inset-0 flex items-center justify-center overflow-hidden bg-black/30">
-        <AttachmentSwiper
-          muted={true}
-          controls={false}
-          attachments={attachments}
-          onProfilePage={true}
-          commentsAreOpen={true}
+      <div className="absolute inset-0 overflow-hidden bg-black/30">
+        <Image
+          src={firstAttachment.url}
+          alt={event.title}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, 33vw"
         />
       </div>
     );
@@ -60,6 +82,8 @@ export default function EventGridCard({ event, onClick }: Props) {
         return <TrophyIcon width={18} />;
       case "canceled":
         return <XCircleIcon width={18} />;
+      default:
+        return null;
     }
   };
 
@@ -72,11 +96,19 @@ export default function EventGridCard({ event, onClick }: Props) {
     >
       <CardBody className="p-0 h-full w-full">
         <Preview />
+
         <div className="flex flex-col justify-center">
           <div className="bg-black/30 font-bold tracking-tighter py-1 backdrop-blur-md text-white text-tiny text-center px-2 rounded-none z-10 shadow-2xl">
-            {`${event.title}`}
+            {event.title}
           </div>
-          {/* Overlay badge if multiple attachments */}
+
+          {attachments.length > 1 && (
+            <div className="absolute top-8 right-2 bg-black/40 backdrop-blur-md text-white text-xs px-2 py-0.5 rounded-md z-10 shadow-2xl flex items-center gap-1">
+              <PhotoIcon className="h-4 w-4" />
+              {`+${remainingAttachmentCount}`}
+            </div>
+          )}
+
           {event.attendees.length > 0 ? (
             <div className="absolute bottom-2 right-2 bg-black/30 backdrop-blur-md text-white text-xs px-2 py-0.5 rounded-md z-10 shadow-2xl">
               {`+${event.attendees.length} Orbiter${event.attendees.length > 1 ? "s" : ""}`}
@@ -87,7 +119,7 @@ export default function EventGridCard({ event, onClick }: Props) {
             </div>
           )}
         </div>
-        {/* Badge in corner */}
+
         <div className="mt-1.5 ml-1.5 text-tiny tracking-wide z-20">
           {event.eventType === "hosted" && (
             <Chip
@@ -99,6 +131,7 @@ export default function EventGridCard({ event, onClick }: Props) {
               {event.status === "completed" ? "Completed" : "Hosting"}
             </Chip>
           )}
+
           {event.eventType === "joined" && (
             <Chip
               startContent={getBadgeIcon()}
