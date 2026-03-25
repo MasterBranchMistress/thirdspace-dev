@@ -50,7 +50,7 @@ export function getUserActionConfig({
       ),
     };
   return {
-    label: "Add Friend",
+    label: "Friend",
     icon: <UserPlusIcon width={iconSize} className="shrink-0" />,
   };
 }
