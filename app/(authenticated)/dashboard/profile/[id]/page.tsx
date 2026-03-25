@@ -202,12 +202,12 @@ export default function ProfilePage() {
       {totalEvents.length ? (
         <section>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-0">
-            {totalEvents.map((event) => (
+            {totalEvents.map((event, idx) => (
               <EventGridCard
                 onClick={() =>
                   router.push(`/dashboard/event/${event._id?.toString()}`)
                 }
-                key={event._id?.toString()}
+                key={`${event._id?.toString()}-${idx}`}
                 event={event}
               />
             ))}
