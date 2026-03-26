@@ -44,8 +44,8 @@ const MISSIONS: MissionItem[] = [
   },
   {
     value: "status",
-    label: "Make a post on ThirdSpace™ 📝",
-    description: "Let the world know that you've landed.",
+    label: "Post on ThirdSpace™ 📝",
+    description: "Let the world know you've landed.",
   },
 ];
 
