@@ -781,14 +781,14 @@ export default function FeedItemCard({
             <div className="mt-2 tracking-tight max-w-[100%] font-normal text-sm">
               <div className="flex flex-col items-center justify-center text-center">
                 <div className="flex flex-row font-bold text-sm text-center justify-center mb-2 items-center">
-                  <span className="font-semibold truncate max-w-[10rem] shadow-md shadow-primary border-1 border-primary py-[5px] mr-[-12] px-3 rounded-l-lg">
+                  <span className="font-light truncate max-w-[10rem] shadow-none border-1 border-primary py-[5px] mr-[-12] px-3 rounded-l-lg">
                     {actor.firstName} is hosting
                   </span>
                   <Button
                     size="sm"
                     variant="solid"
                     color="primary"
-                    className="text-secondary shadow-md shadow-primary rounded-r-md rounded-l-none font-bold ml-2"
+                    className="text-secondary shadow-none rounded-r-md rounded-l-none font-bold ml-2"
                     onPress={() =>
                       router.push(`/dashboard/event/${actor.eventId}`)
                     }
@@ -860,16 +860,22 @@ export default function FeedItemCard({
                 <Button
                   size="sm"
                   variant="solid"
+                  radius="none"
                   color="primary"
-                  className="text-secondary shadow-md shadow-primary rounded-md font-bold ml-2"
+                  className="text-secondary shadow-none rounded-l-md font-bold ml-2"
                   onPress={() =>
                     router.push(`/dashboard/event/${actor.eventId}`)
                   }
                 >
                   {target?.title}
                 </Button>
+                {/* Trending Indicator */}
+                <div className="flex items-center gap-1 px-2 py-2 shadow-none  rounded-r-md bg-primary/15 text-primary text-xs font-semibold">
+                  <span className="animate-blink">⬆️</span>
+                  <span className="font-mono">Now Trending</span>
+                </div>
               </div>
-              <div className="py-1 my-3">{target?.description}</div>
+              <div className="py-1 px-3 my-3">{target?.description}</div>
               {target?.attachments && target.attachments.length > 0 && (
                 <div
                   className="relative overflow-hidden"
