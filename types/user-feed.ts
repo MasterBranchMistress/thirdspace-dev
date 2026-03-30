@@ -173,6 +173,8 @@ export interface FeedTarget {
     currency?: string;
   };
   startingDate?: string;
+  startTime?: string;
+  endTime?: string;
   totalAttendance?: number;
   mediaUrls?: string[];
   thumbnailUrl?: string;

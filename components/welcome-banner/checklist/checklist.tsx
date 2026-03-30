@@ -35,7 +35,7 @@ const MISSIONS: MissionItem[] = [
   {
     value: "account",
     label: "Add hobbies and interests ✨",
-    description: "Help improve your recommendations.",
+    description: "Tell us what you want to see.",
   },
   {
     value: "privacy",
@@ -130,7 +130,7 @@ export default function MissionChecklist({
 
   return (
     <>
-      <Card className="w-full rounded-none bg-gradient-to-r from-indigo-500/30 via-fuchsia-500/30 to-cyan-500/30 p-0 mt-4 mb-[-12px] shadow-lg">
+      <Card className="w-full rounded-none bg-gradient-to-r from-indigo-500/30 via-fuchsia-500/30 to-cyan-500/30 p-0 mt-4 shadow-lg">
         <CardBody className="bg-black/40 backdrop-blur-xl p-4 pb-6">
           {allComplete ? (
             <div className="flex flex-col items-center justify-center text-center py-4">

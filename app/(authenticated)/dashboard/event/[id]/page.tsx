@@ -9,35 +9,16 @@ import {
   CardBody,
   CardHeader,
   Avatar,
-  Input,
-  Spinner,
-  CardFooter,
   Badge,
-  Alert,
 } from "@heroui/react";
 import { getSession } from "next-auth/react";
 import { UserDoc } from "@/lib/models/User";
 import { FeedBackground } from "@/components/background-animations/UserFeedBackground";
-import {
-  BanknotesIcon,
-  CheckBadgeIcon,
-  CheckCircleIcon,
-  EllipsisVerticalIcon,
-  ExclamationTriangleIcon,
-  FireIcon,
-  FlagIcon,
-  HandRaisedIcon,
-  HandThumbUpIcon,
-  PhoneXMarkIcon,
-  RocketLaunchIcon,
-  ShieldCheckIcon,
-} from "@heroicons/react/24/outline";
-import AttachmentSwiper from "@/components/swiper/swiper";
-import noComments from "@/public/lottie/make-comment.json";
-import send from "@/public/lottie/send.json";
+import { FireIcon } from "@heroicons/react/24/outline";
 import { useRef } from "react";
 import Lottie, { LottieRefCurrentProps } from "lottie-react";
-import { formatDistanceToNow } from "date-fns";
+
+import { formatDuration } from "@/utils/metadata/get-event-duration/formatDuration";
 import Image from "next/image";
 import { EventActions } from "@/components/event-actions/mainEventActions";
 import { useRouter } from "next/navigation";
@@ -52,8 +33,7 @@ import {
   OrbiterList,
 } from "@/components/event-page-components/orbiter-list";
 import {
-  ChatBubbleLeftRightIcon,
-  CheckIcon,
+  ClipboardDocumentCheckIcon,
   ExclamationCircleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
@@ -70,6 +50,7 @@ import { Attachment } from "@/types/user-feed";
 import { normalizeAttachments } from "@/utils/attachments/normalizeAttachments";
 import { getTimeUntilEvent } from "@/utils/custom-hooks/useCountdown";
 import { EventBudget } from "@/lib/models/Event";
+import { getDurationInMinutes } from "@/utils/metadata/get-event-duration/eventDuration";
 
 type Comment = {
   userId: any;
@@ -116,6 +97,7 @@ type EventDetails = {
   description: string;
   date: string;
   startTime: string;
+  endTime: string;
   tags: string[];
   public: boolean;
   location: EventLocation;
@@ -142,6 +124,8 @@ export default function EventViewPage() {
   const [orbiters, setOrbiters] = useState([]);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
+  const [eventDuration, setEventDuration] = useState(null);
+  const [atts, setAtts] = useState<Attendee[]>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const lottieRef = useRef<LottieRefCurrentProps>(null);
@@ -195,6 +179,7 @@ export default function EventViewPage() {
         const commentData = await commentRes.json();
 
         setEvent(eventData);
+        setAtts(eventData.attendees);
 
         // ✅ check host
         if (userId && eventData?.host) {
@@ -227,6 +212,18 @@ export default function EventViewPage() {
   // Handlers
   const handleJoin = async () => {
     if (!userId) return;
+
+    const joiningUser = {
+      _id: userId,
+      username: user?.username,
+      avatar: user?.avatar,
+      firstName: user?.firstName,
+      lastName: user?.lastName.toString(),
+    };
+
+    // prevent duplicate optimistic inserts
+    setIsJoined(true);
+
     const res = await fetch(`/api/events/${id}/join-event`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -241,6 +238,8 @@ export default function EventViewPage() {
       return;
     }
     setIsJoined(true);
+    setAtts([joiningUser, ...event.attendees]);
+
     confetti({
       particleCount: 100,
       spread: 80,
@@ -260,6 +259,9 @@ export default function EventViewPage() {
       body: JSON.stringify({ userId }),
     });
     setIsJoined(false);
+    setAtts((prev) =>
+      prev.filter((attendee) => String(attendee._id) !== String(userId)),
+    );
   };
 
   const handleCancel = async () => {
@@ -372,8 +374,6 @@ export default function EventViewPage() {
                     userId={userId ?? ""}
                     handleDelete={handleDelete} //TODO: Leave for admin application!
                     handleCancel={() => setConfirmCancelOpen(true)}
-                    handleLeave={handleLeave}
-                    handleJoin={handleJoin}
                     eventStatus={event.status}
                   />
                 </div>
@@ -402,6 +402,15 @@ export default function EventViewPage() {
                     <p className="text-xs text-center text-gray-400">
                       {event.location.name}
                     </p>
+                    <p className="text-xs text-center text-primary mt-2">
+                      Duration ~{" "}
+                      {formatDuration(
+                        getDurationInMinutes(
+                          event.startTime ?? "",
+                          event.endTime,
+                        ) ?? 0,
+                      )}
+                    </p>
                     <div className="flex flex-wrap justify-center gap-2 mt-2">
                       {event.tags.map((tag) => (
                         <span
@@ -412,8 +421,8 @@ export default function EventViewPage() {
                         </span>
                       ))}
                     </div>
-                    <div>
-                      <p className="text-primary font-light text-sm text-center mt-4">
+                    <div className="flex flex-row gap-2 mt-3 justify-center items-center">
+                      <p className="text-primary font-light text-sm text-center">
                         {event.costInfo.splitMode === "free"
                           ? "Event is Free 🍻"
                           : ""}
@@ -421,31 +430,38 @@ export default function EventViewPage() {
                           ? "Cost Covered by Host 🥳"
                           : ""}
                         {event.costInfo.splitMode === "split_evenly"
-                          ? event.attendees?.length
+                          ? atts?.length
                             ? `Split Evenly ~ $${(
                                 event.costInfo.totalEstimated /
-                                (event.attendees.length + 1)
+                                (atts.length + 1)
                               ).toFixed(2)} per Orbiter`
                             : "Split Evenly: Cost will update per Orbiter"
                           : ""}
                       </p>
+                      <p className="text-xs text-gray-400 text-center">
+                        {event.costInfo.splitMode === "host_covers" &&
+                          `~ $${event.costInfo.totalEstimated} value`}
+                      </p>
                     </div>
-                    <div className="mt-3 w-full text-xs flex flex-col p-0 gap-2 justify-center items-center text-primary">
+                    <div className="w-full text-xs flex flex-col p-0 gap-2 justify-center items-center text-primary">
                       <div className="flex flex-row gap-2 my-2 bg-concrete">
-                        <Button
-                          onPress={() => router.push("/dashboard")}
-                          variant="shadow"
-                          color="primary"
-                          size="sm"
-                          startContent={
-                            <ChatBubbleLeftRightIcon
-                              width={20}
-                              color="secondary"
-                            />
-                          }
-                        >
-                          Message
-                        </Button>
+                        {!isHost && (
+                          <Button
+                            onPress={!isJoined ? handleJoin : handleLeave}
+                            variant="shadow"
+                            color={!isJoined ? "success" : "danger"}
+                            size="sm"
+                            startContent={
+                              !isJoined ? (
+                                <ClipboardDocumentCheckIcon width={20} />
+                              ) : (
+                                <ExclamationCircleIcon width={20} />
+                              )
+                            }
+                          >
+                            {!isJoined ? "Join Event" : "Leave Event"}
+                          </Button>
+                        )}
                         <Button
                           endContent={<FireIcon width={18} />}
                           size="sm"
@@ -462,7 +478,7 @@ export default function EventViewPage() {
                         </Button>
                       </div>
                       <div className="flex flex-col gap-3 items-center justify-center py-1">
-                        <OrbiterList attendeeUsers={event?.attendees} />
+                        <OrbiterList attendeeUsers={atts} />
                       </div>
                     </div>
                   </>

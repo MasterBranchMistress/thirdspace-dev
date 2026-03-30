@@ -31,6 +31,8 @@ import hourglass from "@/public/lottie/hourglass.json";
 import AttachmentUploader from "../attachment-uploader/attachmentUploader";
 import LocationSearch from "../location-auto-complete/searchInput";
 import { useFeed } from "@/app/context/UserFeedContext";
+import DurationPicker from "../event-duration/eventDuration";
+import { getDurationInMinutes } from "@/utils/metadata/get-event-duration/eventDuration";
 
 type EditEventModalProps = {
   isOpen: boolean;
@@ -52,6 +54,7 @@ export function EditEventModal({
   const [date, setDate] = useState<ZonedDateTime | null>(null);
   const [eventDate, setEventDate] = useState("");
   const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [location, setLocation] = useState<{
@@ -70,6 +73,18 @@ export function EditEventModal({
   const [costInfo, setCostInfo] = useState<EventBudget | null>(null);
   const feed = useFeed();
 
+  const durationMinutes = getDurationInMinutes(startTime ?? "", endTime);
+  const durationKey =
+    durationMinutes === 15
+      ? "15"
+      : durationMinutes === 30
+        ? "30"
+        : durationMinutes === 45
+          ? "45"
+          : durationMinutes === 60
+            ? "60"
+            : "custom";
+
   // Prefill on open
   useEffect(() => {
     if (!isOpen) return;
@@ -83,8 +98,10 @@ export function EditEventModal({
             ? initialData.date.toISOString()
             : initialData.date;
         setDate(parseAbsoluteToLocal(isoString));
+        setEventDate(isoString);
       }
       setStartTime(initialData.startTime || "");
+      setEndTime(initialData.endTime || "");
       setTags(initialData.tags || []);
       setLocation({
         name: initialData.location?.name ?? "",
@@ -114,8 +131,10 @@ export function EditEventModal({
           setDescription(data.description);
           if (data.date) {
             setDate(parseAbsoluteToLocal(String(data.date)));
+            setEventDate(String(data.date));
           }
           setStartTime(String(data.startTime));
+          setEndTime(String(data.endTime));
           setTags(Array.isArray(data.tags) ? data.tags.map(String) : []);
           setLocation({
             name: data.location?.name ?? "",
@@ -198,6 +217,7 @@ export function EditEventModal({
             status,
             date: isoDate,
             startTime: time ?? startTime,
+            endTime: endTime,
             public: isPublic,
             recurring,
             recurrenceRule,
@@ -215,7 +235,6 @@ export function EditEventModal({
       }
 
       notify("Event Edited 🗓️", "Your event was updated successfully.");
-      feed.refresh?.();
       onClose();
       window.location.reload();
     } catch (err) {
@@ -236,6 +255,7 @@ export function EditEventModal({
       isDismissable={false}
       hideCloseButton={false}
       className="bg-transparent text-concrete h-auto overflow-y-auto"
+      classNames={{ closeButton: "text-concrete" }}
     >
       <ModalContent className="p-6 space-y-4 text-concrete">
         {loading ? (
@@ -267,24 +287,36 @@ export function EditEventModal({
                 onChange={(e) => setDescription(e.target.value)}
                 variant="underlined"
               />
-              <DatePicker
-                label="Date"
-                classNames={calendarStyling}
-                labelPlacement="outside"
-                selectorButtonPlacement="end"
-                size="sm"
-                isRequired
-                value={date}
-                onChange={(val) => {
-                  setDate(val); // keep ZonedDateTime in state
-                  if (val) {
-                    const { isoDate, time } = parseZonedDate(val);
-                    setEventDate(String(isoDate));
-                    setStartTime(time);
-                  }
-                }}
-                variant="underlined"
-              />
+              <>
+                <DatePicker
+                  label="Date"
+                  classNames={calendarStyling}
+                  labelPlacement="outside"
+                  selectorButtonPlacement="end"
+                  size="sm"
+                  isRequired
+                  value={date}
+                  onChange={(val) => {
+                    setDate(val); // keep ZonedDateTime in state
+                    if (val) {
+                      const { isoDate, startTime } = parseZonedDate(val);
+                      setEventDate(String(isoDate));
+                      setStartTime(startTime);
+                    }
+                  }}
+                  variant="underlined"
+                />
+                {date && (
+                  <DurationPicker
+                    duration={durationKey}
+                    eventDate={eventDate}
+                    onChange={(val) => {
+                      console.log(val, typeof val);
+                      setEndTime(val);
+                    }}
+                  />
+                )}
+              </>
               {/* TODO: decide if we even need this. Status can be time based. recurrance seems awfully spammy. implement later maybe */}
               <BudgetInput
                 initialValue={costInfo?.totalEstimated ?? 0}

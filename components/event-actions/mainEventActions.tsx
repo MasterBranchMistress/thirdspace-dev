@@ -18,9 +18,12 @@ import {
   ClipboardDocumentCheckIcon,
   ClipboardDocumentListIcon,
   CogIcon,
+  EyeIcon,
   FlagIcon,
+  GlobeAltIcon,
   GlobeAmericasIcon,
   PlayIcon,
+  ShareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import Lottie from "lottie-react";
@@ -43,8 +46,6 @@ type EventAction = {
   eventIsPublic: boolean;
   handleDelete: () => void;
   handleCancel: () => void;
-  handleLeave: () => void;
-  handleJoin: () => void;
 };
 
 type EventActionsProps = EventAction & {
@@ -59,19 +60,10 @@ export function EventActions({
   eventIsPublic,
   handleDelete, //TODO: leave for admin application!
   handleCancel,
-  handleLeave,
-  handleJoin,
   eventStatus,
 }: EventActionsProps) {
-  const { notify } = useToast();
   const actionsAfterEventClose =
     eventStatus === "canceled" || eventStatus === "completed";
-
-  useEffect(() => {
-    if (actionsAfterEventClose && !isHost && isJoined) {
-      handleLeave();
-    }
-  }, [actionsAfterEventClose]);
 
   const [manageOrbiterModalOpen, setManageOrbiterModalOpen] = useState(false);
   const [editEventModalOpen, setEditEventModalOpen] = useState(false);
@@ -141,43 +133,6 @@ export function EventActions({
             </>
           ) : (
             <>
-              {isJoined ? (
-                <DropdownItem
-                  key="leave"
-                  className="text-danger"
-                  endContent={<BellSlashIcon className="text-xs w-5" />}
-                  color="secondary"
-                  onPress={handleLeave}
-                >
-                  Leave Event
-                </DropdownItem>
-              ) : (
-                !actionsAfterEventClose && (
-                  <DropdownItem
-                    key="join"
-                    className="text-concrete"
-                    endContent={<BellIcon className="text-xs w-5" />}
-                    onPress={handleJoin}
-                  >
-                    Join Event
-                  </DropdownItem>
-                )
-              )}
-              {!actionsAfterEventClose && (
-                <DropdownItem
-                  key="orbit"
-                  className="text-concrete"
-                  endContent={<GlobeAmericasIcon className="text-xs w-5" />}
-                  onPress={() =>
-                    notify(
-                      "Unable to Orbit 😭",
-                      "Sit tight! this feature is coming soon 🤞",
-                    )
-                  }
-                >
-                  Orbit Event
-                </DropdownItem>
-              )}
               {!isHost && (
                 <>
                   <DropdownItem
@@ -193,40 +148,28 @@ export function EventActions({
                   >
                     Message Host
                   </DropdownItem>
-
-                  {!actionsAfterEventClose && (
-                    <>
-                      <DropdownItem
-                        key="add_to_calendar"
-                        className="text-concrete"
-                        endContent={<CalendarIcon className="text-xs w-5" />}
-                        onPress={
-                          /*TODO: SCRUM-48*/ () =>
-                            console.log(`TODO: add calendar API endpoint`)
-                        }
-                      >
-                        Add to Calendar
-                      </DropdownItem>
-                      {isJoined && (
-                        <DropdownItem
-                          key="check_in"
-                          className="text-concrete"
-                          endContent={
-                            <ClipboardDocumentCheckIcon className="text-xs w-5" />
-                          }
-                          onPress={
-                            /*TODO: check in function */ () =>
-                              console.log(`TODO: add check-in API endpoint`)
-                          }
-                        >
-                          Check In
-                        </DropdownItem>
-                      )}
-                    </>
-                  )}
+                  <DropdownItem
+                    key="view_orbiters"
+                    className="text-concrete"
+                    endContent={<GlobeAmericasIcon className="text-xs w-5" />}
+                    onPress={() => setManageOrbiterModalOpen(true)}
+                  >
+                    View Oribters
+                  </DropdownItem>
+                  <DropdownItem
+                    key="share_event"
+                    className="text-concrete"
+                    endContent={<ShareIcon className="text-xs w-5" />}
+                    onPress={
+                      /* TODO: add report function */ () =>
+                        console.log(`Report event here`)
+                    }
+                  >
+                    Share Event
+                  </DropdownItem>
                   <DropdownItem
                     key="report"
-                    className="text-concrete"
+                    className="text-concrete bg-danger"
                     endContent={<FlagIcon className="text-xs w-5" />}
                     onPress={
                       /* TODO: add report function */ () =>

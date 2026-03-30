@@ -27,19 +27,15 @@ import {
   calendarStyling,
   inputStyling,
 } from "@/utils/get-dropdown-style/getDropDownStyle";
-import {
-  getLocalTimeZone,
-  now,
-  parseAbsoluteToLocal,
-  Time,
-  ZonedDateTime,
-} from "@internationalized/date";
+import { getLocalTimeZone, now, ZonedDateTime } from "@internationalized/date";
 import React from "react";
 import { parseZonedDate } from "@/utils/date-handling/parseCalendarZoneDateTime";
 import { handleAddEvent } from "@/utils/handle-user-posting/handleEventPost";
 import { useFeed } from "@/app/context/UserFeedContext";
 import LocationSearch from "../location-auto-complete/searchInput";
 import { CostSplitMode, EventBudget, EventDoc } from "@/lib/models/Event";
+import DurationPicker from "../event-duration/eventDuration";
+import { getDurationInMinutes } from "@/utils/metadata/get-event-duration/eventDuration";
 
 type AddEventProps = {
   isOpen: boolean;
@@ -56,6 +52,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
   const [date, setDate] = useState<ZonedDateTime | null>(null);
   const [eventDate, setEventDate] = useState("");
   const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [location, setLocation] = useState<{
@@ -73,6 +70,18 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const durationMinutes = getDurationInMinutes(startTime ?? "", endTime);
+  const durationKey =
+    durationMinutes === 15
+      ? "15"
+      : durationMinutes === 30
+        ? "30"
+        : durationMinutes === 45
+          ? "45"
+          : durationMinutes === 60
+            ? "60"
+            : "custom";
+
   useEffect(() => {
     if (!isOpen) {
       // reset only when modal closes (optional)
@@ -86,6 +95,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
     setDescription("");
     setEventDate("");
     setStartTime("");
+    setEndTime("");
     setTagInput("");
     setTags([]);
     setLocation(null);
@@ -111,6 +121,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
       description: description.trim(),
       date: eventDate,
       startTime: startTime,
+      endTime: endTime,
       tags,
       public: isPublic,
       recurring: false,
@@ -188,6 +199,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
         eventTimeAndDate: eventData.date,
         eventLocation: eventData.location?.name as any,
         eventStartTime: eventData.startTime,
+        eventEndTime: eventData.endTime,
         estimatedCost: eventData.costInfo.totalEstimated,
         eventPrivacy: eventData.public,
         costInfo: eventData.costInfo,
@@ -198,6 +210,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
         // confetti and gentle UX after success
         const confettiModule = (await import("canvas-confetti")).default;
         confettiModule({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+        window.location.reload();
         feed.refresh?.();
       } catch (err) {
         notify("Whoops, something went wrong here!", "");
@@ -269,7 +282,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
                     rows={4}
                     isRequired
                   />
-                  <div className="w-full max-w-xl flex flex-row gap-4">
+                  <div className="w-full max-w-xl flex flex-col gap-4">
                     <DatePicker
                       hideTimeZone
                       isRequired
@@ -278,13 +291,22 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
                       label="Event Date"
                       variant="underlined"
                       onChange={(val) => {
-                        // keep ZonedDateTime in state
-                        const { isoDate, time } = parseZonedDate(val);
+                        const { isoDate, startTime } = parseZonedDate(val);
                         setDate(val);
                         setEventDate(String(isoDate));
-                        setStartTime(time);
+                        setStartTime(startTime);
                       }}
                     />
+                    {date && (
+                      <DurationPicker
+                        duration={durationKey}
+                        eventDate={eventDate}
+                        onChange={(val) => {
+                          console.log(val, typeof val);
+                          setEndTime(val);
+                        }}
+                      />
+                    )}
                   </div>
                   <Input
                     label="Tags (comma separated)"

@@ -1,4 +1,5 @@
 import { Avatar, AvatarGroup } from "@heroui/react";
+import { useEffect, useState } from "react";
 
 export type Attendee = {
   _id: string;

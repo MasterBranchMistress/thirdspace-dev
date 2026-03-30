@@ -10,6 +10,7 @@ type Props = {
   eventDesc: string;
   eventTimeAndDate: string;
   eventStartTime: string;
+  eventEndTime: string;
   eventTags: string[];
   estimatedCost: number;
   eventLocation: string;
@@ -27,6 +28,7 @@ export async function handleAddEvent({
   eventTags,
   eventTimeAndDate,
   eventStartTime,
+  eventEndTime,
   costInfo,
   attachments,
 }: Props) {
@@ -44,6 +46,7 @@ export async function handleAddEvent({
           description: eventDesc,
           date: eventTimeAndDate,
           startTime: eventStartTime,
+          endTime: eventEndTime,
           tags: eventTags,
           public: eventPrivacy,
           reccuuring: false,

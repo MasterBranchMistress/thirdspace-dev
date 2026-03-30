@@ -583,7 +583,7 @@ export default function FeedItemCard({
               )}
 
               {/* Attachments */}
-              {target?.attachments?.length ? (
+              {/* {target?.attachments?.length ? (
                 <Swiper
                   effect={"cards"}
                   grabCursor={true}
@@ -610,7 +610,7 @@ export default function FeedItemCard({
                     );
                   })}
                 </Swiper>
-              ) : null}
+              ) : null} */}
             </div>
           )}
           {item.type === "discover_users" && (item as any).data?.users && (
@@ -780,20 +780,22 @@ export default function FeedItemCard({
           {type === "hosted_event" && !isUserActor(actor) && (
             <div className="mt-2 tracking-tight max-w-[100%] font-normal text-sm">
               <div className="flex flex-col items-center justify-center text-center">
-                <div className="flex flex-row font-bold text-sm text-center justify-center mb-2 items-center">
-                  <span className="font-light truncate max-w-[10rem] shadow-none border-1 border-primary py-[5px] mr-[-12] px-3 rounded-l-lg">
+                <div className="flex flex-row max-w-[85%] font-bold text-sm text-center justify-center mb-2 items-center">
+                  <span className="font-light shrink-0 shadow-none border-1 border-primary py-[5px] mr-[-12] px-3 rounded-l-lg">
                     {actor.firstName} is hosting
                   </span>
                   <Button
                     size="sm"
                     variant="solid"
                     color="primary"
-                    className="text-secondary shadow-none rounded-r-md rounded-l-none font-bold ml-2"
+                    className="text-secondary shadow-none max-w-[85%] rounded-r-md rounded-l-none font-bold ml-2"
                     onPress={() =>
                       router.push(`/dashboard/event/${actor.eventId}`)
                     }
                   >
-                    {target?.title}
+                    <span className="truncate max-w-[15rem]">
+                      {target?.title}
+                    </span>
                   </Button>
                 </div>
                 <div className="font-light tracking-tight text-center text-md py-1 px-2 mt-1">

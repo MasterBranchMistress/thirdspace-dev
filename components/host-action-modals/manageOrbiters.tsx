@@ -6,6 +6,7 @@ import Image from "next/image";
 import { UserDoc } from "@/lib/models/User";
 import logo from "@/public/third-space-logos/thirdspace-logo-5.png";
 import {
+  ChatBubbleLeftRightIcon,
   CheckIcon,
   ChevronDoubleUpIcon,
   EllipsisVerticalIcon,
@@ -26,6 +27,7 @@ import { ConfirmBanDialog } from "./banUserConfirmDialog";
 import React from "react";
 import Lottie from "lottie-react";
 import notFound from "@/public/lottie/emptymessagenotifs.json";
+import { useSession } from "next-auth/react";
 
 type ManageOrbiterProps = {
   isOpen: boolean;
@@ -73,9 +75,13 @@ export function ManageOrbiter({
     };
 
     fetchOrbiters();
-  }, [isOpen, eventId]); // 👈 add eventId here
+  }, [isOpen, eventId]);
 
   const router = useRouter();
+  const { data: session } = useSession();
+
+  const userId = session?.user.id;
+  const isHost = userId === hostId;
 
   const banUser = async (hostId: string, userId: string) => {
     try {
@@ -115,6 +121,10 @@ export function ManageOrbiter({
       scrollBehavior="inside"
       backdrop="blur"
       className="bg-transparent text-concrete h-auto"
+      isDismissable={false}
+      classNames={{
+        closeButton: "text-conrete",
+      }}
     >
       <ModalContent>
         <div className="flex-1 overflow-y-auto justify-center items-center">
@@ -190,87 +200,93 @@ export function ManageOrbiter({
                         </div>
                       </div>
                       <div className="flex flex-row gap-1 justify-evenly flex-shrink-0">
-                        <button
-                          onClick={() =>
-                            console.log(`Sending spark to ${orbiter.firstName}`)
-                          }
-                        >
-                          <FireIcon
-                            width={23}
-                            className="text-white p-0.5 border-1 border-white bg-primary backdrop-blur-md rounded-full"
-                          />
-                        </button>
-                        <button
-                          onClick={() =>
-                            console.log(
-                              `Banning ${orbiter.firstName} from event`,
-                            )
-                          }
-                          className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
-                        >
-                          <CheckIcon
-                            width={23}
-                            className="text-white p-0.5 border-1 border-white bg-success backdrop-blur-md rounded-full"
-                          />
-                        </button>
                         {/* Dropdown for secondary actions */}
                         <Dropdown classNames={dropDownStyle} backdrop="blur">
                           <DropdownTrigger>
                             <button>
                               <EllipsisVerticalIcon
                                 width={24}
-                                className="text-white p-0.5 border-1 bg-white/20 border-white rounded-full backdrop-blur-md hover:bg-white/20"
+                                className="text-white p-0.5 rounded-full backdrop-blur-md hover:bg-white/20"
                               />
                             </button>
                           </DropdownTrigger>
-                          <DropdownMenu>
-                            <DropdownItem
-                              key="promote"
-                              description={`Grant a user host priveleges`}
-                              onPress={() =>
-                                console.log(`Unban ${orbiter.firstName}`)
-                              }
-                              endContent={<ChevronDoubleUpIcon width={23} />}
-                            >
-                              Promote
-                            </DropdownItem>
-                            {eventIsPublic ? null : (
+                          {isHost && (
+                            <DropdownMenu>
                               <DropdownItem
-                                key="ban"
-                                endContent={<HandRaisedIcon width={23} />}
-                                description={`Ban a user from this event`}
+                                key="promote"
+                                description={`Grant a user host priveleges`}
                                 onPress={() =>
-                                  setBanTarget({
-                                    id: String(orbiter._id),
-                                    name: `${orbiter.firstName} ${orbiter.lastName}`,
-                                  })
+                                  console.log(`Unban ${orbiter.firstName}`)
+                                }
+                                endContent={<ChevronDoubleUpIcon width={23} />}
+                              >
+                                Promote
+                              </DropdownItem>
+                              {eventIsPublic ? null : (
+                                <DropdownItem
+                                  key="ban"
+                                  endContent={<HandRaisedIcon width={23} />}
+                                  description={`Ban a user from this event`}
+                                  onPress={() =>
+                                    setBanTarget({
+                                      id: String(orbiter._id),
+                                      name: `${orbiter.firstName} ${orbiter.lastName}`,
+                                    })
+                                  }
+                                >
+                                  Ban
+                                </DropdownItem>
+                              )}
+                              <DropdownItem
+                                key="restrict"
+                                onPress={() =>
+                                  console.log(`Restrict ${orbiter.firstName}`)
+                                }
+                                description={`Restrict a user from event interaction`}
+                                endContent={<NoSymbolIcon width={23} />}
+                              >
+                                Restrict{" "}
+                              </DropdownItem>
+                              <DropdownItem
+                                key="report"
+                                className="text-concrete"
+                                description={`Report a user or file an appeal`}
+                                onPress={() =>
+                                  console.log(`Report ${orbiter.firstName}`)
+                                }
+                                endContent={<FlagIcon width={23} />}
+                              >
+                                Report
+                              </DropdownItem>
+                            </DropdownMenu>
+                          )}
+                          {!isHost && (
+                            <DropdownMenu>
+                              <DropdownItem
+                                key="promote"
+                                description={`Send ${orbiter.firstName} a message`}
+                                onPress={() =>
+                                  console.log(`Unban ${orbiter.firstName}`)
+                                }
+                                endContent={
+                                  <ChatBubbleLeftRightIcon width={23} />
                                 }
                               >
-                                Ban
+                                Message
                               </DropdownItem>
-                            )}
-                            <DropdownItem
-                              key="restrict"
-                              onPress={() =>
-                                console.log(`Restrict ${orbiter.firstName}`)
-                              }
-                              description={`Restrict a user from event interaction`}
-                              endContent={<NoSymbolIcon width={23} />}
-                            >
-                              Restrict{" "}
-                            </DropdownItem>
-                            <DropdownItem
-                              key="report"
-                              className="text-concrete"
-                              description={`Report a user or file an appeal`}
-                              onPress={() =>
-                                console.log(`Report ${orbiter.firstName}`)
-                              }
-                              endContent={<FlagIcon width={23} />}
-                            >
-                              Report
-                            </DropdownItem>
-                          </DropdownMenu>
+                              <DropdownItem
+                                key="report"
+                                className="text-concrete bg-danger"
+                                description={`Report or flag ${orbiter.firstName}`}
+                                onPress={() =>
+                                  console.log(`Report ${orbiter.firstName}`)
+                                }
+                                endContent={<FlagIcon width={23} />}
+                              >
+                                Report
+                              </DropdownItem>
+                            </DropdownMenu>
+                          )}
                         </Dropdown>
                       </div>
                     </li>

@@ -1,7 +1,7 @@
 import { ZonedDateTime } from "@internationalized/date";
 
 export function parseZonedDate(zdt: ZonedDateTime | null) {
-  if (!zdt) return { jsDate: "", time: "" };
+  if (!zdt) return { jsDate: "", startTime: "", endTime: "" };
 
   const jsDate = new Date(zdt.toAbsoluteString());
 
@@ -9,11 +9,17 @@ export function parseZonedDate(zdt: ZonedDateTime | null) {
   const isoDate = jsDate.toISOString(); // YYYY-MM-DD
 
   // HH:mm string
-  const time = jsDate.toLocaleTimeString("en-US", {
+  const startTime = jsDate.toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false, // force 24h, can toggle
   });
 
-  return { isoDate, time };
+  const endTime = jsDate.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false, // force 24h, can toggle
+  });
+
+  return { isoDate, startTime, endTime };
 }

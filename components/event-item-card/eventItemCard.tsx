@@ -2,7 +2,7 @@
 
 import { Card, CardBody, Chip } from "@heroui/react";
 import { EventDoc } from "@/lib/models/Event";
-import logo from "@/public/third-space-logos/thirdspace-logo-5.png";
+import logo from "@/public/third-space-logos/thirdspace-logo-6.png";
 import Image from "next/image";
 import {
   CheckCircleIcon,
@@ -25,8 +25,13 @@ export default function EventGridCard({ event, onClick }: Props) {
   const Preview = () => {
     if (!firstAttachment) {
       return (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-          <Image src={logo} alt={event.description} width={300} height={300} />
+        <div className="absolute inset-0 overflow-hidden bg-black/20">
+          <Image
+            src={logo}
+            alt={event.description}
+            fill
+            className="object-cover"
+          />
         </div>
       );
     }
@@ -37,8 +42,10 @@ export default function EventGridCard({ event, onClick }: Props) {
           <video
             src={firstAttachment.url}
             className="h-full w-full object-cover"
+            autoPlay
             muted
-            playsInline
+            playsInline={true}
+            loop={true}
             preload="metadata"
           />
           <div className="absolute inset-0 flex items-center justify-center bg-black/20">
@@ -51,11 +58,10 @@ export default function EventGridCard({ event, onClick }: Props) {
     return (
       <div className="absolute inset-0 overflow-hidden bg-black/30">
         <Image
-          src={firstAttachment.url}
+          src={firstAttachment?.url || logo}
           alt={event.title}
           fill
           className="object-cover"
-          sizes="(max-width: 768px) 100vw, 33vw"
         />
       </div>
     );
@@ -99,7 +105,9 @@ export default function EventGridCard({ event, onClick }: Props) {
 
         <div className="flex flex-col justify-center">
           <div className="bg-black/30 font-bold tracking-tighter py-1 backdrop-blur-md text-white text-tiny text-center px-2 rounded-none z-10 shadow-2xl">
-            {event.title}
+            <span className="block max-w-[90%] mx-auto truncate">
+              {event.title}
+            </span>
           </div>
 
           {attachments.length > 1 && (

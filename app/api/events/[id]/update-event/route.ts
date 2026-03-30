@@ -15,7 +15,7 @@ function buildUpdateSnippet(changedFields: string[]) {
 
     if (field === "title") return `Updated Event Title.`;
     if (field === "description") return "Updated Event Description.";
-    if (field === "date" || field === "startTime")
+    if (field === "date" || field === "startTime" || field === "endTime")
       return "Updated Event Date or Time.";
     if (field === "location") return "Updated event Location.";
     if (field === "attachments") return "Updated Event Media.";
@@ -77,7 +77,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
 
-    if (existingEvent.host.toString() !== hostId) {
+    if (String(existingEvent.hostId) !== hostId) {
       return NextResponse.json(
         { error: "Only the host can update this event" },
         { status: 403 },
@@ -123,6 +123,14 @@ export async function PATCH(
     }
 
     sanitizedUpdates.updatedAt = new Date();
+    if (sanitizedUpdates.endTime <= sanitizedUpdates.startTime) {
+      return NextResponse.json(
+        {
+          error: "Events must end on the same day",
+        },
+        { status: 400 },
+      );
+    }
 
     const updateResult = await eventsCollection.updateOne(
       { _id: eventId },
@@ -202,6 +210,7 @@ export async function PATCH(
           attachments: parsedAttachments,
           views: updatedEvent.views ?? 0,
           startingDate: new Date(updatedEvent.date).toISOString(),
+          endTime: updatedEvent.endTime,
           location: updatedEvent.location,
           qualityBadge: hostUser.qualityBadge,
           karmaScore: hostUser.karmaScore,

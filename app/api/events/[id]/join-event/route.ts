@@ -11,7 +11,7 @@ import { authOptions } from "@/lib/authOptions";
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
   const client = await clientPromise;
@@ -39,7 +39,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
     const hostUser = await userCollection.findOne({
-      _id: new ObjectId(event?.host.id),
+      _id: new ObjectId(event?.hostId),
     });
     if (!hostUser) {
       return NextResponse.json({ error: "Host not found" });
@@ -50,7 +50,7 @@ export async function PATCH(
     if (!joiningUser) {
       return NextResponse.json(
         { error: "Joining user not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -58,7 +58,7 @@ export async function PATCH(
     if (isUserBannedFromEvent(event, joiningUser)) {
       return NextResponse.json(
         { error: "You are banned from this event." },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -73,7 +73,7 @@ export async function PATCH(
         {
           message: "Event has been completed",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -98,14 +98,14 @@ export async function PATCH(
               ],
             },
           },
-        }
+        },
       );
     }
 
     if (isUserBlocked(hostUser, joiningUser)) {
       if (joiningUser && event.public) {
         await userCollection.updateOne(
-          { _id: new ObjectId(event.host.id) },
+          { _id: new ObjectId(event.hostId) },
           {
             $push: {
               notifications: {
@@ -122,16 +122,16 @@ export async function PATCH(
                 ],
               },
             },
-          }
+          },
         );
       } else {
         await eventCollection.updateOne(
           { _id: event._id },
-          { $addToSet: { banned: new ObjectId(String(userId)) } }
+          { $addToSet: { banned: new ObjectId(String(userId)) } },
         );
         return NextResponse.json(
           { error: "User has been banned from this event" },
-          { status: 403 }
+          { status: 403 },
         );
       }
     }
@@ -141,7 +141,7 @@ export async function PATCH(
       .collection(COLLECTIONS._EVENTS)
       .updateOne(
         { _id: new ObjectId(id) },
-        { $addToSet: { attendees: new ObjectId(String(userId)) } }
+        { $addToSet: { attendees: new ObjectId(String(userId)) } },
       );
 
     if (updateResult.matchedCount === 0) {
@@ -150,11 +150,14 @@ export async function PATCH(
     const updatedEvent = await db
       .collection(COLLECTIONS._EVENTS)
       .findOne({ _id: new ObjectId(id) });
-    return NextResponse.json(updatedEvent, { status: 200 });
+    return NextResponse.json(
+      { updatedEvent: updatedEvent, user: user },
+      { status: 200 },
+    );
   } catch (error: unknown) {
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

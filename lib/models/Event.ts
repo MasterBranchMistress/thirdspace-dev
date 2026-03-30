@@ -34,6 +34,7 @@ export interface EventDoc {
   eventId?: ObjectId;
   date: Date;
   startTime?: string;
+  endTime?: string;
   location?: {
     address?: string;
     name?: string;

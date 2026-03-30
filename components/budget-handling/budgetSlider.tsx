@@ -2,20 +2,12 @@ import { CostSplitMode } from "@/lib/models/Event";
 import {
   dropDownStyle,
   inputStyling,
+  selectStyle,
 } from "@/utils/get-dropdown-style/getDropDownStyle";
-import {
-  Dropdown,
-  DropdownTrigger,
-  Button,
-  DropdownMenu,
-  DropdownItem,
-  Slider,
-  Input,
-} from "@heroui/react";
+import { Select, SelectItem, Slider, Input } from "@heroui/react";
 import Lottie from "lottie-react";
 import { useState } from "react";
 import astro from "@/public/lottie/astro.json";
-import { ChevronLeftIcon } from "@heroicons/react/24/solid";
 
 type BudgetInputProps = {
   initialValue?: number;
@@ -23,6 +15,12 @@ type BudgetInputProps = {
   onChange: (val: number) => void;
   onSplitChange?: (mode: CostSplitMode) => void;
 };
+
+const splitOptions: { key: CostSplitMode; label: string }[] = [
+  { key: "free", label: "Free" },
+  { key: "host_covers", label: "Host Covers Cost" },
+  { key: "split_evenly", label: "Cost Split Evenly" },
+];
 
 export default function BudgetInput({
   initialValue = 0,
@@ -35,44 +33,28 @@ export default function BudgetInput({
 
   return (
     <div className="flex flex-col gap-2 mt-3 mb-6">
-      {/* example split mode control */}
       <label className="text-sm font-light text-concrete">
         Estimated Total Budget
       </label>
-      <Dropdown classNames={dropDownStyle}>
-        <DropdownTrigger>
-          <Button
-            variant="ghost"
-            color="secondary"
-            className="justify-between border-none"
-            endContent={<ChevronLeftIcon width={20} />}
-          >
-            {costSplit === "free" && "Free"}
-            {costSplit === "host_covers" && "Host Covers Cost"}
-            {costSplit === "split_evenly" && "Cost Split Evenly"}
-          </Button>
-        </DropdownTrigger>
 
-        <DropdownMenu
-          aria-label="Cost split mode"
-          selectionMode="single"
-          selectedKeys={new Set([costSplit])}
-          onSelectionChange={(keys) => {
-            const value = Array.from(keys)[0] as CostSplitMode;
+      <Select
+        aria-label="Cost split mode"
+        selectedKeys={[costSplit]}
+        onSelectionChange={(keys) => {
+          const value = Array.from(keys)[0] as CostSplitMode;
+          setCostSplit(value);
+          onSplitChange?.(value);
+        }}
+        classNames={selectStyle}
+        placeholder="Select cost split mode"
+      >
+        {splitOptions.map((option) => (
+          <SelectItem key={option.key}>{option.label}</SelectItem>
+        ))}
+      </Select>
 
-            setCostSplit(value);
-            onSplitChange?.(value); // notify parent immediately
-          }}
-        >
-          <DropdownItem key="free">Free</DropdownItem>
-          <DropdownItem key="host_covers">Host Covers Cost</DropdownItem>
-          <DropdownItem key="split_evenly">Cost Split Evenly</DropdownItem>
-        </DropdownMenu>
-      </Dropdown>
-
-      {costSplit !== "free" && costSplit !== "host_covers" && (
+      {costSplit !== "free" && (
         <>
-          {/* Slider */}
           <Slider
             minValue={0}
             maxValue={500}
@@ -102,7 +84,6 @@ export default function BudgetInput({
             )}
           />
 
-          {/* Number input */}
           <Input
             classNames={inputStyling}
             type="number"

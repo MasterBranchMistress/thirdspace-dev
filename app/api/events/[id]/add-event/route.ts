@@ -82,6 +82,15 @@ export async function POST(
       );
     }
 
+    if (data.endTime <= data.startTime) {
+      return NextResponse.json(
+        {
+          error: "Events must end on the same day",
+        },
+        { status: 400 },
+      );
+    }
+
     const normalizedTags = buildNormalizedTags(data.tags);
     const tagMatchKeys = buildTagMatchKeysFromNormalized(normalizedTags);
 
@@ -95,6 +104,7 @@ export async function POST(
       attachments: parsedAttachments,
       date: new Date(data.date),
       startTime: data.startTime,
+      endTime: data.endTime,
       location: {
         address: data.location.address,
         name: data.location?.name,
@@ -164,6 +174,8 @@ export async function POST(
         attachments: parsedAttachments,
         views: 0,
         startingDate: data.date,
+        startTime: data.startTime,
+        endTime: data.endtime,
         location: {
           name: data.location.name,
           lat,
