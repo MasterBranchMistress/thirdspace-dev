@@ -43,14 +43,15 @@ export async function generateEventFeed(
   }
 
   for (const event of events) {
+    const THREE_DAYS = 1000 * 60 * 60 * 72;
     const THREE_HOURS = 1000 * 60 * 60 * 3;
     const msUntil = new Date(event.date).getTime() - new Date(now).getTime();
-    const isUpcoming = msUntil > 0 && msUntil <= THREE_HOURS;
+    const isUpcoming = msUntil > 0 && msUntil <= THREE_DAYS;
     const isPopular = (event.attendees?.length || 0) > 1;
 
     const hostUser =
-      friends.find((f) => f._id?.equals(event.host)) ||
-      (await userCollection.findOne({ _id: event.host }));
+      friends.find((f) => f._id?.equals(event.hostId)) ||
+      (await userCollection.findOne({ _id: event.hostId }));
 
     if (!hostUser) {
       throw new Error(`Event host not found for event ${event._id}`);
@@ -80,8 +81,8 @@ export async function generateEventFeed(
         location: event.location,
         description: event.description,
         budget: {
-          estimatedCost: event.budgetInfo?.estimatedCost,
-          currency: event.budgetInfo?.currency,
+          estimatedCost: event.costInfo?.totalEstimated,
+          currency: event.costInfo?.currency,
         },
         tags: event.tags || [],
         startingDate: new Date(event.date).toISOString(),

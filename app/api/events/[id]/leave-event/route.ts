@@ -77,10 +77,7 @@ export async function PATCH(
       );
       //get user ranking if breaking some threshold
       if (updatedUser.acknowledged) {
-        const badge = getUserRanking(
-          user.karmaScore ?? 50,
-          user.eventsAttended ?? 0,
-        );
+        const badge = getUserRanking(user.karmaScore ?? 50);
         await userCollection.updateOne(
           { _id: new ObjectId(String(userId)) },
           { $set: { qualityBadge: badge } },
@@ -90,7 +87,7 @@ export async function PATCH(
 
     //✅ send notification to event host
     await userCollection.updateOne(
-      { _id: new ObjectId(event.host) },
+      { _id: new ObjectId(event.hostId) },
       {
         $push: {
           notifications: {

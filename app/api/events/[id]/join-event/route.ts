@@ -8,6 +8,7 @@ import { isUserBlocked } from "@/utils/user-privacy/isUserBlocked";
 import { isUserBannedFromEvent } from "@/utils/user-privacy/isUserBannedFromEvent";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
+import { getEventRange } from "@/utils/date-handling/getEventRange";
 
 export async function PATCH(
   req: NextRequest,
@@ -72,6 +73,54 @@ export async function PATCH(
       return NextResponse.json(
         {
           message: "Event has been completed",
+        },
+        { status: 400 },
+      );
+    }
+
+    const targetEventId = new ObjectId(event._id);
+
+    const targetEvent = await eventCollection.findOne({
+      _id: targetEventId,
+    });
+
+    if (!targetEvent) {
+      return NextResponse.json(
+        { message: "Event not found.", code: "EVENT_NOT_FOUND" },
+        { status: 404 },
+      );
+    }
+
+    const { start: newStart, end: newEnd } = getEventRange(
+      targetEvent.date,
+      targetEvent.startTime ?? "00:00",
+      targetEvent.endTime ?? "00:30",
+    );
+
+    const existingCommitments = await eventCollection
+      .find({
+        _id: { $ne: event._id },
+        $or: [{ hostId: user._id }, { attendees: user._id }],
+      })
+      .toArray();
+
+    const hasOverlap = existingCommitments.some((event) => {
+      const { start: existingStart, end: existingEnd } = getEventRange(
+        event.date,
+        event.startTime ?? "00:00",
+        event.endTime ?? "00:30",
+      );
+
+      const overlaps = newStart < existingEnd && newEnd > existingStart;
+
+      return overlaps;
+    });
+
+    if (hasOverlap) {
+      return NextResponse.json(
+        {
+          message: "You already have an event during this time.",
+          code: "EVENT_OVERLAP",
         },
         { status: 400 },
       );

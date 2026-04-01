@@ -15,6 +15,8 @@ import {
   normalizeTag,
 } from "@/utils/metadata/tag-handling/normalizeTags";
 import { getGravatarUrl } from "@/utils/gravatar";
+import { getDurationInMinutes } from "@/utils/metadata/get-event-duration/eventDuration";
+import { getEventRange } from "@/utils/date-handling/getEventRange";
 
 export async function POST(
   req: NextRequest,
@@ -38,10 +40,6 @@ export async function POST(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const viewer = await userCollection.findOne({
-      _id: new ObjectId(session?.user.id),
-    });
-
     if (!data?.title || !data?.date || !data?.description || !data?.location) {
       return NextResponse.json(
         { error: "Missing required fields" },
@@ -51,6 +49,44 @@ export async function POST(
     if (!Array.isArray(attachments)) {
       return NextResponse.json(
         { error: "Attachments must be an array" },
+        { status: 400 },
+      );
+    }
+
+    const userId = new ObjectId(session?.user.id);
+
+    const existingCommitments = await eventCollection
+      .find({
+        $or: [{ hostId: userId }, { attendees: userId }],
+      })
+      .toArray();
+
+    const { start: newStart, end: newEnd } = getEventRange(
+      data.date,
+      data.startTime,
+      data.endTime,
+    );
+
+    const hasOverlap = existingCommitments.some((event) => {
+      const { start: existingStart, end: existingEnd } = getEventRange(
+        event.date,
+        event.startTime ?? "0:00",
+        event.endTime ?? "3:00",
+      );
+
+      const overlaps = newStart < existingEnd && newEnd > existingStart;
+
+      return overlaps;
+    });
+
+    console.log("final hasOverlap:", hasOverlap);
+
+    if (hasOverlap) {
+      return NextResponse.json(
+        {
+          message:
+            "Cannot create event. User is hosting another event at this time",
+        },
         { status: 400 },
       );
     }

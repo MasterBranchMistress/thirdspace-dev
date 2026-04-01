@@ -496,11 +496,14 @@ export default function FeedItemCard({
             <div className="mt-2 tracking-tight max-w-[100%] font-normal text-sm">
               <div className="flex flex-col items-center justify-center text-center">
                 <div className="flex flex-row font-bold text-sm text-center justify-center mb-2 items-center">
+                  <span className="font-light shrink-0 shadow-none border-1 border-primary py-[5px] mr-[-12] px-3 rounded-l-lg">
+                    {actor.firstName} updated
+                  </span>
                   <Button
                     size="sm"
                     variant="solid"
                     color="primary"
-                    className="text-secondary shadow-md shadow-primary rounded-md font-bold ml-2"
+                    className="text-secondary shadow-none rounded-l-none font-bold ml-2"
                     onPress={() =>
                       router.push(`/dashboard/event/${actor.eventId}`)
                     }
@@ -780,8 +783,8 @@ export default function FeedItemCard({
           {type === "hosted_event" && !isUserActor(actor) && (
             <div className="mt-2 tracking-tight max-w-[100%] font-normal text-sm">
               <div className="flex flex-col items-center justify-center text-center">
-                <div className="flex flex-row max-w-[85%] font-bold text-sm text-center justify-center mb-2 items-center">
-                  <span className="font-light shrink-0 shadow-none border-1 border-primary py-[5px] mr-[-12] px-3 rounded-l-lg">
+                <div className="flex flex-row max-w-[85%] font-bold text-sm text-center justify-center mb-2 items-center shadow-md shadow-primary rounded-lg">
+                  <span className="font-medium shrink-0 shadow-none border-1 border-primary py-[5px] mr-[-12] px-3 rounded-l-lg">
                     {actor.firstName} is hosting
                   </span>
                   <Button
@@ -798,7 +801,7 @@ export default function FeedItemCard({
                     </span>
                   </Button>
                 </div>
-                <div className="font-light tracking-tight text-center text-md py-1 px-2 mt-1">
+                <div className="font-light tracking-tight text-center text-md py-1 px-6 mt-1">
                   {target?.snippet}
                 </div>
               </div>
@@ -964,12 +967,12 @@ export default function FeedItemCard({
                 onClick={() => router.push(`/dashboard/event/${actor.eventId}`)}
               >
                 <div className="w-full flex justify-center">
-                  <div className="flex flex-row font-bold text-sm text-center mb-2 items-center">
+                  <div className="flex flex-row font-bold text-sm text-center mb-2 items-center animate-post-glow shadow-md shadow-primary rounded-lg">
                     <Button
                       size="sm"
                       variant="solid"
                       color="primary"
-                      className="text-secondary shadow-primary shadow-md font-bold rounded-r-none"
+                      className="text-secondary border-1 border-primary shadow-none font-bold rounded-r-none"
                       onPress={() =>
                         router.push(`/dashboard/event/${actor.eventId}`)
                       }
@@ -981,7 +984,7 @@ export default function FeedItemCard({
                       size="sm"
                       variant="bordered"
                       color="primary"
-                      className="text-primary shadow-primary shadow-md font-bold rounded-l-none"
+                      className="text-primary border-1 border-primary  shadow-none font-medium rounded-l-none"
                       onPress={() =>
                         router.push(`/dashboard/event/${actor.eventId}`)
                       }
@@ -990,57 +993,6 @@ export default function FeedItemCard({
                     </Button>
                   </div>
                 </div>
-                <span className="mt-1 flex flex-row gap-2 justify-center items-center">
-                  <Button
-                    endContent={
-                      <CheckCircleIcon
-                        color="secondary"
-                        width={20}
-                        className="p-0 m-0"
-                      />
-                    }
-                    size="sm"
-                    variant="shadow"
-                    color="success"
-                    className="text-secondary font-bold"
-                    onPress={() => {
-                      router.push(`/dashboard/event/${actor.eventId}`);
-                    }}
-                    isDisabled={isPastDate(target?.startingDate)}
-                  >
-                    Check In
-                  </Button>
-                  <Button
-                    endContent={
-                      <XCircleIcon
-                        color="secondary"
-                        width={20}
-                        className="p-0 m-0"
-                      />
-                    }
-                    size="sm"
-                    variant="shadow"
-                    color="danger"
-                    className="text-secondary font-bold"
-                    onPress={() => console.log("TODO: leave event api here!!")}
-                    isDisabled={isPastDate(target?.startingDate)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    startContent={
-                      <ChatBubbleLeftRightIcon width={20} color="secondary" />
-                    }
-                    size="sm"
-                    variant="shadow"
-                    color="primary"
-                    className="text-secondary font-bold"
-                    onPress={() => console.log("set up modal for reason why")}
-                    //TODO: setup messaging via Twilio
-                  >
-                    Message
-                  </Button>
-                </span>
                 {target?.attachments && target.attachments.length > 0 ? (
                   <div
                     className="relative overflow-hidden"

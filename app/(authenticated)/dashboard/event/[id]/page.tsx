@@ -221,9 +221,6 @@ export default function EventViewPage() {
       lastName: user?.lastName.toString(),
     };
 
-    // prevent duplicate optimistic inserts
-    setIsJoined(true);
-
     const res = await fetch(`/api/events/${id}/join-event`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -233,7 +230,7 @@ export default function EventViewPage() {
       const errData = await res.json().catch(() => ({}));
       notify(
         "Oops! Couldn't join 😭",
-        errData.error || "Something went wrong. Please try again later.",
+        errData.message || "Something went wrong. Please try again later.",
       );
       return;
     }
