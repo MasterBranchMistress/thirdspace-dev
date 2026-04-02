@@ -174,13 +174,19 @@ export default function ProfileSettingsModal({
   }, [userId]);
 
   const handleUnblock = async (blockedId: string) => {
+    console.log(blockedId);
     setBlockedUsers((prev) => prev.filter((u) => u.id !== blockedId));
-    await fetch(`/api/users/${userId}/unblock-user`, {
+    const res = await fetch(`/api/users/${userId}/unblock-user`, {
       method: "PATCH",
       body: JSON.stringify({
         unblockUserId: blockedId,
       }),
     });
+
+    const data = await res.json();
+
+    console.log(data, res.ok);
+    return data;
   };
 
   const pushTag = () => {
@@ -336,7 +342,7 @@ export default function ProfileSettingsModal({
       className="bg-transparent text-concrete h-auto"
       isDismissable={false}
       classNames={{
-        closeButton: "text-secondary bg-black/20 p-1 m-2 rounded-full",
+        closeButton: "text-secondary p-1 m-2 rounded-full",
       }}
     >
       <ModalContent>

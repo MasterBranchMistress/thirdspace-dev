@@ -25,11 +25,11 @@ export async function PATCH(
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
     if (!blockedUser) {
       return NextResponse.json(
-        { error: "Unable to block: User not found" },
+        { message: "Unable to block: User not found" },
         { status: 404 },
       );
     }
@@ -38,7 +38,7 @@ export async function PATCH(
       user.blocked?.some((uniqueUser) => uniqueUser.toString() === blockUserId)
     ) {
       return NextResponse.json(
-        { error: "User is already blocked" },
+        { message: "User is already blocked" },
         { status: 400 },
       );
     }
@@ -66,7 +66,7 @@ export async function PATCH(
     // Remove blocked user from all events where blocker is the host
     await eventCollection.updateMany(
       {
-        host: new ObjectId(id),
+        hostId: new ObjectId(id),
         attendees: new ObjectId(String(blockUserId)), // only events where they are an attendee
       },
       {

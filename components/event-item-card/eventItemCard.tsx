@@ -2,7 +2,7 @@
 
 import { Card, CardBody, Chip } from "@heroui/react";
 import { EventDoc } from "@/lib/models/Event";
-import logo from "@/public/third-space-logos/thirdspace-logo-6.png";
+import thirdSpaceLogo from "@/public/third-space-logos/thirdspace-logo-6.png";
 import Image from "next/image";
 import {
   CheckCircleIcon,
@@ -20,6 +20,12 @@ type Props = {
 export default function EventGridCard({ event, onClick }: Props) {
   const attachments = event.attachments ?? [];
   const firstAttachment = attachments[0];
+
+  const isVideoAttachment =
+    typeof firstAttachment === "object" &&
+    firstAttachment !== null &&
+    firstAttachment.type === "video";
+
   const remainingAttachmentCount = Math.max(attachments.length - 1, 0);
 
   const Preview = () => {
@@ -27,7 +33,7 @@ export default function EventGridCard({ event, onClick }: Props) {
       return (
         <div className="absolute inset-0 overflow-hidden bg-black/20">
           <Image
-            src={logo}
+            src={thirdSpaceLogo}
             alt={event.description}
             fill
             className="object-cover"
@@ -36,7 +42,7 @@ export default function EventGridCard({ event, onClick }: Props) {
       );
     }
 
-    if (firstAttachment.type === "video") {
+    if (isVideoAttachment) {
       return (
         <div className="absolute inset-0 overflow-hidden bg-black/30">
           <video
@@ -44,8 +50,8 @@ export default function EventGridCard({ event, onClick }: Props) {
             className="h-full w-full object-cover"
             autoPlay
             muted
-            playsInline={true}
-            loop={true}
+            playsInline
+            loop
             preload="metadata"
           />
           <div className="absolute inset-0 flex items-center justify-center bg-black/20">
@@ -58,7 +64,11 @@ export default function EventGridCard({ event, onClick }: Props) {
     return (
       <div className="absolute inset-0 overflow-hidden bg-black/30">
         <Image
-          src={firstAttachment?.url || logo}
+          src={
+            typeof firstAttachment === "string"
+              ? firstAttachment
+              : thirdSpaceLogo
+          }
           alt={event.title}
           fill
           className="object-cover"

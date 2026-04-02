@@ -43,22 +43,6 @@ export default function ThankYouPage() {
             Your account has been successfully created. You can now log in and
             start connecting with your community.
           </h2>
-          {/* <Typewriter
-            onInit={(typewriter) => {
-              typewriter
-                .pauseFor(100)
-                .typeString(
-                  "Your account has been successfully created. You can now log in and start connecting with your community."
-                )
-                .pauseFor(500)
-                .callFunction(() => setsayGoodbye(true))
-                .start();
-            }}
-            options={{
-              delay: 80,
-              cursor: "",
-            }}
-          /> */}
         </div>
 
         <Button

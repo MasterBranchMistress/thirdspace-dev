@@ -71,7 +71,7 @@ export async function generateUserFeed(
     "profile_avatar_updated",
     "profile_bio_updated",
     "user_promoted",
-    "updated_event",
+    // "updated_event", //decided against this. Might get noisy.
   ];
 
   await logFeedItem({
@@ -112,8 +112,8 @@ export async function generateUserFeed(
     }
     if (!canViewerSee(actorUser, user)) continue;
     for (const event of events) {
-      await userCollection.findOne({ _id: event.host });
-      if (event.host?.toString() !== actorUser._id?.toString()) continue;
+      await userCollection.findOne({ _id: event.hostId });
+      if (event.hostId?.toString() !== actorUser._id?.toString()) continue;
 
       const canceledOrCompletedEvents = await eventCollection
         .find({

@@ -9,7 +9,7 @@ import { authOptions } from "@/lib/authOptions";
 
 export async function DELETE(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params; // event id
   const client = await clientPromise;
@@ -31,10 +31,10 @@ export async function DELETE(
     }
 
     // check permission (only host can delete)
-    if (event.host.toString() !== userId) {
+    if (event.hostId.toString() !== userId) {
       return NextResponse.json(
         { error: "Only the host can delete this event" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -46,7 +46,7 @@ export async function DELETE(
     if (deleteResult.deletedCount === 0) {
       return NextResponse.json(
         { error: "Failed to delete event" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -79,17 +79,17 @@ export async function DELETE(
             ],
           },
         },
-      }
+      },
     );
 
     return NextResponse.json(
       { message: "✅ Event deleted successfully" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error: unknown) {
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

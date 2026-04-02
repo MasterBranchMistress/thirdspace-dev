@@ -55,7 +55,7 @@ export async function PATCH() {
       const totalParticipants = attendeeCount + 1;
 
       if (totalParticipants >= 2) {
-        await applyKarmaAndBadge(usersCollection, event.host.toString(), {
+        await applyKarmaAndBadge(usersCollection, event.hostId.toString(), {
           eventsAttended: 1,
           eventsHosted: 1,
           karmaScore: KARMA_CAPS.HOSTED_EVENT_DAILY,

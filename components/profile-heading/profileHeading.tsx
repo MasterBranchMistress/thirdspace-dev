@@ -47,6 +47,7 @@ import { useFeed } from "@/app/context/UserFeedContext";
 import FriendsModal from "./viewFriendsModal";
 import { useSession } from "next-auth/react";
 import FollowersModal from "./viewFollowersModal";
+import { view } from "framer-motion";
 
 export default function ProfileHeading({
   disabled,
@@ -150,11 +151,19 @@ export default function ProfileHeading({
 
     if (isBlocked) {
       setManageActionFunction(() => async () => {
-        await unblockUser({ loggedInUser: viewer, userToUnblock: user });
-        setRelationship(String(user._id), {});
-        notify(`Unblocked ${user.username} 👩‍🚀`, ``);
+        try {
+          const data = await unblockUser({
+            loggedInUser: viewer,
+            userToUnblock: user,
+          });
+          notify("User unblocked", data.message || "User has been unblocked.");
+          setRelationship(String(user._id), { blocked: false });
+          notify(`Unblocked ${user.username} 👩‍🚀`, ``);
+          feed.refresh?.();
+        } catch (err: any) {
+          notify("Couldn't unblock user", err.message);
+        }
       });
-      feed.refresh?.();
     } else {
       setManageActionFunction(() => async () => {
         await blockUser({ loggedInUser: viewer, userToBlock: user });

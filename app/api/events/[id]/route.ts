@@ -9,29 +9,44 @@ export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
-  const { id } = await context.params; // ✅ must await params in App Router
-  const client = await clientPromise;
-  const db = client.db(DBS._THIRDSPACE);
-  const eventCollection = db.collection<EventDoc>(COLLECTIONS._EVENTS);
-  const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
-
   try {
-    // fetch event by _id
-    const event = await eventCollection.findOne({ _id: new ObjectId(id) });
-    if (!event) {
-      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    const { id } = await context.params;
+
+    if (!ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { message: "Invalid event ID", code: "INVALID_EVENT_ID" },
+        { status: 400 },
+      );
     }
 
-    // populate host
-    const hostUser = await userCollection.findOne({
-      _id: new ObjectId(event.hostId),
-    });
+    const client = await clientPromise;
+    const db = client.db(DBS._THIRDSPACE);
+    const eventCollection = db.collection<EventDoc>(COLLECTIONS._EVENTS);
+    const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
 
-    // populate attendees
+    const eventId = new ObjectId(id);
+
+    const event = await eventCollection.findOne({ _id: eventId });
+
+    if (!event) {
+      return NextResponse.json(
+        { message: "Event not found", code: "EVENT_NOT_FOUND" },
+        { status: 404 },
+      );
+    }
+
+    const hostUser = event.hostId
+      ? await userCollection.findOne({ _id: new ObjectId(event.hostId) })
+      : null;
+
     let attendeeUsers: UserDoc[] = [];
     if (event.attendees?.length) {
       attendeeUsers = await userCollection
-        .find({ _id: { $in: event.attendees.map((a) => new ObjectId(a)) } })
+        .find({
+          _id: {
+            $in: event.attendees.map((a) => new ObjectId(a)),
+          },
+        })
         .toArray();
     }
 
@@ -59,6 +74,9 @@ export async function GET(
     return NextResponse.json(responseEvent, { status: 200 });
   } catch (error: any) {
     console.error("[getEvent]", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { message: error.message || "Failed to fetch event" },
+      { status: 500 },
+    );
   }
 }

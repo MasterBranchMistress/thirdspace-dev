@@ -21,13 +21,13 @@ const durationOptions = [
 ];
 
 const getDurationKey = (minutes: string | null): string => {
-  if (!minutes) return "30";
+  if (!minutes) return "";
 
   if ([15, 30, 45, 60, 120, 180, 300, 480].includes(Number(minutes))) {
     return String(minutes);
   }
 
-  return "60"; // fallback
+  return ""; // fallback
 };
 
 export default function DurationPicker({
@@ -87,6 +87,7 @@ export default function DurationPicker({
   return (
     <div className="flex flex-col gap-2 animate-slide-down">
       <Select
+        isRequired
         label="Event Duration"
         selectedKeys={[selected]}
         onSelectionChange={(keys) => {

@@ -19,6 +19,7 @@ import { ZonedDateTime, parseAbsoluteToLocal } from "@internationalized/date";
 import {
   attachmentStyling,
   calendarStyling,
+  inputStyling,
 } from "@/utils/get-dropdown-style/getDropDownStyle";
 import { parseZonedDate } from "@/utils/date-handling/parseCalendarZoneDateTime";
 import { RecurrenceRule, SelectRecurringEvent } from "./selectRecurringEvent";
@@ -73,17 +74,53 @@ export function EditEventModal({
   const [costInfo, setCostInfo] = useState<EventBudget | null>(null);
   const feed = useFeed();
 
+  const user = session?.user;
+
   const durationMinutes = getDurationInMinutes(startTime ?? "", endTime);
-  const durationKey =
-    durationMinutes === 15
-      ? "15"
-      : durationMinutes === 30
-        ? "30"
-        : durationMinutes === 45
-          ? "45"
-          : durationMinutes === 60
-            ? "60"
-            : "custom";
+
+  const isPreset = [15, 30, 45, 60, 120, 180, 300, 480].includes(
+    durationMinutes ?? 30,
+  );
+  const durationKey = isPreset ? String(durationMinutes) : "custom";
+
+  const hasValidUser = !!user;
+  const hasValidTitle = !!title?.trim();
+  const hasValidDescription = !!description?.trim();
+  const hasValidDate = !!date;
+  const hasValidStartTime =
+    !!startTime?.trim() && /^\d{2}:\d{2}$/.test(startTime);
+  const hasValidTags = Array.isArray(tags) && tags.length > 0;
+  const hasValidLocation = !!location?.name?.trim();
+
+  const hasValidFiles =
+    !newFiles?.some((f) => f.size > 50 * 1024 * 1024) &&
+    !newFiles?.some((f) => !f.type);
+
+  const hasValidCost =
+    costInfo !== null &&
+    !!costInfo.splitMode &&
+    !Number.isNaN(Number(costInfo.totalEstimated)) &&
+    Number(costInfo.totalEstimated) >= 0;
+
+  function resetErrors() {
+    !hasValidTitle ? setTitle("") : null;
+    !hasValidDescription ? setDescription("") : null;
+    !hasValidDate ? setDate(null) : null;
+    !hasValidStartTime ? setStartTime("") : null;
+    !hasValidTags ? setTags([]) : null;
+    !hasValidLocation ? setLocation(null) : null;
+    !hasValidCost ? setCostInfo(null) : null;
+    !hasValidFiles ? setNewFiles([]) : null;
+  }
+
+  const canSubmit =
+    !loading &&
+    hasValidUser &&
+    hasValidTitle &&
+    hasValidDescription &&
+    hasValidDate &&
+    hasValidStartTime &&
+    hasValidTags;
 
   // Prefill on open
   useEffect(() => {
@@ -166,6 +203,29 @@ export function EditEventModal({
       setLoading(true);
       let uploadedUrls: string[] = [];
 
+      const MAX_TOTAL_BYTES = 50 * 1024 * 1024; // 50MB total payload guard
+
+      const totalBytes = newFiles.reduce((sum, f) => sum + (f?.size ?? 0), 0);
+
+      if (totalBytes > MAX_TOTAL_BYTES) {
+        const mb = (n: number) => (n / (1024 * 1024)).toFixed(1);
+        onClose();
+        resetErrors();
+        return notify(
+          "Attachments are too large.",
+          `Total is ${mb(totalBytes)}MB. Max total is ${mb(MAX_TOTAL_BYTES)}MB.`,
+        );
+      }
+
+      if (!hasValidCost) {
+        onClose();
+        resetErrors();
+        return notify(
+          "Estimated cost is required.",
+          "All fields must be set for cost info.",
+        );
+      }
+
       if (newFiles.length > 0) {
         const res = await fetch(`/api/events/${eventId}/upload-attachments`, {
           method: "POST",
@@ -230,13 +290,18 @@ export function EditEventModal({
       });
 
       if (!res.ok) {
+        resetErrors();
+        onClose();
         const errData = await res.json().catch(() => ({}));
+        notify("Something went wrong here 🤔", errData.error);
         throw new Error(errData.error || "Failed to update event");
       }
 
-      notify("Event Edited 🗓️", "Your event was updated successfully.");
       onClose();
-      window.location.reload();
+      notify("Event Edited 🗓️", "Your event was updated successfully.");
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     } catch (err) {
       notify("Couldn't save changes 😭", (err as Error).message);
     } finally {
@@ -353,37 +418,44 @@ export function EditEventModal({
                 }
                 onSelect={(loc) => setLocation(loc)}
               />
-              {/* <BudgetInput initialValue={budget} onChange={setBudget} /> */}
               <Input
-                label="Tags (comma separated)"
+                label="Event Tags (5 max)"
                 value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onBlur={() => {
-                  const parsed = tagInput
-                    .split(",")
-                    .map((t) => t.trim())
-                    .filter(Boolean);
-                  setTags(parsed);
-                  setTagInput(parsed.join(", ")); // normalize view
-                }}
-                classNames={{ label: "text-concrete" }}
-                onKeyDown={(e) => {
+                classNames={inputStyling}
+                className="border-b-2 border-secondary"
+                onChange={(e: any) => setTagInput(e.target.value)}
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
-                    const parsed = tagInput
-                      .split(",")
-                      .map((t) => t.trim())
-                      .filter(Boolean);
-                    setTags(parsed);
-                    setTagInput(parsed.join(", "));
+
+                    if (tags.length >= 5) return;
+
+                    const value = tagInput.trim().toLowerCase();
+                    if (!value) return;
+
+                    if (!tags.includes(value)) {
+                      setTags((prev) => [...prev, value]);
+                    }
+
+                    setTagInput(""); // clear input after adding
+                  }
+                  if (e.key === "Backspace" && !tagInput && tags.length > 0) {
+                    setTags((prev) => prev.slice(0, -1));
                   }
                 }}
-                variant="underlined"
               />
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag, i) => (
-                  <Chip key={i} size="sm" color="primary">
-                    #{tag}
+              <p className="text-xs text-center justify-center text-white/50 mt-1">
+                {tagInput
+                  ? "Press Enter to add tag"
+                  : tags.length > 0
+                    ? "Backspace to remove last tag"
+                    : "Press Enter to add tags"}
+              </p>
+
+              <div className="flex flex-wrap justify-center gap-2">
+                {tags.map((t, i) => (
+                  <Chip key={`${t}-${i}`} size="sm" color="primary">
+                    #{t}
                   </Chip>
                 ))}
               </div>
@@ -441,7 +513,7 @@ export function EditEventModal({
                   size="sm"
                   onPress={handleSave}
                   isLoading={loading}
-                  disabled={loading}
+                  isDisabled={loading || !canSubmit}
                 >
                   Save
                 </Button>

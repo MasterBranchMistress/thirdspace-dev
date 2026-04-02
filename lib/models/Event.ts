@@ -10,7 +10,7 @@ type Attachment = {
   thumbNail?: string;
 };
 
-export type CostSplitMode = "free" | "host_covers" | "split_evenly";
+export type CostSplitMode = "" | "free" | "host_covers" | "split_evenly";
 
 export type EventBudget = {
   splitMode: CostSplitMode;

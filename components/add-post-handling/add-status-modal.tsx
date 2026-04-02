@@ -25,6 +25,7 @@ import { useFeed } from "@/app/context/UserFeedContext";
 import { FeedItem } from "@/types/user-feed";
 import KarmaRewardToast from "../karma/KarmaRewardToast";
 import { useUserInfo } from "@/app/context/UserContext";
+import { XCircleIcon } from "@heroicons/react/24/solid";
 
 type AddStatusProps = {
   isOpen: boolean;
@@ -39,6 +40,7 @@ export default function AddStatus({
 }: AddStatusProps) {
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [content, setContent] = useState("");
+  const [contentError, setContentError] = useState("");
   const [loading, setLoading] = useState(false);
   const useRefOnSubmit = useRef(false);
   const { notify } = useToast();
@@ -46,6 +48,10 @@ export default function AddStatus({
   const user = session?.user;
   const { karmaScore, setKarmaScore, setRank } = useUserInfo();
   const feed = useFeed();
+
+  const MIN_STATUS_LENGTH = 8;
+  const trimmedContent = content.trim();
+  const isStatusValid = trimmedContent.length >= MIN_STATUS_LENGTH;
 
   const [karmaReward, setKarmaReward] = useState<{
     label: string;
@@ -58,7 +64,9 @@ export default function AddStatus({
 
     try {
       if (!user) return;
-      if (!content) return;
+
+      const trimmedContent = content.trim();
+      if (trimmedContent.length < MIN_STATUS_LENGTH) return;
 
       setLoading(true);
 
@@ -88,7 +96,12 @@ export default function AddStatus({
         setKarmaScore(totalKarma);
         setRank(newRank);
 
-        notify("Status Posted 🤝", ``);
+        if (rewardKarma === 0) {
+          notify(
+            "Status Posted 🤝",
+            `Check back in tomorrow to earn more karma!`,
+          );
+        }
       }
     } finally {
       setLoading(false);
@@ -134,18 +147,25 @@ export default function AddStatus({
                   <ModalBody className="mt-[-7rem] overflow-y-auto">
                     <Textarea
                       isRequired
+                      isInvalid={!!contentError}
+                      errorMessage={contentError}
                       variant="underlined"
                       color="secondary"
                       placeholder="What's going on today?"
-                      className="mb-3 border-b-white border-b-2 placeholder:text-white"
                       classNames={{
                         input:
                           "placeholder:text-default-700/70 dark:placeholder:text-white/60", // <-- makes both placeholder + text white
                         clearButton: "text-concrete",
+                        errorMessage: "text-sm text-center mt-1 border-none",
                       }}
                       value={content}
                       onChange={(e) => setContent(e.target.value)}
                     ></Textarea>
+                    <p className="text-xs text-center text-white/70 mt-1">
+                      {trimmedContent.length < MIN_STATUS_LENGTH
+                        ? `Write at least ${MIN_STATUS_LENGTH} characters`
+                        : `${trimmedContent.length} characters`}
+                    </p>
                     <AttachmentUploader
                       onFilesSelected={(files) =>
                         setNewFiles((prev) => [...prev, ...files])
@@ -159,7 +179,7 @@ export default function AddStatus({
                       color="primary"
                       variant="shadow"
                       onPress={submitStatus}
-                      isDisabled={loading}
+                      isDisabled={loading || !isStatusValid}
                       isLoading={loading}
                     >
                       Post

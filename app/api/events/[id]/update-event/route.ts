@@ -1,7 +1,7 @@
 import clientPromise from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
-import { COLLECTIONS, DBS } from "@/lib/constants";
+import { COLLECTIONS, DBS, EVENT_STATUSES } from "@/lib/constants";
 import { EventDoc } from "@/lib/models/Event";
 import { UserDoc } from "@/lib/models/User";
 import { EventFeedDoc } from "@/lib/models/EventFeedDoc";
@@ -84,6 +84,27 @@ export async function PATCH(
       );
     }
 
+    if (existingEvent.status === EVENT_STATUSES._CANCELED) {
+      return NextResponse.json(
+        { message: "This event has been canceled." },
+        { status: 400 },
+      );
+    }
+
+    if (existingEvent.status === EVENT_STATUSES._REMOVED) {
+      return NextResponse.json(
+        { message: "This event has been removed." },
+        { status: 400 },
+      );
+    }
+
+    if (existingEvent.status === EVENT_STATUSES._COMPLETED) {
+      return NextResponse.json(
+        { message: "This event has expired." },
+        { status: 400 },
+      );
+    }
+
     const hostUser = await usersCollection.findOne({ _id: hostObjectId });
     if (!hostUser) {
       return NextResponse.json(
@@ -126,7 +147,7 @@ export async function PATCH(
     if (sanitizedUpdates.endTime <= sanitizedUpdates.startTime) {
       return NextResponse.json(
         {
-          error: "Events must end on the same day",
+          message: "Events must end on the same day",
         },
         { status: 400 },
       );

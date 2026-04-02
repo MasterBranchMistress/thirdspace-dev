@@ -90,6 +90,45 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
     }
   }, [isOpen]);
 
+  const hasValidUser = !!user;
+  const hasValidTitle = !!title?.trim();
+  const hasValidDescription = !!description?.trim();
+  const hasValidDate = !!date;
+  const hasValidStartTime =
+    !!startTime?.trim() && /^\d{2}:\d{2}$/.test(startTime);
+  const hasValidTags = Array.isArray(tags) && tags.length > 0;
+  const hasValidLocation = !!location?.name?.trim();
+
+  const hasValidFiles =
+    !newFiles?.some((f) => f.size > 50 * 1024 * 1024) &&
+    !newFiles?.some((f) => !f.type);
+
+  const hasValidCost =
+    costInfo !== null &&
+    !!costInfo.splitMode &&
+    !Number.isNaN(Number(costInfo.totalEstimated)) &&
+    Number(costInfo.totalEstimated) >= 0;
+
+  const canSubmit =
+    !loading &&
+    hasValidUser &&
+    hasValidTitle &&
+    hasValidDescription &&
+    hasValidDate &&
+    hasValidStartTime &&
+    hasValidTags;
+
+  function resetErrors() {
+    !hasValidTitle ? setTitle("") : null;
+    !hasValidDescription ? setDescription("") : null;
+    !hasValidDate ? setDate(null) : null;
+    !hasValidStartTime ? setStartTime("") : null;
+    !hasValidTags ? setTags([]) : null;
+    !hasValidLocation ? setLocation(null) : null;
+    !hasValidCost ? setCostInfo(null) : null;
+    !hasValidFiles ? setNewFiles([]) : null;
+  }
+
   function resetForm() {
     setTitle("");
     setDescription("");
@@ -106,15 +145,8 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
     setNewFiles([]);
   }
 
-  const normalizeTags = (raw: string) =>
-    raw
-      .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean)
-      .slice(0, 10);
-
   const submit = async (e?: React.FormEvent) => {
-    // const idempotencyKey = makeIdempotencyKey();
+    e?.preventDefault();
 
     const eventData = {
       title: title.trim(),
@@ -131,28 +163,54 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
     };
 
     const MAX_TOTAL_BYTES = 50 * 1024 * 1024; // 50MB total payload guard
-    const MAX_FILE_BYTES = 50 * 1024 * 1024; // optional per-file guard (keep or change)
 
     const totalBytes = newFiles.reduce((sum, f) => sum + (f?.size ?? 0), 0);
 
     if (totalBytes > MAX_TOTAL_BYTES) {
       const mb = (n: number) => (n / (1024 * 1024)).toFixed(1);
+      onOpenChange(false);
+      resetErrors();
       return notify(
         "Attachments are too large.",
         `Total is ${mb(totalBytes)}MB. Max total is ${mb(MAX_TOTAL_BYTES)}MB.`,
       );
     }
 
-    if (newFiles.some((f) => f.size > MAX_FILE_BYTES)) {
-      const mb = (n: number) => (n / (1024 * 1024)).toFixed(1);
+    if (newFiles?.some((f) => !f.type)) {
+      onOpenChange(false);
+      resetErrors();
       return notify(
-        "One attachment is too large.",
-        `Max per file is ${mb(MAX_FILE_BYTES)}MB.`,
+        "Oops. Something is off here 🤔",
+        "One or more attachments have an unsupported file type.",
       );
     }
 
-    //error handling....
-    if (e) e.preventDefault();
+    if (!hasValidCost) {
+      onOpenChange(false);
+      resetErrors();
+      return notify(
+        "Estimated cost is required.",
+        "All fields must be set for cost info.",
+      );
+    }
+
+    if (
+      typeof location?.lat !== "number" &&
+      typeof location?.lng !== "number"
+    ) {
+      onOpenChange(false);
+      resetErrors();
+      return notify(
+        "Oops. Something is off here 🤔",
+        "Event Must have a valid location",
+      );
+    }
+    if (!location?.name?.trim()) {
+      onOpenChange(false);
+      resetErrors();
+      return notify("Oops. Something is off here 🤔", "Location is required.");
+    }
+
     if (!date) return console.log("Date is required!", "");
     if (!startTime?.trim()) return console.log("Start time is required!", "");
     if (!user) return notify("You must be signed in to create an event!", "");
@@ -170,18 +228,13 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
     if (!Array.isArray(tags) || tags.length === 0)
       return notify("Add at least one tag.", "");
 
-    if (!location?.name?.trim()) return notify("Location is required.", "");
-
-    //TODO: Decide how big is too big later. 10mb was just being a pain
-    if (newFiles?.some((f) => f.size > 50 * 1024 * 1024))
-      return notify("One or more attachments exceed 50MB.", "");
-    if (newFiles?.some((f) => !f.type))
+    if (eventData.costInfo == null) {
+      resetErrors();
       return notify(
-        "One or more attachments have an unsupported file type.",
-        "",
+        "Estimated cost is required.",
+        "All fields must be set for cost info.",
       );
-    if (eventData.costInfo == null)
-      return notify("Estimated cost is required.", "");
+    }
     if (Number.isNaN(Number(eventData.costInfo.totalEstimated)))
       return notify("Estimated cost must be a number.", "");
     if (Number(eventData.costInfo.totalEstimated) < 0)
@@ -207,27 +260,21 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
       });
       try {
         notify("Event created 🗓️", "Sit tight while your event is processed.");
-        // confetti and gentle UX after success
         const confettiModule = (await import("canvas-confetti")).default;
         confettiModule({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-        window.location.reload();
-        feed.refresh?.();
-      } catch (err) {
-        notify("Whoops, something went wrong here!", "");
+        resetForm();
+        setTimeout(() => {
+          feed?.refresh?.();
+        }, 2000);
+      } catch (err: any) {
+        onOpenChange(false);
+        notify("Whoops, something went wrong here!", err.message);
         console.error(err);
+        resetForm();
       }
-
-      resetForm();
-      // close modal
-      onOpenChange(false);
-      // optional: reload to show event in feed
-      //TODO: use websocket to update
-      // setTimeout(() => window.location.reload(), 800);
-    } catch (err: any) {
-      console.error("Create event error", err);
-      notify("Something went wrong here!", "Unable to create event");
     } finally {
       setLoading(false);
+      onOpenChange(false);
     }
   };
 
@@ -297,42 +344,58 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
                         setStartTime(startTime);
                       }}
                     />
+
                     {date && (
                       <DurationPicker
                         duration={durationKey}
                         eventDate={eventDate}
                         onChange={(val) => {
-                          console.log(val, typeof val);
                           setEndTime(val);
                         }}
                       />
                     )}
                   </div>
                   <Input
-                    label="Tags (comma separated)"
+                    label="Event Tags"
                     value={tagInput}
                     classNames={inputStyling}
                     className="border-b-2 border-secondary"
                     onChange={(e: any) => setTagInput(e.target.value)}
-                    onBlur={() => {
-                      const parsed = normalizeTags(tagInput);
-                      setTags(parsed);
-                      setTagInput(parsed.join(", "));
-                    }}
                     onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
-                        const parsed = normalizeTags(tagInput);
-                        setTags(parsed);
-                        setTagInput(parsed.join(", "));
+
+                        if (tags.length >= 5) return;
+
+                        const value = tagInput.trim().toLowerCase();
+                        if (!value) return;
+
+                        if (!tags.includes(value)) {
+                          setTags((prev) => [...prev, value]);
+                        }
+
+                        setTagInput(""); // clear input after adding
+                      }
+                      if (
+                        e.key === "Backspace" &&
+                        !tagInput &&
+                        tags.length > 0
+                      ) {
+                        setTags((prev) => prev.slice(0, -1));
                       }
                     }}
-                    isRequired
                   />
+                  <p className="text-xs text-center justify-center text-white/50 mt-1">
+                    {tagInput
+                      ? "Press Enter to add tag"
+                      : tags.length > 0
+                        ? "Backspace to remove last tag"
+                        : "Press Enter to add tags"}
+                  </p>
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap justify-center gap-2">
                     {tags.map((t, i) => (
-                      <Chip key={i} size="sm" color="primary">
+                      <Chip key={`${t}-${i}`} size="sm" color="primary">
                         #{t}
                       </Chip>
                     ))}
@@ -400,6 +463,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
                     variant="shadow"
                     isLoading={loading}
                     size="sm"
+                    isDisabled={!canSubmit}
                   >
                     Add Event
                   </Button>

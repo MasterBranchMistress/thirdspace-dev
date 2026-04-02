@@ -29,11 +29,19 @@ const TAG_POOL = [
   "anime",
 ];
 
+const testVideos = ["https://www.w3schools.com/tags/mov_bbb.mp4"];
+
 function makeAttachment(): Attachment {
-  return {
-    type: "image",
-    url: faker.image.urlLoremFlickr({ width: 800, height: 600 }),
-  };
+  const isVideo = faker.datatype.boolean();
+  if (isVideo) {
+    const video = faker.helpers.arrayElement(testVideos);
+    return { type: "video", url: video ?? "" };
+  } else {
+    return {
+      type: "image",
+      url: faker.image.urlPicsumPhotos({ width: 800, height: 600 }),
+    };
+  }
 }
 
 function toPoint(lng: number, lat: number) {

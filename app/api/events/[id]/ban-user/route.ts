@@ -7,7 +7,7 @@ import { UserDoc } from "@/lib/models/User";
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
   const client = await clientPromise;
@@ -21,7 +21,7 @@ export async function PATCH(
     if (!hostId || !userId) {
       return NextResponse.json(
         { error: "Missing hostId or userId" },
-        { status: 400 }
+        { status: 400 },
       );
     }
     const user = await userCollection.findOne({
@@ -36,10 +36,10 @@ export async function PATCH(
     }
 
     // ✅ verify requester is the host
-    if (event.host.toString() !== hostId) {
+    if (event.hostId.toString() !== hostId) {
       return NextResponse.json(
         { error: "Only the host can ban users" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -49,7 +49,7 @@ export async function PATCH(
           error:
             "Unable to ban user from public event. Please set to private before banning",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -57,16 +57,16 @@ export async function PATCH(
       if (user.friends?.some((c) => c.toString() === userId)) {
         await userCollection.updateOne(
           { _id: new ObjectId(String(hostId)) },
-          { $pull: { friends: new ObjectId(String(userId)) } }
+          { $pull: { friends: new ObjectId(String(userId)) } },
         );
         await userCollection.updateOne(
           { _id: new ObjectId(String(userId)) },
-          { $pull: { friends: new ObjectId(String(hostId)) } }
+          { $pull: { friends: new ObjectId(String(hostId)) } },
         );
       } else {
         return NextResponse.json(
           { error: "User is not on friends list" },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -75,12 +75,12 @@ export async function PATCH(
       if (!user.blocked?.some((c) => c.toString() === userId)) {
         await userCollection.updateOne(
           { _id: new ObjectId(String(hostId)) },
-          { $addToSet: { blocked: new ObjectId(String(userId)) } }
+          { $addToSet: { blocked: new ObjectId(String(userId)) } },
         );
       } else {
         return NextResponse.json(
           { error: "User is already blocked" },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -89,24 +89,24 @@ export async function PATCH(
     if (event.attendees.some((c) => c.toString() === userId)) {
       await eventsCollection.updateOne(
         { _id: new ObjectId(id) },
-        { $pull: { attendees: new ObjectId(String(userId)) } }
+        { $pull: { attendees: new ObjectId(String(userId)) } },
       );
 
       // ✅ add to banned list
       await eventsCollection.updateOne(
         { _id: new ObjectId(id) },
-        { $addToSet: { banned: new ObjectId(String(userId)) } }
+        { $addToSet: { banned: new ObjectId(String(userId)) } },
       );
 
       return NextResponse.json(
         { message: "User banned from event" },
-        { status: 200 }
+        { status: 200 },
       );
     }
   } catch (err: unknown) {
     return NextResponse.json(
       { error: (err as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

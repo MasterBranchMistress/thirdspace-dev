@@ -59,11 +59,12 @@ export async function handleAddEvent({
       }),
     });
     if (!res.ok) {
-      throw new Error(`Failed with status ${res.status}`);
+      const errorData = await res.json().catch(() => null);
+      throw new Error(errorData?.message || `Failed with status ${res.status}`);
     }
     return res.json();
   } catch (err) {
-    console.error("Error posting status:", err);
+    console.error("Error posting Event:", err);
     throw new Error(err as any);
   }
 }

@@ -2,19 +2,19 @@
 
 import { title } from "@/components/primitives";
 import Link from "next/link";
-import { ParticalBackground } from "@/components/background-animations/ParticlesBackground";
+import { FeedBackground } from "@/components/background-animations/UserFeedBackground";
 
 export default function TermsPage() {
   return (
     <div className="relative min-h-screen overflow-hidden">
-      <ParticalBackground />
-      <main className="relative z-10 max-w-3xl mx-auto px-6 py-12 text-white animate-appearance-in">
-        <h1 className={title()}>Terms and Conditions</h1>
-        <p className="mt-4 text-sm text-white/70">
+      <FeedBackground />
+      <main className="relative z-10 max-w-3xl mx-auto px-6 text-primary text-center animate-appearance-in">
+        <h1 className={title({ size: "sm" })}>Terms and Conditions</h1>
+        <p className="my-4 text-sm text-center text-primary/70">
           Last updated: August 1, 2025
         </p>
 
-        <section className="mt-8 space-y-6 text-sm leading-6">
+        <section className="space-y-6 pb-3 text-sm leading-6">
           <p>
             By creating an account or using the ThirdSpace platform, you agree
             to the following terms and conditions. If you do not agree, please

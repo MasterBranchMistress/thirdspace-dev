@@ -12,11 +12,11 @@ import { authOptions } from "@/lib/authOptions";
 import {
   buildNormalizedTags,
   buildTagMatchKeysFromNormalized,
-  normalizeTag,
 } from "@/utils/metadata/tag-handling/normalizeTags";
 import { getGravatarUrl } from "@/utils/gravatar";
 import { getDurationInMinutes } from "@/utils/metadata/get-event-duration/eventDuration";
 import { getEventRange } from "@/utils/date-handling/getEventRange";
+import { formatMilitaryTime } from "@/utils/date-handling/formatMilitaryTime";
 
 export async function POST(
   req: NextRequest,
@@ -40,15 +40,16 @@ export async function POST(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    if (!data?.title || !data?.date || !data?.description || !data?.location) {
+    if (!data?.title || !data?.date || !data?.description) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { message: "Missing required fields" },
         { status: 400 },
       );
     }
+
     if (!Array.isArray(attachments)) {
       return NextResponse.json(
-        { error: "Attachments must be an array" },
+        { message: "Attachments must be an array" },
         { status: 400 },
       );
     }
@@ -67,25 +68,29 @@ export async function POST(
       data.endTime,
     );
 
-    const hasOverlap = existingCommitments.some((event) => {
+    const conflictingEvent = existingCommitments.find((event) => {
       const { start: existingStart, end: existingEnd } = getEventRange(
         event.date,
-        event.startTime ?? "0:00",
-        event.endTime ?? "3:00",
+        event.startTime ?? "00:00",
+        event.endTime ?? "00:30",
       );
 
-      const overlaps = newStart < existingEnd && newEnd > existingStart;
-
-      return overlaps;
+      return newStart < existingEnd && newEnd > existingStart;
     });
 
-    console.log("final hasOverlap:", hasOverlap);
+    if (
+      conflictingEvent &&
+      conflictingEvent.status !== EVENT_STATUSES._CANCELED
+    ) {
+      const isHost =
+        conflictingEvent?.hostId &&
+        String(conflictingEvent.hostId) === String(userId);
 
-    if (hasOverlap) {
+      const relationshipLabel = isHost ? "hosting" : "attending";
       return NextResponse.json(
         {
-          message:
-            "Cannot create event. User is hosting another event at this time",
+          message: `You're already ${relationshipLabel} "${conflictingEvent.title}" from ${formatMilitaryTime(conflictingEvent.startTime ?? "0:00")}–${formatMilitaryTime(conflictingEvent.endTime ?? "0:00")}.`,
+          code: "EVENT_OVERLAP",
         },
         { status: 400 },
       );
@@ -113,7 +118,7 @@ export async function POST(
     }
     if (lat == null || lng == null) {
       return NextResponse.json(
-        { error: "Could not geocode location" },
+        { message: "Could not geocode location" },
         { status: 422 },
       );
     }
@@ -121,7 +126,7 @@ export async function POST(
     if (data.endTime <= data.startTime) {
       return NextResponse.json(
         {
-          error: "Events must end on the same day",
+          message: "Events must end on the same day",
         },
         { status: 400 },
       );

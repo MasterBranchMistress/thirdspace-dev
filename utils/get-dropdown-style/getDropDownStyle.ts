@@ -25,10 +25,11 @@ export const calendarStyling = {
 
 export const selectStyle = {
   base: "bg-transparent text-white",
-  trigger: "border-b border-white/20 rounded-none",
+  trigger: "border-b border-white/20 rounded-none text-white",
   popoverContent: "backdrop-blur-2xl",
   description: "text-white",
   value: "text-concrete",
+  label: "text-concrete",
 };
 
 export const attachmentStyling =

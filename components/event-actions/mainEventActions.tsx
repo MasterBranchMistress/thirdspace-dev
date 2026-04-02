@@ -92,17 +92,19 @@ export function EventActions({
         <DropdownMenu aria-label="Event Actions" variant="light">
           {isHost ? (
             <>
-              <DropdownItem
-                key="edit"
-                classNames={secondaryDescriptionStyle}
-                description={`Update and notify your Orbiters`}
-                className="text-concrete"
-                endContent={<CogIcon className="text-xs w-7" />}
-                onPress={() => setEditEventModalOpen(true)}
-              >
-                Event Settings
-              </DropdownItem>
               {!actionsAfterEventClose && (
+                <DropdownItem
+                  key="edit"
+                  classNames={secondaryDescriptionStyle}
+                  description={`Update and notify your Orbiters`}
+                  className="text-concrete"
+                  endContent={<CogIcon className="text-xs w-7" />}
+                  onPress={() => setEditEventModalOpen(true)}
+                >
+                  Event Settings
+                </DropdownItem>
+              )}
+              {
                 <DropdownItem
                   key="manage_orbiters"
                   className="text-concrete"
@@ -118,7 +120,7 @@ export function EventActions({
                 >
                   Manage Orbiters
                 </DropdownItem>
-              )}
+              }
               {!actionsAfterEventClose && (
                 <DropdownItem
                   key="cancel"

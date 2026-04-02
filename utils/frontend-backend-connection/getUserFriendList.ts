@@ -10,7 +10,5 @@ export const getUserFriends = async (loggedInUser: SessionUser) => {
 
   const users = await res.json();
 
-  console.log(users);
-
   return users;
 };

@@ -51,6 +51,8 @@ import { normalizeAttachments } from "@/utils/attachments/normalizeAttachments";
 import { getTimeUntilEvent } from "@/utils/custom-hooks/useCountdown";
 import { EventBudget } from "@/lib/models/Event";
 import { getDurationInMinutes } from "@/utils/metadata/get-event-duration/eventDuration";
+import { ObjectId } from "mongodb";
+import { useFeed } from "@/app/context/UserFeedContext";
 
 type Comment = {
   userId: any;
@@ -102,6 +104,7 @@ type EventDetails = {
   public: boolean;
   location: EventLocation;
   comments: Comment[];
+  hostId: ObjectId;
   host: {
     _id: string;
     avatar: string;
@@ -113,54 +116,29 @@ type EventDetails = {
   costInfo: EventBudget;
 };
 
-const imageSize = 5;
-
 export default function EventViewPage() {
   const { id } = useParams();
   const [event, setEvent] = useState<EventDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingJoin, setJoinLoading] = useState(false);
   const [isHost, setIsHost] = useState(false);
   const [isJoined, setIsJoined] = useState(false);
-  const [orbiters, setOrbiters] = useState([]);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [newComment, setNewComment] = useState("");
-  const [eventDuration, setEventDuration] = useState(null);
   const [atts, setAtts] = useState<Attendee[]>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [userId, setUserId] = useState<string | null>(null);
-  const lottieRef = useRef<LottieRefCurrentProps>(null);
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const { notify } = useToast();
-  const user = session?.user;
 
   const { hasSparked, setHasSparked, toggleEventSpark } = useEventSpark({
     user: session?.user,
     initialHasSparked: false,
   });
 
-  // get session client-side
-  useEffect(() => {
-    const fetchSession = async () => {
-      const session = await getSession();
-      setUserId(session?.user?.id ?? null);
-    };
-    fetchSession();
-  }, []);
+  const user = session?.user;
+  const userId = session?.user?.id ?? null;
 
-  useEffect(() => {
-    if (!event?._id || !session?.user?.id) return;
-
-    const run = async () => {
-      const ids = await getEventSparks([String(event._id)], session.user);
-      setHasSparked(ids.includes(String(event._id)));
-    };
-
-    run();
-  }, [event?._id, session?.user?.id]);
-
-  //fetch event details
   useEffect(() => {
     const fetchEvent = async () => {
       try {
@@ -182,8 +160,8 @@ export default function EventViewPage() {
         setAtts(eventData.attendees);
 
         // ✅ check host
-        if (userId && eventData?.host) {
-          setIsHost(String(eventData.host._id) === String(userId));
+        if (userId && eventData.hostId) {
+          setIsHost(userId === eventData.host._id);
         }
 
         // ✅ check if joined
@@ -203,15 +181,25 @@ export default function EventViewPage() {
       }
     };
 
-    if (id && userId) fetchEvent();
+    fetchEvent();
   }, [id, userId]);
 
-  if (!event?.costInfo) return null;
-  const attendeeCount = event?.attendees?.length ?? 0;
+  useEffect(() => {
+    if (!event?._id || !session?.user?.id) return;
+
+    const run = async () => {
+      const ids = await getEventSparks([String(event._id)], session.user);
+      setHasSparked(ids.includes(String(event._id)));
+    };
+
+    run();
+  }, [event?._id, session?.user?.id]);
 
   // Handlers
   const handleJoin = async () => {
     if (!userId) return;
+
+    setJoinLoading(true);
 
     const joiningUser = {
       _id: userId,
@@ -232,10 +220,21 @@ export default function EventViewPage() {
         "Oops! Couldn't join 😭",
         errData.message || "Something went wrong. Please try again later.",
       );
+      setJoinLoading(false);
       return;
     }
     setIsJoined(true);
-    setAtts([joiningUser, ...event.attendees]);
+    setAtts((prev) => {
+      const alreadyJoined = prev?.some(
+        (attendee) => String(attendee._id) === String(userId),
+      );
+
+      if (alreadyJoined) return prev;
+
+      return [joiningUser, ...(prev ?? [])];
+    });
+
+    setJoinLoading(false);
 
     confetti({
       particleCount: 100,
@@ -249,12 +248,23 @@ export default function EventViewPage() {
   };
 
   const handleLeave = async () => {
+    setJoinLoading(true);
     if (!userId) return;
-    await fetch(`/api/events/${id}/leave-event`, {
+    const res = await fetch(`/api/events/${id}/leave-event`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId }),
     });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      notify(
+        "Oops! Couldn't leave event 😭",
+        errData.message || "Something went wrong. Please try again later.",
+      );
+      setJoinLoading(false);
+      return;
+    }
+    setJoinLoading(false);
     setIsJoined(false);
     setAtts((prev) =>
       prev.filter((attendee) => String(attendee._id) !== String(userId)),
@@ -272,6 +282,9 @@ export default function EventViewPage() {
       "Successfully Canceled Event 🙅",
       "Your orbiters will be notified fo the update",
     );
+    setTimeout(() => {
+      window.location.reload();
+    }, 2000);
   };
 
   const handleDelete = async () => {
@@ -305,9 +318,9 @@ export default function EventViewPage() {
       <div className="z-0">
         <FeedBackground />
       </div>
-      {loading ? (
+      {loading || status === "loading" ? (
         <LoadingPage />
-      ) : !event ? (
+      ) : event === null ? (
         <div className="h-full w-full flex flex-col gap-3 px-3 mt-[-15%] justify-center items-center">
           <Lottie animationData={notFound} className="w-auto mr-6" />
           <h1 className="text-primary text-center font-light z-10">
@@ -409,9 +422,9 @@ export default function EventViewPage() {
                       )}
                     </p>
                     <div className="flex flex-wrap justify-center gap-2 mt-2">
-                      {event.tags.map((tag) => (
+                      {event.tags.map((tag, i) => (
                         <span
-                          key={tag}
+                          key={`${tag}-${i}`}
                           className="text-xs bg-primary text-white px-2 py-0.5 rounded-full"
                         >
                           #{tag}
@@ -448,6 +461,7 @@ export default function EventViewPage() {
                             variant="shadow"
                             color={!isJoined ? "success" : "danger"}
                             size="sm"
+                            isLoading={loadingJoin}
                             startContent={
                               !isJoined ? (
                                 <ClipboardDocumentCheckIcon width={20} />
@@ -497,7 +511,7 @@ export default function EventViewPage() {
                   {attachments.map((a, i) => {
                     return (
                       <SwiperSlide
-                        key={i}
+                        key={`${a.url}-${i}`}
                         className={`flex ${attachments?.length && attachments?.length > 1 ? `!w-[85vw]` : `h-auto`} justify-center`}
                       >
                         <FeedAttachmentSwiper

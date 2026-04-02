@@ -28,6 +28,8 @@ import React from "react";
 import Lottie from "lottie-react";
 import notFound from "@/public/lottie/emptymessagenotifs.json";
 import { useSession } from "next-auth/react";
+import { ObjectId } from "mongodb";
+import hourglass from "@/public/lottie/hourglass.json";
 
 type ManageOrbiterProps = {
   isOpen: boolean;
@@ -56,6 +58,12 @@ export function ManageOrbiter({
     | undefined
   >(undefined);
 
+  const router = useRouter();
+  const { data: session } = useSession();
+
+  const userId = session?.user.id;
+  const isHost = userId === hostId;
+
   useEffect(() => {
     if (!isOpen || !eventId) return;
 
@@ -65,7 +73,11 @@ export function ManageOrbiter({
         const res = await fetch(`/api/events/${eventId}/get-attendees`);
         if (!res.ok) throw new Error("Failed to fetch attendees");
         const data = await res.json();
-        setOrbiters(data.attendees ?? []);
+        setOrbiters(
+          data.attendees.filter(
+            (selfId: ObjectId) => selfId._id.toString() !== String(userId),
+          ) ?? [],
+        );
       } catch (err) {
         console.error("Error fetching orbiters:", err);
         setOrbiters([]);
@@ -76,12 +88,6 @@ export function ManageOrbiter({
 
     fetchOrbiters();
   }, [isOpen, eventId]);
-
-  const router = useRouter();
-  const { data: session } = useSession();
-
-  const userId = session?.user.id;
-  const isHost = userId === hostId;
 
   const banUser = async (hostId: string, userId: string) => {
     try {
@@ -129,8 +135,15 @@ export function ManageOrbiter({
       <ModalContent>
         <div className="flex-1 overflow-y-auto justify-center items-center">
           {loading ? (
-            <div className="bg-transparent flex items-center justify-center">
-              <Spinner variant="dots" color="primary" />
+            <div className="bg-transparent flex items-center flex-col gap-2 justify-center">
+              <Lottie
+                animationData={hourglass}
+                loop
+                style={{ width: "8rem", height: "8rem" }}
+              />
+              <p className="text-md font-light mb-6 text-secondary">
+                Getting orbiters...
+              </p>
             </div>
           ) : orbiters.length === 0 ? (
             <div className="flex flex-col justify-center items-center space-y-3 p-3">

@@ -1,6 +1,5 @@
 import { CostSplitMode } from "@/lib/models/Event";
 import {
-  dropDownStyle,
   inputStyling,
   selectStyle,
 } from "@/utils/get-dropdown-style/getDropDownStyle";
@@ -24,12 +23,14 @@ const splitOptions: { key: CostSplitMode; label: string }[] = [
 
 export default function BudgetInput({
   initialValue = 0,
-  initialSplitMode = "free",
+  initialSplitMode = "",
   onChange,
   onSplitChange,
 }: BudgetInputProps) {
   const [budget, setBudget] = useState<number>(initialValue);
   const [costSplit, setCostSplit] = useState<CostSplitMode>(initialSplitMode);
+  const shouldshowSlider =
+    costSplit === "host_covers" || costSplit === "split_evenly";
 
   return (
     <div className="flex flex-col gap-2 mt-3 mb-6">
@@ -39,7 +40,7 @@ export default function BudgetInput({
 
       <Select
         aria-label="Cost split mode"
-        selectedKeys={[costSplit]}
+        selectedKeys={[costSplit ?? ""]}
         onSelectionChange={(keys) => {
           const value = Array.from(keys)[0] as CostSplitMode;
           setCostSplit(value);
@@ -53,7 +54,7 @@ export default function BudgetInput({
         ))}
       </Select>
 
-      {costSplit !== "free" && (
+      {shouldshowSlider && (
         <>
           <Slider
             minValue={0}
@@ -66,7 +67,7 @@ export default function BudgetInput({
               setBudget(num);
               onChange(num);
             }}
-            className="mt-7"
+            className="mt-7 animate-slide-down"
             renderThumb={(props) => (
               <div
                 {...props}

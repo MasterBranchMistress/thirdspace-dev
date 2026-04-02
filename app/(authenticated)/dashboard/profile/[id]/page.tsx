@@ -154,19 +154,15 @@ export default function ProfilePage() {
         <div className="fixed inset-0 -z-10">
           <FeedBackground />
         </div>
-        <div className="flex flex-col justify-center items-center h-[80%] mr-6">
-          <Lottie
-            animationData={userNotFound}
-            style={{ width: 300, height: 300 }}
-          />
-          <p className="text-primary text-sm ml-8 text-center font-light">
-            Hmm.. No sign of life here. Try again? 🤔
-          </p>
+        <div className="h-full w-full flex flex-col gap-3 px-3 mt-[-15%] justify-center items-center">
+          <Lottie animationData={userNotFound} className="w-auto mr-6" />
+          <h1 className="text-primary text-center font-light z-10">
+            Hmm.. no sign of life here. Try again?
+          </h1>
           <Button
-            onPress={() => router.push("/dashboard")}
-            variant="shadow"
+            onPress={() => router.push(`/dashboard`)}
             color="primary"
-            className="mt-4 ml-6"
+            variant="shadow"
             size="sm"
           >
             Go Back

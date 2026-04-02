@@ -34,7 +34,7 @@ export default function BoostToast({ open, onDone }: BoostToastProps) {
           className="w-[6rem]
           animate-boost-launch"
         >
-          <Lottie animationData={rocket} loop={true} />
+          <Lottie animationData={rocket} loop={false} />
         </div>
       </div>
     </div>

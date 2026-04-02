@@ -6,7 +6,7 @@ import { ObjectId } from "mongodb";
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params; // user performing unblock
   const client = await clientPromise;
@@ -18,7 +18,7 @@ export async function PATCH(
     if (!unblockUserId) {
       return NextResponse.json(
         { error: "Missing unblockUserId" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -29,17 +29,19 @@ export async function PATCH(
     }
 
     // ✅ check if currently blocked
-    if (!user.blocked?.some((b) => b.toString() === unblockUserId)) {
+    if (!user.blocked?.some((b) => b.toString() === String(unblockUserId))) {
       return NextResponse.json(
-        { error: "User is not blocked" },
-        { status: 400 }
+        { message: "User is not blocked" },
+        { status: 400 },
       );
     }
+
+    const unblockObjectId = new ObjectId(String(unblockUserId));
 
     // ✅ pull from blocked array
     await userCollection.updateOne(
       { _id: new ObjectId(id) },
-      { $pull: { blocked: new ObjectId(unblockUserId) } }
+      { $pull: { blocked: unblockObjectId } },
     );
 
     // ✅ fetch updated user
@@ -49,7 +51,7 @@ export async function PATCH(
   } catch (error: unknown) {
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

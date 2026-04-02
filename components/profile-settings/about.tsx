@@ -4,6 +4,7 @@
 import { Accordion, AccordionItem, Button, Chip } from "@heroui/react";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type AboutProps = {
   appName?: string;
@@ -20,11 +21,12 @@ export function About({
   version = process.env.NEXT_PUBLIC_APP_VERSION || "0.0.0",
   build = process.env.NEXT_PUBLIC_BUILD_SHA || "dev",
   environment = (process.env.NEXT_PUBLIC_ENV as any) || "dev",
-  tosHref = "/app/terms",
+  tosHref = "/dashboard/terms",
   privacyHref = "#",
   licensesHref = "#",
 }: AboutProps) {
   const [copied, setCopied] = useState(false);
+  const router = useRouter();
 
   const copyVersion = async () => {
     try {
@@ -75,7 +77,7 @@ export function About({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <Button
               as="a"
-              href={tosHref}
+              onPress={() => router.push(tosHref)}
               target="_blank"
               rel="noreferrer"
               variant="flat"

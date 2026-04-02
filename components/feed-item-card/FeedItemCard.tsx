@@ -413,7 +413,7 @@ export default function FeedItemCard({
                 >
                   Repost
                 </DropdownItem>
-                {!isSelf ? (
+                {!isSelf && type !== "user_promoted" ? (
                   <>
                     <DropdownItem
                       key="report"
@@ -489,7 +489,7 @@ export default function FeedItemCard({
                   </Button>
                 )}
               </div>
-              <BoostToast open={optimisticBoosted} />
+              <BoostToast open={isBoosting} />
             </div>
           )}
           {type === "updated_event" && !isUserActor(actor) && (
@@ -966,7 +966,7 @@ export default function FeedItemCard({
                 className="font-light max-w-[100%] mt-3 tracking-tight"
                 onClick={() => router.push(`/dashboard/event/${actor.eventId}`)}
               >
-                <div className="w-full flex justify-center">
+                <div className="w-full flex justify-center gap-0">
                   <div className="flex flex-row font-bold text-sm text-center mb-2 items-center animate-post-glow shadow-md shadow-primary rounded-lg">
                     <Button
                       size="sm"

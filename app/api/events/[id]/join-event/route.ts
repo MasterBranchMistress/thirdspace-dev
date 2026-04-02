@@ -9,6 +9,7 @@ import { isUserBannedFromEvent } from "@/utils/user-privacy/isUserBannedFromEven
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { getEventRange } from "@/utils/date-handling/getEventRange";
+import { formatMilitaryTime } from "@/utils/date-handling/formatMilitaryTime";
 
 export async function PATCH(
   req: NextRequest,
@@ -99,38 +100,65 @@ export async function PATCH(
 
     const existingCommitments = await eventCollection
       .find({
-        _id: { $ne: event._id },
+        _id: { $ne: targetEventId }, // ⚠️ use ObjectId, not raw event._id
         $or: [{ hostId: user._id }, { attendees: user._id }],
       })
       .toArray();
 
-    const hasOverlap = existingCommitments.some((event) => {
+    const conflictingEvent = existingCommitments.find((event) => {
       const { start: existingStart, end: existingEnd } = getEventRange(
         event.date,
         event.startTime ?? "00:00",
         event.endTime ?? "00:30",
       );
 
-      const overlaps = newStart < existingEnd && newEnd > existingStart;
-
-      return overlaps;
+      return newStart < existingEnd && newEnd > existingStart;
     });
 
-    if (hasOverlap) {
+    if (
+      conflictingEvent &&
+      conflictingEvent.status !== EVENT_STATUSES._CANCELED &&
+      conflictingEvent.status !== EVENT_STATUSES._REMOVED
+    ) {
+      console.log("conflictingEvent:", {
+        id: String(conflictingEvent._id),
+        title: conflictingEvent.title,
+        startTime: conflictingEvent.startTime,
+        endTime: conflictingEvent.endTime,
+        hostId: conflictingEvent.hostId
+          ? String(conflictingEvent.hostId)
+          : null,
+        status: conflictingEvent.status,
+      });
+
+      const isHost =
+        conflictingEvent.hostId &&
+        String(conflictingEvent.hostId) === String(user._id);
+
+      const relationshipLabel = isHost ? "hosting" : "attending";
+
+      const title = conflictingEvent.title || "another event";
+      const startTime = conflictingEvent.startTime || "unknown time";
+      const endTime = conflictingEvent.endTime
+        ? `${conflictingEvent.endTime}`
+        : "";
+
+      const startTimeFormatted = formatMilitaryTime(startTime);
+      const endTimeFormatted = formatMilitaryTime(endTime);
+
       return NextResponse.json(
         {
-          message: "You already have an event during this time.",
+          message: `You're already ${relationshipLabel} "${title}" from ${startTimeFormatted} - ${endTimeFormatted}.`,
           code: "EVENT_OVERLAP",
         },
         { status: 400 },
       );
     }
-
     const isSelf = joiningUser?._id.toString() === hostUser?._id.toString();
 
     if (joiningUser && !isSelf && !isUserBlocked(hostUser, joiningUser)) {
       await userCollection.updateOne(
-        { _id: new Object(event.host) },
+        { _id: new ObjectId(event.hostId) },
         {
           $push: {
             notifications: {

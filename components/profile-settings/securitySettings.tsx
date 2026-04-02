@@ -206,29 +206,29 @@ export function Security({
             <div className="flex flex-wrap gap-2">
               <Chip
                 size="sm"
-                variant="bordered"
-                color={pwdValid.hasLen ? "secondary" : "danger"}
+                variant="solid"
+                color={pwdValid.hasLen ? "success" : "danger"}
               >
                 8+ chars
               </Chip>
               <Chip
                 size="sm"
-                variant="bordered"
-                color={pwdValid.hasUpper ? "secondary" : "danger"}
+                variant="solid"
+                color={pwdValid.hasUpper ? "success" : "danger"}
               >
                 Uppercase
               </Chip>
               <Chip
                 size="sm"
-                variant="bordered"
-                color={pwdValid.hasNum ? "secondary" : "danger"}
+                variant="solid"
+                color={pwdValid.hasNum ? "success" : "danger"}
               >
                 Number
               </Chip>
               <Chip
                 size="sm"
-                variant="bordered"
-                color={pwdValid.matches ? "secondary" : "danger"}
+                variant="solid"
+                color={pwdValid.matches ? "success" : "danger"}
               >
                 Matches
               </Chip>

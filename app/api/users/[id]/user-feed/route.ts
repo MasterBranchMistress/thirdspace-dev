@@ -8,6 +8,7 @@ import { generateEventFeed } from "@/utils/feed-generator/generateEventFeed";
 import { generateUserFeed } from "@/utils/feed-generator/generateUserFeed";
 import { FeedItem } from "@/types/user-feed";
 import { upsertAtAnchor } from "@/utils/discoverability/feed-injection-logic/upsertAtAnchor";
+import { seededShuffle } from "@/utils/shuffle-feed/shuffleFeed";
 
 export async function GET(
   req: NextRequest,
@@ -65,7 +66,7 @@ export async function GET(
       eventsCollection
         .find({
           status: EVENT_STATUSES._ACTIVE,
-          $or: [{ host: viewerId }, { attendees: viewerId }],
+          $or: [{ hostId: viewerId }, { attendees: viewerId }],
         })
         .sort({ date: -1 })
         .toArray(),
@@ -89,8 +90,10 @@ export async function GET(
       events,
       statuses,
     );
+
     const generatedEventFeed = await generateEventFeed(user, events, friends);
-    const combined = [...generatedUserFeed, ...generatedEventFeed];
+
+    const baseFeed = [...generatedUserFeed, ...generatedEventFeed];
 
     const [nearbyUsersRes, nearbyEventsRes] = await Promise.all([
       fetch(
@@ -109,48 +112,28 @@ export async function GET(
     const nearbyUsers = nearbyUsersData.users ?? [];
     const nearbyEvents = nearbyEventsData.events ?? [];
 
-    const strongMatches = nearbyUsers.filter(
-      (u: any) => (u.sharedCount ?? 0) >= 2,
-    );
-
-    const matchedTags = new Set(
-      nearbyUsers.flatMap((u: any) => u.sharedTags ?? []),
-    );
-
-    const shouldRunAI = strongMatches.length < 3;
-
-    if (shouldRunAI) {
-    }
-
-    let mergedFeed: any[] = [...combined];
-
-    const discoverEventsId = `discover_events:${id}`;
-    const discoverUsersId = `discover_users:${id}`;
-
-    // Filter out friends + self from nearby users
     const friendSet = new Set(friendsIds.map(String));
     const followerSet = new Set(followingIds.map(String));
+
     const filteredUsers = nearbyUsers.filter((u: any) => {
       const uid = String(u.id ?? u._id);
       return uid !== String(id) && !friendSet.has(uid) && !followerSet.has(uid);
     });
 
-    // Filter out events already in feed (optional but nice)
     const feedEventIds = new Set(
-      combined
+      baseFeed
         .map((x: any) => x.actor?.eventId)
         .filter(Boolean)
         .map((eid: any) => String(eid)),
     );
+
     const now = Date.now();
+    const fifteenMinutes = 15 * 60 * 1000;
 
     const filteredEvents = nearbyEvents.filter((e: any) => {
       const hostId = String(e.host?._id ?? e.host?.id ?? e.host);
       const eventId = String(e.id ?? e._id);
-
       const eventStart = new Date(e.date).getTime();
-      const fifteenMinutes = 15 * 60 * 1000;
-
       const isExpired = eventStart + fifteenMinutes < now;
 
       return (
@@ -161,51 +144,56 @@ export async function GET(
         !feedEventIds.has(eventId)
       );
     });
-    const eventAnchor =
-      mergedFeed.length >= 1 ? 2 : Math.min(1, mergedFeed.length);
-    const userAnchor =
-      mergedFeed.length >= 1 ? 1 : Math.min(0, mergedFeed.length);
+
+    let finalFeed = [...baseFeed];
+
+    const discoverEventsId = `discover_events:${id}`;
+    const discoverUsersId = `discover_users:${id}`;
 
     if (filteredEvents.length > 0) {
-      mergedFeed = upsertAtAnchor(
-        mergedFeed,
-        {
-          id: discoverEventsId,
-          type: "discover_events",
-          timestamp: new Date().toISOString(),
-          data: {
-            title: "Events near you",
-            events: filteredEvents.slice(0, 6),
-          },
-        } as any,
-        eventAnchor,
-      );
+      finalFeed.push({
+        id: discoverEventsId,
+        type: "discover_events",
+        timestamp: new Date().toISOString(),
+        data: {
+          title: "Events near you",
+          events: filteredEvents.slice(0, 6),
+        },
+      } as any);
     }
 
     if (filteredUsers.length > 0) {
-      mergedFeed = upsertAtAnchor(
-        mergedFeed,
-        {
-          id: discoverUsersId,
-          type: "discover_users",
-          timestamp: new Date().toISOString(),
-          data: {
-            title: "People you may know",
-            users: filteredUsers,
-          },
-        } as any,
-        userAnchor,
-      );
+      finalFeed.push({
+        id: discoverUsersId,
+        type: "discover_users",
+        timestamp: new Date().toISOString(),
+        data: {
+          title: "People you may know",
+          users: filteredUsers,
+        },
+      } as any);
     }
 
-    if (combined.length > 0) {
-      await feedCollection.insertMany(combined);
+    const sortedFeed = [...finalFeed].sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    );
+
+    const top = sortedFeed.slice(0, 5);
+    const rest = sortedFeed.slice(5);
+
+    const seedKey = `${String(user._id)}-${new Date().toISOString().slice(0, 10)}-${rest.map((x: any) => x.id).join("|")}`;
+
+    finalFeed = [...top, ...seededShuffle(rest, seedKey)];
+
+    if (finalFeed.length > 0) {
+      await feedCollection.insertMany(finalFeed);
     }
 
-    userFeed = combined;
+    userFeed = finalFeed;
 
-    const total = mergedFeed.length;
-    const paginatedFeed = mergedFeed.slice(skip, skip + limit);
+    const total = userFeed.length;
+    const paginatedFeed = userFeed.slice(skip, skip + limit);
 
     return NextResponse.json({
       message: "✅ Friends' events fetched",

@@ -7,7 +7,7 @@ import { COLLECTIONS, DBS, EVENT_STATUSES } from "@/lib/constants";
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params; // event id
   const client = await clientPromise;
@@ -27,10 +27,10 @@ export async function PATCH(
     }
 
     // ✅ check host permission
-    if (event.host.toString() !== userId) {
+    if (event.hostId.toString() !== userId) {
       return NextResponse.json(
         { error: "Not authorized — only host can cancel" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -38,20 +38,20 @@ export async function PATCH(
     if (event.status === EVENT_STATUSES._CANCELED) {
       return NextResponse.json(
         { error: "Event is already canceled" },
-        { status: 400 }
+        { status: 400 },
       );
     }
     if (event.status === EVENT_STATUSES._COMPLETED) {
       return NextResponse.json(
         { error: "Event is already completed" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // ✅ update status
     const updateResult = await eventsCollection.updateOne(
       { _id: new ObjectId(id) },
-      { $set: { status: EVENT_STATUSES._CANCELED } }
+      { $set: { status: EVENT_STATUSES._CANCELED } },
     );
 
     const userCollection = db.collection<UserDoc>(COLLECTIONS._USERS);
@@ -63,14 +63,14 @@ export async function PATCH(
         $push: {
           notifications: {
             _id: event._id,
-            actorId: event.host,
+            actorId: event.hostId,
             message: `Event "${event.title}" has been canceled.`,
             eventId: event._id,
             type: "canceled",
             timestamp: new Date(),
           },
         },
-      }
+      },
     );
 
     if (updateResult.matchedCount === 0) {
@@ -86,7 +86,7 @@ export async function PATCH(
   } catch (error: unknown) {
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

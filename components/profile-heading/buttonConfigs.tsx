@@ -83,7 +83,7 @@ export function getManageActionConfig({ isSelf, isBlocked }: BooleanSwitches) {
     };
   if (isBlocked)
     return {
-      label: "Blocked",
+      label: "Unblock",
       icon: <NoSymbolIcon width={iconSize} className="shrink-0" />,
     };
   return {

@@ -15,10 +15,10 @@ export async function blockUser({ loggedInUser, userToBlock }: Users) {
       }),
     });
 
-    if (res.ok) {
+    if (!res.ok) {
       throw new Error("Could not block user");
     }
-  } catch (err) {
-    return err;
+  } catch (err: any) {
+    throw new Error(err?.message || "something went wrong");
   }
 }

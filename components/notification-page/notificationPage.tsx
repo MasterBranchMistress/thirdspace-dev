@@ -19,11 +19,10 @@ import emptynotifs from "@/public/lottie/emptynotifs.json";
 import emptygroupnotifs from "@/public/lottie/emptygroupnotifs.json";
 import emptymessagenotifs from "@/public/lottie/emptymessagenotifs.json";
 import {
+  ArrowRightIcon,
   EyeIcon,
-  FireIcon,
   HandThumbDownIcon,
   HandThumbUpIcon,
-  XCircleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { useNotifications } from "@/app/context/NotificationContext";
@@ -113,6 +112,7 @@ export default function NotificationsModal({
       scrollBehavior="inside"
       backdrop="blur"
       className="bg-transparent text-concrete h-auto p-3"
+      classNames={{ closeButton: "text-concrete" }}
     >
       <ModalContent>
         {(onClose) => (
@@ -204,19 +204,32 @@ export default function NotificationsModal({
                               {n.message}
                             </p>
                             {shouldShowEventIcon(n.type) && (
-                              <button
-                                onClick={() =>
-                                  router.push(
-                                    `/dashboard/event/${String(n._id)}`,
-                                  )
-                                }
-                                className="rounded-full bg-primary backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20 flex-shrink-0"
-                              >
-                                <EyeIcon
-                                  width={23}
-                                  className="text-white p-0.5 border-1 border-white bg-white/5 backdrop-blur-md rounded-full"
-                                />
-                              </button>
+                              <div className="flex flex-row gap-1">
+                                <button
+                                  onClick={() =>
+                                    router.push(
+                                      `/dashboard/event/${String(n._id)}`,
+                                    )
+                                  }
+                                  className="rounded-full backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20 flex-shrink-0"
+                                >
+                                  <ArrowRightIcon
+                                    width={23}
+                                    className="text-white p-0.5 border-1 border-white backdrop-blur-md rounded-full"
+                                  />
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    clearNotification(n._id.toString())
+                                  }
+                                  className="rounded-full backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
+                                >
+                                  <XMarkIcon
+                                    width={23}
+                                    className="text-white p-0.5 border-1 border-white bg-white/5 backdrop-blur-md rounded-full"
+                                  />
+                                </button>
+                              </div>
                             )}
 
                             {regularDismissableNotifType(n.type) && (
@@ -224,11 +237,11 @@ export default function NotificationsModal({
                                 onClick={() =>
                                   clearNotification(n._id.toString())
                                 }
-                                className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20 flex-shrink-0"
+                                className="rounded-full backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
                               >
                                 <XMarkIcon
                                   width={23}
-                                  className="text-white p-0.5 border-1 border-white bg-white/5 backdrop-blur-md rounded-full"
+                                  className="text-white p-0.5 border-1 border-white backdrop-blur-md rounded-full"
                                 />
                               </button>
                             )}
@@ -239,16 +252,16 @@ export default function NotificationsModal({
                                 <button onClick={() => accept(n.actorId)}>
                                   <HandThumbUpIcon
                                     width={23}
-                                    className="text-white p-0.5 border-1 border-white bg-primary backdrop-blur-md rounded-full"
+                                    className="text-white p-0.5 border-1 border-white backdrop-blur-md rounded-full"
                                   />
                                 </button>
                                 <button
                                   onClick={() => reject(n.actorId)}
-                                  className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
+                                  className="rounded-full  backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
                                 >
                                   <HandThumbDownIcon
                                     width={23}
-                                    className="text-white p-0.5 border-1 border-white bg-danger backdrop-blur-md rounded-full"
+                                    className="text-white p-0.5 border-1 border-white bg-none backdrop-blur-md rounded-full"
                                   />
                                 </button>
                               </div>
@@ -256,23 +269,10 @@ export default function NotificationsModal({
                             {n.type === "user_joined_event" && (
                               <div className="flex flex-row gap-1 flex-shrink-0">
                                 <button
-                                  onClick={
-                                    () =>
-                                      console.log(`spark sent to ${n.actorId}`)
-                                    //TODO: change once spark mechs are built
-                                  }
-                                  className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
-                                >
-                                  <FireIcon
-                                    width={23}
-                                    className="text-concrete p-0.5 border-1 border-white bg-primary rounded-full"
-                                  />
-                                </button>
-                                <button
                                   onClick={() =>
                                     clearNotification(n._id.toString())
                                   }
-                                  className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
+                                  className="rounded-full backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
                                 >
                                   <XMarkIcon
                                     width={23}
@@ -287,25 +287,11 @@ export default function NotificationsModal({
                                   onClick={() =>
                                     clearNotification(n._id.toString())
                                   }
-                                  className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
+                                  className="rounded-full backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
                                 >
-                                  <HandThumbUpIcon
+                                  <XMarkIcon
                                     width={23}
-                                    className="text-concrete p-0.5 border-1 border-white bg-primary rounded-full"
-                                  />
-                                </button>
-                                <button
-                                  onClick={
-                                    /* ban user from event */ () =>
-                                      console.log(
-                                        `Banning ${n.actorId} from ${n.eventId}`,
-                                      )
-                                  }
-                                  className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
-                                >
-                                  <HandThumbDownIcon
-                                    width={23}
-                                    className="text-concrete p-0.5 border-1 border-white bg-danger rounded-full"
+                                    className="text-concrete p-0.5 border-1 border-white bg-none rounded-full"
                                   />
                                 </button>
                               </div>
@@ -316,7 +302,7 @@ export default function NotificationsModal({
                                   onClick={() =>
                                     clearNotification(n._id.toString())
                                   }
-                                  className="rounded-full bg-white/10 backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
+                                  className="rounded-full backdrop-blur-lg border border-white/30 shadow-md hover:bg-white/20"
                                 >
                                   <XMarkIcon
                                     width={23}

@@ -10,7 +10,5 @@ export const getUserFollowers = async (userId: string) => {
 
   const users = await res.json();
 
-  console.log(users);
-
   return users;
 };

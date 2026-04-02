@@ -37,7 +37,7 @@ export async function POST(
       sparkerId: new ObjectId(session.user.id),
     },
     {
-      $set: { lastViewedAt: new Date(), hostId: event.host },
+      $set: { lastViewedAt: new Date(), hostId: event.hostId },
       $setOnInsert: { firstViewedAt: new Date() },
     },
     { upsert: true },
