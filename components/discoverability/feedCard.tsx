@@ -27,10 +27,12 @@ export default function FeedAttachmentSwiper({
   commentsAreOpen,
   attachment,
   controls,
+  imageUrl,
   eventId,
   muted = true,
 }: {
   attachment?: Attachment;
+  imageUrl?: string;
   controls?: boolean;
   isImage?: boolean;
   onFeedPage?: boolean;
@@ -110,7 +112,8 @@ export default function FeedAttachmentSwiper({
           >
             <Image
               src={
-                attachment?.url ?? "/third-space-logos/thirdspace-logo-6.png"
+                (attachment?.url || imageUrl) ??
+                "/third-space-logos/thirdspace-logo-6.png"
               }
               alt={`Attachment:${attachment?.url}`}
               fill

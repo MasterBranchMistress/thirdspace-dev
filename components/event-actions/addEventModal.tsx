@@ -244,21 +244,21 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
 
     try {
       setLoading(true);
-      await handleAddEvent({
-        loggedInUser: user,
-        eventTitle: eventData.title,
-        eventDesc: eventData.description,
-        eventTags: eventData.tags,
-        eventTimeAndDate: eventData.date,
-        eventLocation: eventData.location?.name as any,
-        eventStartTime: eventData.startTime,
-        eventEndTime: eventData.endTime,
-        estimatedCost: eventData.costInfo.totalEstimated,
-        eventPrivacy: eventData.public,
-        costInfo: eventData.costInfo,
-        attachments: newFiles,
-      });
       try {
+        await handleAddEvent({
+          loggedInUser: user,
+          eventTitle: eventData.title,
+          eventDesc: eventData.description,
+          eventTags: eventData.tags,
+          eventTimeAndDate: eventData.date,
+          eventLocation: eventData.location?.name as any,
+          eventStartTime: eventData.startTime,
+          eventEndTime: eventData.endTime,
+          estimatedCost: eventData.costInfo.totalEstimated,
+          eventPrivacy: eventData.public,
+          costInfo: eventData.costInfo,
+          attachments: newFiles,
+        });
         notify("Event created 🗓️", "Sit tight while your event is processed.");
         const confettiModule = (await import("canvas-confetti")).default;
         confettiModule({ particleCount: 80, spread: 70, origin: { y: 0.6 } });

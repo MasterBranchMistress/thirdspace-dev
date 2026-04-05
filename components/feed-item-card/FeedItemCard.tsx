@@ -329,6 +329,8 @@ export default function FeedItemCard({
     }
   };
 
+  type === "event_coming_up" ? console.log(target?.attachments) : null;
+
   return (
     <Card
       radius="none"
@@ -1022,6 +1024,7 @@ export default function FeedItemCard({
                             <FeedAttachmentSwiper
                               key={i}
                               attachment={a as any}
+                              imageUrl={a as string}
                               attachments={target.attachments}
                             />
                           </SwiperSlide>
