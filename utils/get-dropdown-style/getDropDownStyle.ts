@@ -37,5 +37,5 @@ export const attachmentStyling =
 
 export const inputStyling = {
   label: "text-concrete",
-  input: "text-concrete placeholder:text-concrete/60",
+  input: "text-concrete placeholder:text-concrete/60 text-xs",
 };

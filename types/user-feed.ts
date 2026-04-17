@@ -200,6 +200,7 @@ export interface FeedTarget {
   };
   boostedCount?: number;
   boostedBy?: ObjectId[];
+  ticketLink?: string;
 }
 
 /**

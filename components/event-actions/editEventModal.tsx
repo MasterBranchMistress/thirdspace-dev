@@ -72,6 +72,7 @@ export function EditEventModal({
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const { data: session } = useSession();
   const [costInfo, setCostInfo] = useState<EventBudget | null>(null);
+  const [ticketLinks, setTicketLinks] = useState<string[]>([]);
   const feed = useFeed();
 
   const user = session?.user;
@@ -102,6 +103,16 @@ export function EditEventModal({
     !Number.isNaN(Number(costInfo.totalEstimated)) &&
     Number(costInfo.totalEstimated) >= 0;
 
+  const hasValidTicketLinks = ticketLinks.every((link) => {
+    if (!link.trim()) return false;
+    try {
+      new URL(link);
+      return true;
+    } catch {
+      return false;
+    }
+  });
+
   function resetErrors() {
     !hasValidTitle ? setTitle("") : null;
     !hasValidDescription ? setDescription("") : null;
@@ -111,6 +122,7 @@ export function EditEventModal({
     !hasValidLocation ? setLocation(null) : null;
     !hasValidCost ? setCostInfo(null) : null;
     !hasValidFiles ? setNewFiles([]) : null;
+    !hasValidTicketLinks ? setTicketLinks([]) : null;
   }
 
   const canSubmit =
@@ -120,6 +132,7 @@ export function EditEventModal({
     hasValidDescription &&
     hasValidDate &&
     hasValidStartTime &&
+    hasValidTicketLinks &&
     hasValidTags;
 
   // Prefill on open
@@ -155,8 +168,10 @@ export function EditEventModal({
         totalEstimated: initialData.costInfo?.totalEstimated ?? 0,
         splitMode: initialData.costInfo?.splitMode ?? "free",
         currency: "USD",
+        ticketLinks: initialData.costInfo?.ticketLinks,
       });
       setIsPublic(initialData.public ?? false);
+      setTicketLinks(initialData.costInfo?.ticketLinks ?? []);
     } else {
       (async () => {
         try {
@@ -187,6 +202,7 @@ export function EditEventModal({
             totalEstimated: data.costInfo?.totalEstimated ?? 0,
             splitMode: data.costInfo?.splitMode ?? "free",
             currency: "USD",
+            ticketLinks: data.costInfo?.ticketLinks,
           });
           setIsPublic(data.public ?? false);
         } catch (err) {
@@ -197,6 +213,8 @@ export function EditEventModal({
       })();
     }
   }, [isOpen, eventId, initialData]);
+
+  console.log(`Retrieved data:`, costInfo);
 
   const handleSave = async () => {
     try {
@@ -386,6 +404,7 @@ export function EditEventModal({
               <BudgetInput
                 initialValue={costInfo?.totalEstimated ?? 0}
                 initialSplitMode={costInfo?.splitMode ?? "free"}
+                initialTicketLinks={costInfo?.ticketLinks ?? []}
                 onChange={(val) => {
                   setCostInfo((prev) => ({
                     ...(prev ?? {
@@ -401,6 +420,16 @@ export function EditEventModal({
                     ...(prev ?? { totalEstimated: 0, currency: "USD" }),
                     splitMode: mode,
                   }));
+                }}
+                onTicketLinkChange={(val) => {
+                  setTicketLinks(val);
+                  setCostInfo((prev) => ({
+                    totalEstimated: prev?.totalEstimated ?? 0,
+                    currency: "USD",
+                    ticketLinks: val,
+                    splitMode: "tickets",
+                  }));
+                  console.log(costInfo?.ticketLinks);
                 }}
               />
               <SelectEventPrivacy

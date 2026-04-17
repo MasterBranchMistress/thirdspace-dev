@@ -4,18 +4,18 @@ import { EVENT_STATUSES, REF } from "../constants";
 import { FeedItemType } from "@/types/user-feed";
 import { UserDoc } from "./User";
 
-type Attachment = {
-  url: string;
-  type?: "image" | "video" | undefined;
-  thumbNail?: string;
-};
-
-export type CostSplitMode = "" | "free" | "host_covers" | "split_evenly";
+export type CostSplitMode =
+  | ""
+  | "free"
+  | "host_covers"
+  | "split_evenly"
+  | "tickets";
 
 export type EventBudget = {
   splitMode: CostSplitMode;
   totalEstimated: number;
   currency: "USD";
+  ticketLinks?: string[];
 };
 
 export interface EventDoc {

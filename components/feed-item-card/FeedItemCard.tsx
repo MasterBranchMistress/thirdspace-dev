@@ -329,8 +329,6 @@ export default function FeedItemCard({
     }
   };
 
-  type === "event_coming_up" ? console.log(target?.attachments) : null;
-
   return (
     <Card
       radius="none"

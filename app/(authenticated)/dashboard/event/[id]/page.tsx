@@ -53,6 +53,7 @@ import { EventBudget } from "@/lib/models/Event";
 import { getDurationInMinutes } from "@/utils/metadata/get-event-duration/eventDuration";
 import { ObjectId } from "mongodb";
 import { useFeed } from "@/app/context/UserFeedContext";
+import { parseTicketLink } from "@/utils/parse-ticket-link/parseTicketLink";
 
 type Comment = {
   userId: any;
@@ -431,7 +432,27 @@ export default function EventViewPage() {
                         </span>
                       ))}
                     </div>
-                    <div className="flex flex-row gap-2 mt-3 justify-center items-center">
+                    <div className="flex flex-col gap-2 mt-3 justify-center items-center">
+                      <div className="flex flex-row items-center gap-5">
+                        {event.costInfo.splitMode === "tickets" &&
+                          event.costInfo.ticketLinks?.map((link, idx) => (
+                            <div key={idx} className="my-2 gap-2 items-center">
+                              <a
+                                href={link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <Image
+                                  src={parseTicketLink(link) ?? "/favicon.ico"}
+                                  width={90}
+                                  height={90}
+                                  alt={link}
+                                  className="cursor-pointer hover:opacity-80 transition"
+                                />
+                              </a>
+                            </div>
+                          ))}
+                      </div>
                       <p className="text-primary font-light text-sm text-center">
                         {event.costInfo.splitMode === "free"
                           ? "Event is Free 🍻"
@@ -446,6 +467,9 @@ export default function EventViewPage() {
                                 (atts.length + 1)
                               ).toFixed(2)} per Orbiter`
                             : "Split Evenly: Cost will update per Orbiter"
+                          : ""}
+                        {event.costInfo.splitMode === "tickets"
+                          ? `Approx ~ $${event.costInfo?.totalEstimated} per Ticket`
                           : ""}
                       </p>
                       <p className="text-xs text-gray-400 text-center">

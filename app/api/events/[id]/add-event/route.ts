@@ -180,6 +180,7 @@ export async function POST(
         ? {
             splitMode: data.costInfo.splitMode,
             totalEstimated: data.costInfo.totalEstimated,
+            ticketLinks: data.costInfo.ticketLinks,
             currency: "USD",
           }
         : undefined,

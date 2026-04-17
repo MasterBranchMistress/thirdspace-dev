@@ -33,7 +33,7 @@ import { parseZonedDate } from "@/utils/date-handling/parseCalendarZoneDateTime"
 import { handleAddEvent } from "@/utils/handle-user-posting/handleEventPost";
 import { useFeed } from "@/app/context/UserFeedContext";
 import LocationSearch from "../location-auto-complete/searchInput";
-import { CostSplitMode, EventBudget, EventDoc } from "@/lib/models/Event";
+import { CostSplitMode } from "@/lib/models/Event";
 import DurationPicker from "../event-duration/eventDuration";
 import { getDurationInMinutes } from "@/utils/metadata/get-event-duration/eventDuration";
 
@@ -60,15 +60,18 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
     lat?: number;
     lng?: number;
   } | null>(null);
-  const [costInfo, setCostInfo] = useState<{
-    totalEstimated: number;
-    splitMode: CostSplitMode;
-    currency: "USD";
-  } | null>(null);
+
   const [splitMode, setSplitMode] = useState<CostSplitMode>("free");
   const [isPublic, setIsPublic] = useState<boolean>(false);
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const [ticketLinks, setTicketLinks] = useState<string[]>([]);
+  const [costInfo, setCostInfo] = useState<{
+    totalEstimated: number;
+    splitMode: CostSplitMode;
+    currency: "USD";
+    ticketLinks: string[];
+  } | null>(null);
 
   const durationMinutes = getDurationInMinutes(startTime ?? "", endTime);
   const durationKey =
@@ -109,6 +112,16 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
     !Number.isNaN(Number(costInfo.totalEstimated)) &&
     Number(costInfo.totalEstimated) >= 0;
 
+  const hasValidTicketLinks = ticketLinks.every((link) => {
+    if (!link.trim()) return false;
+    try {
+      new URL(link);
+      return true;
+    } catch {
+      return false;
+    }
+  });
+
   const canSubmit =
     !loading &&
     hasValidUser &&
@@ -116,6 +129,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
     hasValidDescription &&
     hasValidDate &&
     hasValidStartTime &&
+    hasValidTicketLinks &&
     hasValidTags;
 
   function resetErrors() {
@@ -143,6 +157,7 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
     setDate(null);
     setIsPublic(false);
     setNewFiles([]);
+    setTicketLinks([]);
   }
 
   const submit = async (e?: React.FormEvent) => {
@@ -420,15 +435,30 @@ export default function AddEventModal({ isOpen, onOpenChange }: AddEventProps) {
                           splitMode: "free",
                           totalEstimated: 0,
                           currency: "USD",
+                          ticketLinks: [],
                         }),
                         totalEstimated: val,
                       }));
                     }}
                     onSplitChange={(mode) => {
                       setCostInfo((prev) => ({
-                        ...(prev ?? { totalEstimated: 0, currency: "USD" }),
+                        ...(prev ?? {
+                          totalEstimated: 0,
+                          currency: "USD",
+                          ticketLinks: [],
+                        }),
                         splitMode: mode,
                       }));
+                    }}
+                    onTicketLinkChange={(val) => {
+                      setTicketLinks(val);
+                      setCostInfo((prev) => ({
+                        totalEstimated: prev?.totalEstimated ?? 0,
+                        currency: "USD",
+                        ticketLinks: val,
+                        splitMode: "tickets",
+                      }));
+                      console.log(costInfo?.ticketLinks);
                     }}
                   />
 
