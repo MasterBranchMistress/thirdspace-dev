@@ -57,6 +57,7 @@ export const authOptions: NextAuthOptions = {
           interests: user.interests ?? [],
           favoriteLocations: user.favoriteLocations ?? [],
           provider: user.provider ?? "credentials",
+          onboarded: user.onboarded ?? false,
         };
 
         return sessionUser;
