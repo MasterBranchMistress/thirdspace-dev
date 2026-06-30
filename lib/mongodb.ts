@@ -1,7 +1,11 @@
 import { MongoClient } from "mongodb";
+import dns from "dns";
 
 //Load the connection string from environment variables
 const uri = process.env.MONGO_URI!;
+
+//set dns server to google to avoid dns resolution issues on vercel
+dns.setServers(["1.1.1.1", "1.0.0.1", "8.8.8.8"]);
 
 //create a global Mongo connection to reuse throughout the api
 let client: MongoClient;

@@ -153,6 +153,7 @@ export async function POST(req: NextRequest) {
       { status: 201 },
     );
   } catch (error: unknown) {
+    console.error("Error in register route:", error);
     return NextResponse.json(
       { error: (error as Error).message },
       { status: 500 },
